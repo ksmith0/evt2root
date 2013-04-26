@@ -1,2 +1,0 @@
-/afs/crc.nd.edu/user/s/spectro/evt2root/build/MSUEvent/CMakeFiles/MSUEvent.dir
-/afs/crc.nd.edu/user/s/spectro/evt2root/build/src/CMakeFiles/evt2root.dir

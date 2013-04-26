@@ -1,2 +1,0 @@
-/usr/bin/ar cr libMSUEvent.a  CMakeFiles/MSUEvent.dir/msuEventData.cxx.o CMakeFiles/MSUEvent.dir/msuRingScalerData.cxx.o CMakeFiles/MSUEvent.dir/msuScalerData.cxx.o CMakeFiles/MSUEvent.dir/MSUEventDictionary.cxx.o
-/usr/bin/ranlib libMSUEvent.a
