@@ -13,9 +13,9 @@ class msuEventData : public TObject
 		msuEventData();
 		void Clear();
 
-		int slot14[32];
+		int slot12[NUM_OF_DATA_CH];
+		int slot14[NUM_OF_DATA_CH];
 
-		int siDet[29];
 
 		ClassDef(msuEventData,1);
 };
