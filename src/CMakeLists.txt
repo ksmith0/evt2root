@@ -1,4 +1,4 @@
-set(evt2root_SOURCES msuClassicScaler.cxx msuClassicBuffer.cxx msuEvent.cxx evt2root.cxx)
+set(evt2root_SOURCES msuClassicScaler.cxx msuClassicBuffer.cxx evtRunBuffer.cxx msuEvent.cxx evt2root.cxx)
 
 include_directories(${evt2root_SOURCE_DIR}/include)
 

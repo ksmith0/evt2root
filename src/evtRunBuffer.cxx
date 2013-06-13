@@ -20,7 +20,7 @@ evtRunBuffer::evtRunBuffer()
  * \bug If there are a number of 0s the run title is terminated. Should 
  * 	properly read 79 bytes to get run title.
  */
-void msuClassicBuffer::ReadRunBegin(msuClassicBuffer *buffer) {
+void evtRunBuffer::ReadRunBegin(msuClassicBuffer *buffer) {
 	if (buffer->GetSubEvtType() != SUBEVT_TYPE_RUNBEGIN) {
 		fprintf(stderr,"ERROR: Not a run begin subevt!\n");
 		return;

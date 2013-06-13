@@ -80,27 +80,6 @@ int msuClassicBuffer::GetRunNumber()
 {
 	return fRunNum;
 }
-std::string msuClassicBuffer::GetRunTitle()
-{
-	if(!fRunTitle.length()) ReadRunTitle();
-	return fRunTitle;
-}
-
-void msuClassicBuffer::ReadRunTitle() {
-	if (GetSubEvtType() != SUBEVT_TYPE_RUNBEGIN) {
-		fprintf(stderr,"ERROR[ClassicBuffer.cxx]: Not a run begin subevt!\n");
-		return;
-	}
-
-	for (int i=0;i<32;i++) {
-		int word = GetWord();
-		if (word == 0) break;
-		fRunTitle.push_back(word & 0xFF);
-		int letter = (word & 0xFF00) >> 8;
-		if (letter)
-			fRunTitle.push_back(letter);
-	}
-}
 
 unsigned int msuClassicBuffer::GetWord()
 {

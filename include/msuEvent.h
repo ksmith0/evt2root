@@ -44,13 +44,19 @@ class msuEvent
 {
 
 	private:
+		///Class contataining data for one event.
 		msuEventData *fData;
 		
 	public:
+		///Default constructor.
 		msuEvent();
-		void ReadEvent(msuClassicBuffer *buffer);
+		///Reads current event and stores data.
+		void ReadEvent(msuClassicBuffer *buffer, bool verbose = false);
+		///Returns pointer to the event data.
 		msuEventData *GetEventData();
+		
 		void Clear();
+		///Dumps the words in the current event.
 		void DumpEvent(msuClassicBuffer *buffer); 
 
 

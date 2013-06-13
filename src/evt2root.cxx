@@ -1,13 +1,6 @@
-//#define RING_BUFFER
-
-#ifdef RING_BUFFER
-#include "msuRingBuffer.h"
-#include "msuRingScaler.h"
-#else
 #include "msuClassicBuffer.h"
 #include "msuClassicScaler.h"
-#endif
-#include "msuScalerData.h"
+#include "evtRunBuffer.h"
 #include "msuEvent.h"
 #include "TTree.h"
 #include "TFile.h"
@@ -22,6 +15,7 @@ int main (int argc, char *argv[])
 
 	msuClassicBuffer *buffer = new msuClassicBuffer(argv[1]);
 	msuClassicScaler *scaler = new msuClassicScaler();
+	evtRunBuffer *runBuffer = new evtRunBuffer();
 	msuEvent *event = new msuEvent();
 
 	
@@ -48,8 +42,9 @@ int main (int argc, char *argv[])
 			scalerTree->Fill();
 		}
 		else if (buffer->GetSubEvtType() == SUBEVT_TYPE_RUNBEGIN) {
-			printf("Run %d - %s\n",buffer->GetRunNumber(),buffer->GetRunTitle().c_str());
-			evtTree->SetTitle(buffer->GetRunTitle().c_str());
+			runBuffer->ReadRunBegin(buffer);
+			printf("Run %d - %s\n",buffer->GetRunNumber(),runBuffer->GetRunTitle().c_str());
+			evtTree->SetTitle(runBuffer->GetRunTitle().c_str());
 			TParameter<int>("run",buffer->GetRunNumber()).Write();
 		}
 		else if (buffer->GetSubEvtType() == SUBEVT_TYPE_RUNEND) {

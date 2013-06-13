@@ -8,24 +8,31 @@ void msuEvent::Clear()
 {
 	
 }
-void msuEvent::ReadEvent(msuClassicBuffer *buffer) {
-	int datum=0;
-	int type;
-	int slot;
-	bool verbose = false;
+/**Typical event buffer:
+ * 1. Event word count (include self).
+ * 2. Bit register
+ * 3. LAM mask longword
+ * 4. Event packets ...
+ *
+ * VM-USB seems to be missing the bit register and the LAM mask longword. 
+ * The VM-USB word count seems to ignore the evnt word count word (non-inclusive).
+ *
+ * \param buffer Pointer to the buffer being read.
+ * \param verbose Verbosity flag. 
+ */
+void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
+	fData->Clear();
 
 	int eventLength = buffer->GetWord();
-	
-	fData->Clear();
 
 	if (verbose) {
 		printf ("New Event length:%d\n",eventLength);
 		fflush(stdout);
 	}
 	for (int i=0;i<eventLength / 2;i++) {
-		datum = buffer->GetLongWord();
-		type = (datum & ALLH_TYPEMASK) >> ALLH_TYPESHIFT;
-		slot = (datum & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
+		int datum = buffer->GetLongWord();
+		int type = (datum & ALLH_TYPEMASK) >> ALLH_TYPESHIFT;
+		int slot = (datum & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
 		if (verbose) {
 			printf ("0x%08X type: %d slot: %2d ",datum,type,slot);
 			fflush(stdout);

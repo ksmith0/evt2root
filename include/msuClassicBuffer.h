@@ -48,8 +48,6 @@ class msuClassicBuffer
 		///The number of words read in the current buffer.
 		int fReadWords;
 
-		std::string fRunTitle;
-
 		///Open evt file.
 		void fOpenFile(char *filename);
 	public:
@@ -77,9 +75,6 @@ class msuClassicBuffer
 		void Forward(int numOfWords);
 		///Dump the current buffer in hex.
 		void DumpBuffer();
-		///Get Run Title
-		std::string GetRunTitle();
-		void ReadRunTitle();
 
 };
 
