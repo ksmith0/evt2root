@@ -9,7 +9,6 @@
 #endif
 #include "msuScalerData.h"
 #include "msuEvent.h"
-#include "TROOT.h"
 #include "TTree.h"
 #include "TFile.h"
 #include "TParameter.h"
@@ -49,9 +48,9 @@ int main (int argc, char *argv[])
 			scalerTree->Fill();
 		}
 		else if (buffer->GetSubEvtType() == SUBEVT_TYPE_RUNBEGIN) {
-			printf("Run %d - %s\n",buffer->GetRun(),buffer->GetRunTitle().c_str());
+			printf("Run %d - %s\n",buffer->GetRunNumber(),buffer->GetRunTitle().c_str());
 			evtTree->SetTitle(buffer->GetRunTitle().c_str());
-			TParameter<int>("run",buffer->GetRun()).Write();
+			TParameter<int>("run",buffer->GetRunNumber()).Write();
 		}
 		else if (buffer->GetSubEvtType() == SUBEVT_TYPE_RUNEND) {
 			printf("Run Ended        \n");

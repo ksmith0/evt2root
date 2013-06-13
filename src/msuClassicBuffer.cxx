@@ -10,7 +10,6 @@ msuClassicBuffer::msuClassicBuffer(char *filename)
 int msuClassicBuffer::GetSubEvtType()
 {
 	return fSubevtType;
-
 }
 
 int msuClassicBuffer::GetNumOfWords()
@@ -24,7 +23,7 @@ void msuClassicBuffer::fOpenFile(char *filename)
 	}
 	catch (char *e)
 	{
-		fprintf(stderr,"ERROR: Can't open evtfile %s\n",filename);
+		fprintf(stderr,"ERROR[ClassicBuffer.cxx]: Can't open evtfile %s\n",filename);
 	}
 	return;
 }
@@ -45,7 +44,7 @@ int msuClassicBuffer::GetNextBuffer()
 	else {
 		int nRead = fread(fBuffer, 2, BUFFER_SIZE, fFP);
 		if (nRead != BUFFER_SIZE) {
-			fprintf(stderr,"ERROR: Incorrect buffer size!\n");
+			fprintf(stderr,"ERROR[ClassicBuffer.cxx]: Incorrect buffer size!\n");
 			return -1;
 		}
 
@@ -53,13 +52,31 @@ int msuClassicBuffer::GetNextBuffer()
 		fSubevtType = fBuffer[fReadWords++];
 		fChecksum = fBuffer[fReadWords++];
 		fRunNum = fBuffer[fReadWords++];
-		Forward(12);
+		fBufferNumber = (fBuffer[fReadWords++] << 16) | (fBuffer[fReadWords++]);
+		fNumOfEvents = fBuffer[fReadWords++];
+		fNumOfLAMRegisters = fBuffer[fReadWords++];
+		fNumOfCPU = fBuffer[fReadWords++];
+		fNumOfBitRegisters = fBuffer[fReadWords++];
+		Forward(6);
 	}
 
 	return 0;
 }
 
-int msuClassicBuffer::GetRun() 
+void msuClassicBuffer::PrintBufferHeader() 
+{
+	printf("\nBuffer Header Summary:\n");
+	printf("\tNum of words: %d\n",fNumWords);
+	printf("\tChecksum: %d\n",fChecksum);
+	printf("\tRun number: %d\n",fRunNum);
+	printf("\tBuffer number: %d\n",fBufferNumber);
+	printf("\tNumber of events: %d\n",fNumOfEvents);
+	printf("\tNumber of LAM registers: %d\n",fNumOfLAMRegisters);
+	printf("\tNumber of CPU: %d\n",fNumOfCPU);
+	printf("\tNumber of bit registers: %d\n",fNumOfBitRegisters);
+	printf("\n");
+}
+int msuClassicBuffer::GetRunNumber() 
 {
 	return fRunNum;
 }
@@ -71,7 +88,7 @@ std::string msuClassicBuffer::GetRunTitle()
 
 void msuClassicBuffer::ReadRunTitle() {
 	if (GetSubEvtType() != SUBEVT_TYPE_RUNBEGIN) {
-		fprintf(stderr,"ERROR: Not a run begin subevt!\n");
+		fprintf(stderr,"ERROR[ClassicBuffer.cxx]: Not a run begin subevt!\n");
 		return;
 	}
 
@@ -107,8 +124,11 @@ unsigned int msuClassicBuffer::GetLongWord()
 		}
 		if (goodWords <2) 
 			return 0xFFFFFFFF;
-		//return (word[1]<<16) | (word[0]);
+	#ifdef VMUSB
+		return (word[1]<<16) | (word[0]);
+	#else
 		return (word[0]<<16) | (word[1]);
+	#endif
 	}
 
 	return 0xFFFFFFFF;

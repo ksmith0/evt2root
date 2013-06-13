@@ -51,6 +51,7 @@ class msuEvent
 		void ReadEvent(msuClassicBuffer *buffer);
 		msuEventData *GetEventData();
 		void Clear();
+		void DumpEvent(msuClassicBuffer *buffer); 
 
 
 

@@ -6,6 +6,5 @@
 #pragma link C++ nestedclasses;
 
 #pragma link C++ class msuScalerData;
-#pragma link C++ class msuRingScalerData;
 #pragma link C++ class msuEventData;
 #endif
