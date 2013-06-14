@@ -1,10 +1,10 @@
-#include "msuEvent.h"
+#include "nsclEventBuffer.h"
 
 
-msuEvent::msuEvent() {
+nsclEventBuffer::nsclEventBuffer() {
 	fData = new eventData();
 }
-void msuEvent::Clear()
+void nsclEventBuffer::Clear()
 {
 	
 }
@@ -22,7 +22,7 @@ void msuEvent::Clear()
  * \param buffer Pointer to the buffer being read.
  * \param verbose Verbosity flag. 
  */
-void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
+void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, bool verbose) {
 	fData->Clear();
 	int readWords=0;
 
@@ -92,7 +92,7 @@ void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
 
 }
 
-void msuEvent::DumpEvent(msuClassicBuffer *buffer) {
+void nsclEventBuffer::DumpEvent(nsclBuffer *buffer) {
 	int eventLength = buffer->GetWord();
 	printf("\nEvent Dump Length: %d",eventLength);
 #ifdef NONINCLUSIVE_EVT_WORD_CNT
@@ -108,7 +108,7 @@ void msuEvent::DumpEvent(msuClassicBuffer *buffer) {
 	printf("\n");
 	buffer->Rewind(eventLength);
 }
-eventData *msuEvent::GetEventData() 
+eventData *nsclEventBuffer::GetEventData() 
 {
 	return fData;
 }

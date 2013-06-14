@@ -1,5 +1,5 @@
-#ifndef MSUSCALERDATA_H
-#define MSUSCALERDATA_H
+#ifndef EVTSCALER_H
+#define EVTSCALER_H
 
 #define NUM_OF_SCALER_CH 32
 

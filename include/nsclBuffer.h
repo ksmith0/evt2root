@@ -1,9 +1,9 @@
-#ifndef MSUCLASSICBUFFER_H
-#define MSUCLASSICBUFFER_H
+#ifndef NSCLBUFFER_H
+#define NSCLBUFFER_H
 
-//#define BUFFER_SIZE 13328 
-#define BUFFER_SIZE 4096 
-//#define VM_USB
+//#define BUFFER_SIZE 13328 //Typical value for VM USB 
+#define BUFFER_SIZE 4096 //Another typical value
+//#define VM_USB //Are we using the USB version?
 
 #include <iostream>
 #include <stdio.h>
@@ -19,7 +19,7 @@ enum BufferType
 
 };
 
-class msuClassicBuffer
+class nsclBuffer
 {
 	private:
 		///File pointer to evt file.
@@ -55,8 +55,8 @@ class msuClassicBuffer
 		void fOpenFile(char *filename);
 	public:
 		///Default constructor
-		msuClassicBuffer(char *filename, unsigned int bufferSize=BUFFER_SIZE);
-		virtual ~msuClassicBuffer();
+		nsclBuffer(char *filename, unsigned int bufferSize=BUFFER_SIZE);
+		virtual ~nsclBuffer();
 		///Clear the current values for the buffer.
 		void Clear();
 		///Output the values stored in the buffer header.

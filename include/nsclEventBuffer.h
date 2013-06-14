@@ -1,9 +1,9 @@
-#ifndef MSUEVENT_H
-#define MSUEVENT_H
+#ifndef NSCLEVENTBUFFER_H
+#define NSCLEVENTBUFFER_H
 
-//#define NONINCLUSIVE_EVT_WORD_CNT
+//#define NONINCLUSIVE_EVT_WORD_CNT //The event buffer word count does not include itself.
 
-#include "msuClassicBuffer.h"
+#include "nsclBuffer.h"
 #include "eventData.h"
 
      // All data words have these bits:
@@ -42,7 +42,7 @@ static const unsigned int DATA(0);
 static const unsigned int TRAILER(4);
 static const unsigned int INVALID(6);
 
-class msuEvent
+class nsclEventBuffer
 {
 
 	private:
@@ -51,15 +51,15 @@ class msuEvent
 		
 	public:
 		///Default constructor.
-		msuEvent();
+		nsclEventBuffer();
 		///Reads current event and stores data.
-		void ReadEvent(msuClassicBuffer *buffer, bool verbose = false);
+		void ReadEvent(nsclBuffer *buffer, bool verbose = false);
 		///Returns pointer to the event data.
 		eventData *GetEventData();
 		
 		void Clear();
 		///Dumps the words in the current event.
-		void DumpEvent(msuClassicBuffer *buffer); 
+		void DumpEvent(nsclBuffer *buffer); 
 
 
 

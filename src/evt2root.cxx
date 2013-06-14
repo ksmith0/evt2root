@@ -3,10 +3,10 @@
  * containing the event data and scaler data.
  */
 
-#include "msuClassicBuffer.h"
-#include "msuClassicScaler.h"
-#include "evtRunBuffer.h"
-#include "msuEvent.h"
+#include "nsclBuffer.h"
+#include "nsclScalerBuffer.h"
+#include "nsclRunBuffer.h"
+#include "nsclEventBuffer.h"
 #include "TTree.h"
 #include "TFile.h"
 #include "TParameter.h"
@@ -19,17 +19,17 @@ int main (int argc, char *argv[])
 		return 1;
 	}
 
-	msuClassicBuffer *buffer = new msuClassicBuffer(argv[1]);
-	msuClassicScaler *scaler = new msuClassicScaler();
-	evtRunBuffer *runBuffer = new evtRunBuffer();
-	msuEvent *event = new msuEvent();
+	nsclBuffer *buffer = new nsclBuffer(argv[1]);
+	nsclScalerBuffer *scaler = new nsclScalerBuffer();
+	nsclRunBuffer *runBuffer = new nsclRunBuffer();
+	nsclEventBuffer *event = new nsclEventBuffer();
 
 	
 	TFile *file = new TFile(argv[2],"RECREATE");
 	TTree *evtTree = new TTree("evtTree","Events");
 	TTree *scalerTree = new TTree("scalerTree","Scalers");
 	scalerTree->Branch("scaler","msuScalerData",scaler->GetScalerData());
-	evtTree->Branch("event","msuEventData",event->GetEventData());
+	evtTree->Branch("event","nsclEventBufferData",event->GetEventData());
 	evtTree->BranchRef();
 
 	int cnt=0;

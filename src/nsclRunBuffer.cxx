@@ -1,6 +1,6 @@
-#include "evtRunBuffer.h"
+#include "nsclRunBuffer.h"
 
-evtRunBuffer::evtRunBuffer()
+nsclRunBuffer::nsclRunBuffer()
 {
 
 }
@@ -20,7 +20,7 @@ evtRunBuffer::evtRunBuffer()
  * \bug If there are a number of 0s the run title is terminated. Should 
  * 	properly read 79 bytes to get run title.
  */
-void evtRunBuffer::ReadRunBegin(msuClassicBuffer *buffer) {
+void nsclRunBuffer::ReadRunBegin(nsclBuffer *buffer) {
 	if (buffer->GetBufferType() != BUFFER_TYPE_RUNBEGIN) {
 		fprintf(stderr,"ERROR: Not a run begin buffer!\n");
 		return;
@@ -36,7 +36,7 @@ void evtRunBuffer::ReadRunBegin(msuClassicBuffer *buffer) {
 	}
 }
 
-std::string evtRunBuffer::GetRunTitle()
+std::string nsclRunBuffer::GetRunTitle()
 {
 	return fRunTitle;
 }

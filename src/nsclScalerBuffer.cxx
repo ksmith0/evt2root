@@ -1,21 +1,21 @@
-#include "msuClassicScaler.h"
+#include "nsclScalerBuffer.h"
 
 
-msuClassicScaler::msuClassicScaler()
+nsclScalerBuffer::nsclScalerBuffer()
 {
 	fScalerData = new eventScaler();
 	Clear();
 }
 
-void  msuClassicScaler::Clear() {
+void  nsclScalerBuffer::Clear() {
 
 }
-eventScaler *msuClassicScaler::GetScalerData() 
+eventScaler *nsclScalerBuffer::GetScalerData() 
 {
 	return fScalerData;
 }
 
-void msuClassicScaler::ReadScalers(msuClassicBuffer *buffer)
+void nsclScalerBuffer::ReadScalers(nsclBuffer *buffer)
 {
 	Clear();
 	if (buffer->GetBufferType() != BUFFER_TYPE_SCALERS) {

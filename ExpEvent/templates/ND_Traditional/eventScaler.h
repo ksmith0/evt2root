@@ -1,5 +1,5 @@
-#ifndef MSUSCALERDATA_H
-#define MSUSCALERDATA_H
+#ifndef EVENTSCALER_H
+#define EVENTSCALER_H
 
 #define NUM_OF_SCALER_CH 32
 

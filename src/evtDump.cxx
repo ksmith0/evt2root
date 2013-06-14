@@ -1,7 +1,7 @@
-#include "msuClassicBuffer.h"
-#include "msuClassicScaler.h"
-#include "evtRunBuffer.h"
-#include "msuEvent.h"
+#include "nsclBuffer.h"
+#include "nsclScalerBuffer.h"
+#include "nsclRunBuffer.h"
+#include "nsclEventBuffer.h"
 #include <stdlib.h>
 
 int main (int argc, char *argv[])
@@ -11,15 +11,15 @@ int main (int argc, char *argv[])
 		return 1;
 	}
 
-	msuClassicBuffer *buffer;
+	nsclBuffer *buffer;
 	if (argc == 3) 
-		buffer = new msuClassicBuffer(argv[1],atoi(argv[2]));
+		buffer = new nsclBuffer(argv[1],atoi(argv[2]));
 	else
-		buffer = new msuClassicBuffer(argv[1]);
+		buffer = new nsclBuffer(argv[1]);
 
-	msuClassicScaler *scaler = new msuClassicScaler();
-	evtRunBuffer *runBuffer = new evtRunBuffer();
-	msuEvent *event = new msuEvent();
+	nsclScalerBuffer *scaler = new nsclScalerBuffer();
+	nsclRunBuffer *runBuffer = new nsclRunBuffer();
+	nsclEventBuffer *event = new nsclEventBuffer();
 
 	printf("Evt Dump: %s\n",argv[1]);
 	printf("Buffer Size: %d\n",buffer->GetBufferSize());

@@ -1,5 +1,5 @@
-#ifndef MSUEVENTDATA_H
-#define MSUEVENTDATA_H
+#ifndef EVENTDATA_H
+#define EVENTDATA_H
 
 #define NUM_OF_DATA_SLOTS 17
 #define NUM_OF_DATA_CH 32

@@ -1,5 +1,5 @@
-set(evt2root_SOURCES msuClassicScaler.cxx msuClassicBuffer.cxx evtRunBuffer.cxx msuEvent.cxx evt2root.cxx)
-set(evtDump_SOURCES msuClassicScaler.cxx msuClassicBuffer.cxx evtRunBuffer.cxx msuEvent.cxx evtDump.cxx)
+set(evt2root_SOURCES nsclScalerBuffer.cxx nsclBuffer.cxx nsclRunBuffer.cxx nsclEventBuffer.cxx evt2root.cxx)
+set(evtDump_SOURCES nsclScalerBuffer.cxx nsclBuffer.cxx nsclRunBuffer.cxx nsclEventBuffer.cxx evtDump.cxx)
 
 include_directories(${evt2root_SOURCE_DIR}/include)
 

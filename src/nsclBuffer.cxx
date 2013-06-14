@@ -1,6 +1,6 @@
-#include "msuClassicBuffer.h"
+#include "nsclBuffer.h"
 
-msuClassicBuffer::msuClassicBuffer(char *filename, unsigned int bufferSize)
+nsclBuffer::nsclBuffer(char *filename, unsigned int bufferSize)
 	: fFileName(filename),
 	fBufferSize(bufferSize)
 {
@@ -8,23 +8,23 @@ msuClassicBuffer::msuClassicBuffer(char *filename, unsigned int bufferSize)
 	this->fOpenFile(fFileName);
 	this->Clear();
 }
-msuClassicBuffer::~msuClassicBuffer() {
+nsclBuffer::~nsclBuffer() {
 	delete[] fBuffer;
 }
-int msuClassicBuffer::GetBufferType()
+int nsclBuffer::GetBufferType()
 {
 	return fBufferType;
 }
-int msuClassicBuffer::GetBufferSize()
+int nsclBuffer::GetBufferSize()
 {
 	return fBufferSize;
 }
 
-unsigned int msuClassicBuffer::GetNumOfWords()
+unsigned int nsclBuffer::GetNumOfWords()
 {
 	return fNumWords;
 }
-void msuClassicBuffer::fOpenFile(char *filename)
+void nsclBuffer::fOpenFile(char *filename)
 {
 	try {
 		if ((fFP=fopen(filename,"r")) == NULL) throw filename;
@@ -35,7 +35,7 @@ void msuClassicBuffer::fOpenFile(char *filename)
 	}
 	return;
 }
-void msuClassicBuffer::Clear()
+void nsclBuffer::Clear()
 {
 	fReadWords = 0;
 	fBufferType = 0;
@@ -51,11 +51,11 @@ void msuClassicBuffer::Clear()
 
 	for (int i=0;i<fBufferSize;i++) fBuffer[i] = 0;
 }
-unsigned int msuClassicBuffer::GetBufferNumber()
+unsigned int nsclBuffer::GetBufferNumber()
 {
 	return fBufferNumber;
 }
-int msuClassicBuffer::GetNextBuffer() 
+int nsclBuffer::GetNextBuffer() 
 {
 	this->Clear();
 
@@ -83,7 +83,7 @@ int msuClassicBuffer::GetNextBuffer()
 	return 0;
 }
 
-void msuClassicBuffer::PrintBufferHeader() 
+void nsclBuffer::PrintBufferHeader() 
 {
 	printf("\nBuffer Header Summary:\n");
 	printf("\tNum of words: %d\n",fNumWords);
@@ -96,19 +96,19 @@ void msuClassicBuffer::PrintBufferHeader()
 	printf("\tNumber of CPU: %d\n",fNumOfCPU);
 	printf("\tNumber of bit registers: %d\n",fNumOfBitRegisters);
 }
-unsigned int msuClassicBuffer::GetRunNumber() 
+unsigned int nsclBuffer::GetRunNumber() 
 {
 	return fRunNum;
 }
 
-unsigned int msuClassicBuffer::GetWord()
+unsigned int nsclBuffer::GetWord()
 {
 	if (fReadWords < fNumWords) {
 		return fBuffer[fReadWords++];
 	}
 	return 0;
 }
-unsigned int msuClassicBuffer::GetLongWord()
+unsigned int nsclBuffer::GetLongWord()
 {
 	unsigned short int word[2];
 	if (fReadWords+1 < fNumWords) {
@@ -121,21 +121,21 @@ unsigned int msuClassicBuffer::GetLongWord()
 
 		
 }
-void msuClassicBuffer::Forward(int numOfWords)
+void nsclBuffer::Forward(int numOfWords)
 {
 	fReadWords += numOfWords;
 }
-void msuClassicBuffer::Rewind(int numOfWords)
+void nsclBuffer::Rewind(int numOfWords)
 {
 	fReadWords -= numOfWords;
 }
 
-unsigned int msuClassicBuffer::GetPosition()
+unsigned int nsclBuffer::GetPosition()
 {
 	return fReadWords;
 }
 
-void msuClassicBuffer::DumpHeader()
+void nsclBuffer::DumpHeader()
 {
 	printf("\nBuffer Header:");
 	for (int i=0;i<16;i++) {
@@ -146,7 +146,7 @@ void msuClassicBuffer::DumpHeader()
 	printf("\n");
 }
 
-void msuClassicBuffer::DumpBuffer()
+void nsclBuffer::DumpBuffer()
 {
 	printf("\nBuffer Length %d:", fNumWords);
 	for (int i=0;i<fNumWords && i<fBufferSize;i++) {

@@ -1,19 +1,19 @@
-#ifndef EVTRUNBUFFER_H
-#define EVTRUNBUFFER_H
+#ifndef NSCLRUNBUFFER_H
+#define NSCLRUNBUFFER_H
 
-#include "msuClassicBuffer.h"
+#include "nsclBuffer.h"
 
-class evtRunBuffer
+class nsclRunBuffer
 {
 	private:
 		std::string fRunTitle;
 	public:
 		///Default constructor.
-		evtRunBuffer();
+		nsclRunBuffer();
 		///Get Run Title
 		std::string GetRunTitle();
 		///Read the run start buffer.
-		void ReadRunBegin(msuClassicBuffer *buffer);
+		void ReadRunBegin(nsclBuffer *buffer);
 
 
 };
