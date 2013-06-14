@@ -38,15 +38,15 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, bool verbose) {
 #endif
 	if (verbose) printf("\n");
 
-	int startData = 0;
 #ifndef VM_USB
 	unsigned int bitRegister = buffer->GetWord();
 	readWords++;
 	if (verbose) printf("\t0x%04X Bit Register?\n",bitRegister);
-	unsigned int lamMask = buffer->GetLongWord();
-	readWords++; readWords++;
-	if (verbose) printf("\t0x%08X LAM mask?\n",lamMask);
-	startData = 2;	
+	for (int i=0;i<bitRegister;i++) {
+		unsigned int lamMask = buffer->GetWord();
+		readWords++;
+		if (verbose) printf("\t0x%08X LAM %d mask?\n",lamMask,i);
+	}
 #endif
 
 	for (int i=(readWords+1)/2;i<eventLength/2;i++) {
