@@ -9,5 +9,4 @@ add_executable (evtDump ${evtDump_SOURCES})
 target_link_libraries (evt2root ${EXTRA_LIBS} ${ROOT_LIBRARIES})
 target_link_libraries (evtDump ${EXTRA_LIBS} ${ROOT_LIBRARIES})
 
-install(TARGETS evt2root DESTINATION ${evt2root_BINARY_DIR})
-install(TARGETS evtDump DESTINATION ${evt2root_BINARY_DIR})
+install(TARGETS evt2root evtDump DESTINATION ${evt2root_BINARY_DIR})

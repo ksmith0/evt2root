@@ -10,7 +10,7 @@ link_directories(${ROOT_LIBRARY_DIR})
 
 include_directories(${evt2root_SOURCE_DIR}/MSUEvent)
 add_subdirectory (MSUEvent)
-set (EXTRA_LIBS MSUEvent)
+set (EXTRA_LIBS MSUEventStatic)
 
 add_subdirectory (src)
 
