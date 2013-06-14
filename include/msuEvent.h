@@ -1,8 +1,7 @@
 #ifndef MSUEVENT_H
 #define MSUEVENT_H
 
-//#define UNKOWN_SLOT_WARNING
-#define NONINCLUSIVE_EVT_WORD_CNT
+//#define NONINCLUSIVE_EVT_WORD_CNT
 
 #include "msuClassicBuffer.h"
 #include "eventData.h"

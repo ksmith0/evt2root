@@ -1,9 +1,9 @@
 #ifndef MSUCLASSICBUFFER_H
 #define MSUCLASSICBUFFER_H
 
-#define BUFFER_SIZE 13328 
-//#define BUFFER_SIZE 4096 
-#define VM_USB
+//#define BUFFER_SIZE 13328 
+#define BUFFER_SIZE 4096 
+//#define VM_USB
 
 #include <iostream>
 #include <stdio.h>

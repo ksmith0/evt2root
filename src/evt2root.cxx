@@ -1,3 +1,8 @@
+/** \file
+ * Converts evt binary files into ROOT files containing \c TTrees 
+ * containing the event data and scaler data.
+ */
+
 #include "msuClassicBuffer.h"
 #include "msuClassicScaler.h"
 #include "evtRunBuffer.h"

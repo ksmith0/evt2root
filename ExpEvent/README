@@ -1,0 +1,19 @@
+evt2root Package: ExpEvent README
+Author: Karl Smith
+Date: June 14, 2013
+
+Before compiling the evt2root package one needs to provide a library specifying what the data in the event structure is. This information is provided by the ExpEvent library.
+
+The ExpEvent library needs to be coded by the end user for the specific data being read. Two classes are needed eventScaler and eventData. Some templates have been provided in the templates directory. 
+
+The template in template/full_single_crate will store data from any slot in a one crate system. It is assumed that each module only has 32 channels.
+
+The template in template/ND_Traditional will store data from the Notre Dame VME crate that is used in many multipurpose experiments. (One ADC in slot ## and a TDC in slot ##)
+
+The evt2root package reuires a Clear and SetValue method.
+The Clear method is designed to reset all parameters to their default values. The prototype is:
+void Clear();
+The SetValue method is designed to take unpacked inofmration including the crate, slot and channel number, as well as the value recorded and assign it to the propper member. The prototype for this method is:
+void SetValue(int crate, int slot, int ch, int value);
+
+

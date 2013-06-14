@@ -55,6 +55,7 @@ void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
 		readWords++; readWords++;
 		int type = (datum & ALLH_TYPEMASK) >> ALLH_TYPESHIFT;
 		int slot = (datum & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
+		int crate = -1;
 		if (verbose) {
 			printf ("\t0x%08X type: %d slot: %2d ",datum,type,slot);
 		}
@@ -72,45 +73,11 @@ void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
 			
 			if (!overflow && !underflow) {
 				//Write DATA here
-				//ADC slot == 14
-				if (slot == 14) { 
-
-					if (channel > 31) {
-						fprintf(stderr,"\nERROR: Channel %d invalid!\n",channel);
-						fData->Clear();
-						return;
-					}
-
-					if (channel >= 0 && channel < 32)
-						fData->slot14[channel] = value;
-				}
-				//TDC slot == 14
-				/*
-				else if (slot == 14) {
-					if (channel > 31) {
-						fprintf(stderr,"\nERROR: Channel %d invalid!\n",channel);
-						fData->Clear();
-						return;
-					}
-
-					fData->slot16[channel] = value;
-
-				}
-				*/
-#ifdef UNKNOWN_SLOT_WARNING
-				else { 
-					if (slot != warningSlot) {
-						fprintf(stderr,"WARNING: Buffer: %d Unknown slot %d\n",buffer->GetBufferNumber(),slot);
-						warningSlot = slot;
-					}
-					fprintf (stderr,"0x%08X type: %d slot: %d ",datum,type,slot);
-					fprintf(stderr,"ch: %d value: %d overflow:%d underflow:%d valid:%d\n",channel,value,overflow,underflow,valid);
-				}
-#endif
+				fData->SetValue(crate,slot,channel,value);
 			}
 		}
 		else if (type == HEADER) {
-			int crate = (datum & HDRH_CRATEMASK) >> HDRH_CRATESHIFT;
+			crate = (datum & HDRH_CRATEMASK) >> HDRH_CRATESHIFT;
 			if (verbose) printf("crate: %d ",crate);
 		}
 		if (verbose) {
