@@ -6,7 +6,7 @@
 
 #include "TObject.h"
 
-class msuEventData //: public TObject
+class msuEventData : public TObject
 {
 	private:
 	public:
@@ -17,7 +17,7 @@ class msuEventData //: public TObject
 		int slot14[NUM_OF_DATA_CH];
 
 
-		ClassDef(msuEventData,1);
+	ClassDef(msuEventData,1);
 };
 
 #endif
