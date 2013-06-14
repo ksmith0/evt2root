@@ -5,16 +5,16 @@
 
 #include "TObject.h"
 
-class msuScalerData : public TObject
+class eventScaler : public TObject
 {
 	public:
 		unsigned int scalerTime;
 		int scalerCount; 
 		unsigned int scalers[NUM_OF_SCALER_CH];
-		msuScalerData();
+		eventScaler();
 		void Clear();
 
-	ClassDef(msuScalerData,1)
+	ClassDef(eventScaler,1)
 };
 
 #endif

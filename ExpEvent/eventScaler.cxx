@@ -1,13 +1,13 @@
-#include "msuScalerData.h"
+#include "eventScaler.h"
 	
-ClassImp(msuScalerData);
+ClassImp(eventScaler);
 
-msuScalerData::msuScalerData()
+eventScaler::eventScaler()
 {
 	Clear();
 }
 
-void msuScalerData::Clear()
+void eventScaler::Clear()
 {
 	scalerCount = 0;
 	scalerTime = 0;

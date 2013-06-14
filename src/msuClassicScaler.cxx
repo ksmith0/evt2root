@@ -3,14 +3,14 @@
 
 msuClassicScaler::msuClassicScaler()
 {
-	fScalerData = new msuScalerData();
+	fScalerData = new eventScaler();
 	Clear();
 }
 
 void  msuClassicScaler::Clear() {
 
 }
-msuScalerData *msuClassicScaler::GetScalerData() 
+eventScaler *msuClassicScaler::GetScalerData() 
 {
 	return fScalerData;
 }

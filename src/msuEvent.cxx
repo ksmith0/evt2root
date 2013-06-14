@@ -2,20 +2,22 @@
 
 
 msuEvent::msuEvent() {
-	fData = new msuEventData();
+	fData = new eventData();
 }
 void msuEvent::Clear()
 {
 	
 }
 /**Typical event buffer:
- * 1. Event word count (include self).
+ * 1. Event word count (includes self).
  * 2. Bit register
  * 3. LAM mask longword
  * 4. Event packets ...
  *
  * VM-USB seems to be missing the bit register and the LAM mask longword. 
- * The VM-USB word count seems to ignore the evnt word count word (non-inclusive).
+ * Occasionaly the VM-USB word count seems to ignore the event word count
+ * word (non-inclusive). To ensure this word is treated correctly define
+ * the preproccesor variable \c NONINCLUSIVE_EVT_WORD_COUNT.
  *
  * \param buffer Pointer to the buffer being read.
  * \param verbose Verbosity flag. 
@@ -28,8 +30,13 @@ void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
 	readWords++;
 	if (verbose) {
 		printf ("\nData Event:\n");
-		printf("\t0x%04X length: %d\n",eventLength,eventLength);
+		printf("\t0x%04X length: %d",eventLength,eventLength);
 	}
+#ifdef NONINCLUSIVE_EVT_WORD_CNT
+	eventLength++;
+	if (verbose) printf("+1");
+#endif
+	if (verbose) printf("\n");
 
 	int startData = 0;
 #ifndef VM_USB
@@ -120,7 +127,12 @@ void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
 
 void msuEvent::DumpEvent(msuClassicBuffer *buffer) {
 	int eventLength = buffer->GetWord();
-	printf("\nEvent Dump Length: %d\n",eventLength);
+	printf("\nEvent Dump Length: %d",eventLength);
+#ifdef NONINCLUSIVE_EVT_WORD_CNT
+	eventLength++;
+	printf("+1");
+#endif
+	printf("\n");
 	printf("\t0x%04X ",eventLength);
 	for (int i=1;i<eventLength;i++) { 
 		if (i % 10 == 0) printf("\n\t");
@@ -129,7 +141,7 @@ void msuEvent::DumpEvent(msuClassicBuffer *buffer) {
 	printf("\n");
 	buffer->Rewind(eventLength);
 }
-msuEventData *msuEvent::GetEventData() 
+eventData *msuEvent::GetEventData() 
 {
 	return fData;
 }

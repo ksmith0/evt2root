@@ -2,16 +2,16 @@
 #define MSUCLASSICSCALER_H
 
 #include "msuClassicBuffer.h"
-#include "msuScalerData.h"
+#include "eventScaler.h"
 
 class msuClassicScaler
 {
 	private:
-		msuScalerData *fScalerData;
+		eventScaler *fScalerData;
 	public:
 		msuClassicScaler();
 		void Clear();
-		msuScalerData *GetScalerData();
+		eventScaler *GetScalerData();
 		void ReadScalers(msuClassicBuffer *buffer);
 
 };

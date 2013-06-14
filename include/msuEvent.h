@@ -2,9 +2,10 @@
 #define MSUEVENT_H
 
 //#define UNKOWN_SLOT_WARNING
+#define NONINCLUSIVE_EVT_WORD_CNT
 
 #include "msuClassicBuffer.h"
-#include "msuEventData.h"
+#include "eventData.h"
 
      // All data words have these bits:
     
@@ -47,7 +48,7 @@ class msuEvent
 
 	private:
 		///Class contataining data for one event.
-		msuEventData *fData;
+		eventData *fData;
 		
 	public:
 		///Default constructor.
@@ -55,7 +56,7 @@ class msuEvent
 		///Reads current event and stores data.
 		void ReadEvent(msuClassicBuffer *buffer, bool verbose = false);
 		///Returns pointer to the event data.
-		msuEventData *GetEventData();
+		eventData *GetEventData();
 		
 		void Clear();
 		///Dumps the words in the current event.
