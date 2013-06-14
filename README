@@ -1,0 +1,48 @@
+evt2root Package
+Author: Karl Smith
+Date: June 14, 2013
+
+CONFIGURATION Notes:
+	The ExpEvent library must be constructed prior to compilation. The source code for this library is stored in ExpEvent. A README is provided their for information on how to build the classes to store your data. Some templates are also provided as a starting point.
+
+INSTALL Notes:
+	Once the ExpEvent code has been properly written the entire package may be built using cmake. Make a directory to store the build and run cmake in that location providing the root of the evt2root package as an argument. Once cmake is finished compile using make install.
+
+	Basic Compiling Instructions:
+	1. mkdir build
+	2. cd build
+	3. cmake ../
+	4. make install
+
+	Troubleshooting:
+	* cmake complains about missing files in ExpEvent:
+		Did you follow the ExpEvent Configuration Notes? See CONFIGURATION Notes above.
+	* At Notre Dame and cmake is not found:
+		Did you load the cmake module? module load cmake
+	* At Notre Dame and cmake complains it can't find ROOT:
+		Did you load the root module? module load root
+
+USAGE Notes:
+	Three files are provided:
+	* evtDump
+		Reads an evt file and dumps the raw hex values as well as the interrepted meaning to the console. Useful for debugging issues and checking that the configuration is correct.
+	* evt2root
+		Reads an evt and produces a ROOT file with two TTrees: evtTree and scalerTree. evtTree contains the event data and scalerTree contains the scaler data. These are not read at the same time and have a different number of entries.
+	* libExpEvent.so
+		Library containing classes describing eventData and eventScaler.
+
+	When reading the output file in ROOT be sure to load the shared library before loading the file. This can be done with the following command:
+	.L libExpEvent.so
+
+	Troubleshooting:
+	* ERROR: Wrong buffer size!
+		* If the buffer size is wrong one can use evtDump to inspect the first few buffers and identify the issue. Below are typical problems.
+		* This error may be encountered when an evt file ends abruptly without a run end buffer.
+		* May also be encountered if the buffer size is incorrect. This is defined in include/nsclBuffer.h as BUFFER_SIZE. The correct buffer size is typically written in the name of the evt file. For example, run123-4096.evt, would indicate the run number was 123 and the buffer size was 4096. Typically the traditional Notre Dame systems use 4096 and the USB systems use 13328. 
+		* May be encountered if the VM_USB flag in include/nsclBuffer.h is enabled for non-USB systems. USB systems typically skip the bit register and LAM mask in the event buffers and this would lead to getting the wrong number of words in the next event. 
+		* Finally, it has been observed that some USB systems give a non-inclusive word count. A flag to turn this on or off is available in include/nsclEventBuffer.h as NONINCLUSIVE_EVT_WORD_CNT
+
+
+Enjoy!
+
+
