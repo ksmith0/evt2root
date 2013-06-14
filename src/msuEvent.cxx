@@ -22,20 +22,34 @@ void msuEvent::Clear()
  */
 void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
 	fData->Clear();
+	int readWords=0;
 
 	int eventLength = buffer->GetWord();
-
+	readWords++;
 	if (verbose) {
-		printf ("New Event length:%d\n",eventLength);
-		fflush(stdout);
+		printf ("\nData Event:\n");
+		printf("\t0x%04X length: %d\n",eventLength,eventLength);
 	}
-	for (int i=0;i<eventLength / 2;i++) {
+
+	int startData = 0;
+#ifndef VM_USB
+	unsigned int bitRegister = buffer->GetWord();
+	readWords++;
+	if (verbose) printf("\t0x%04X Bit Register?\n",bitRegister);
+	unsigned int lamMask = buffer->GetLongWord();
+	readWords++; readWords++;
+	if (verbose) printf("\t0x%08X LAM mask?\n",lamMask);
+	startData = 2;	
+#endif
+
+	for (int i=(readWords+1)/2;i<eventLength/2;i++) {
+		int warningSlot = -1;
 		int datum = buffer->GetLongWord();
+		readWords++; readWords++;
 		int type = (datum & ALLH_TYPEMASK) >> ALLH_TYPESHIFT;
 		int slot = (datum & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
 		if (verbose) {
-			printf ("0x%08X type: %d slot: %2d ",datum,type,slot);
-			fflush(stdout);
+			printf ("\t0x%08X type: %d slot: %2d ",datum,type,slot);
 		}
 
 		if (type == DATA) {
@@ -47,7 +61,6 @@ void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
 			bool valid    = (datum& DATAL_VBIT)  != 0;
 			if (verbose) {
 				printf("ch: %2d value: %4d overflow:%d underflow:%d valid:%d",channel,value,overflow,underflow,valid);
-				fflush(stdout);
 			}
 			
 			if (!overflow && !underflow) {
@@ -77,37 +90,44 @@ void msuEvent::ReadEvent(msuClassicBuffer *buffer, bool verbose) {
 
 				}
 				*/
+#ifdef UNKNOWN_SLOT_WARNING
 				else { 
-					fprintf(stderr,"ERROR: Unknown slot %d\n",slot);
+					if (slot != warningSlot) {
+						fprintf(stderr,"WARNING: Buffer: %d Unknown slot %d\n",buffer->GetBufferNumber(),slot);
+						warningSlot = slot;
+					}
 					fprintf (stderr,"0x%08X type: %d slot: %d ",datum,type,slot);
 					fprintf(stderr,"ch: %d value: %d overflow:%d underflow:%d valid:%d\n",channel,value,overflow,underflow,valid);
 				}
+#endif
 			}
 		}
 		else if (type == HEADER) {
 			int crate = (datum & HDRH_CRATEMASK) >> HDRH_CRATESHIFT;
-			printf("crate: %d ",crate);
+			if (verbose) printf("crate: %d ",crate);
 		}
 		if (verbose) {
 			printf("\n");
-			fflush(stdout);
 		}
 	}
+	while (eventLength > readWords) {
+		int extraWord = buffer->GetWord();
+		readWords++;
+		if (verbose) printf("\t0x%04X Extra Word?\n",extraWord);
+	}
+
 }
 
 void msuEvent::DumpEvent(msuClassicBuffer *buffer) {
 	int eventLength = buffer->GetWord();
-	printf("Event Length: %d\n",eventLength);
-	printf("0x%04X ",eventLength);
-	for (int i=1;i<=eventLength;i++) { 
-		if ((i) % 10 == 0) {
-			printf("\n");
-		}
+	printf("\nEvent Dump Length: %d\n",eventLength);
+	printf("\t0x%04X ",eventLength);
+	for (int i=1;i<eventLength;i++) { 
+		if (i % 10 == 0) printf("\n\t");
 		printf("0x%04X ",buffer->GetWord());
 	}
 	printf("\n");
-	fflush(stdout);
-
+	buffer->Rewind(eventLength);
 }
 msuEventData *msuEvent::GetEventData() 
 {

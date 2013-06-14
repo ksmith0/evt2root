@@ -1,18 +1,26 @@
 #include "msuClassicBuffer.h"
 
-msuClassicBuffer::msuClassicBuffer(char *filename)
+msuClassicBuffer::msuClassicBuffer(char *filename, unsigned int bufferSize)
+	: fFileName(filename),
+	fBufferSize(bufferSize)
 {
-	fReadWords = 0;
-	fSubevtType = 0;
-	this->fOpenFile(filename);
+	fBuffer = new unsigned short int[fBufferSize];
+	this->fOpenFile(fFileName);
 	this->Clear();
 }
-int msuClassicBuffer::GetSubEvtType()
+msuClassicBuffer::~msuClassicBuffer() {
+	delete[] fBuffer;
+}
+int msuClassicBuffer::GetBufferType()
 {
-	return fSubevtType;
+	return fBufferType;
+}
+int msuClassicBuffer::GetBufferSize()
+{
+	return fBufferSize;
 }
 
-int msuClassicBuffer::GetNumOfWords()
+unsigned int msuClassicBuffer::GetNumOfWords()
 {
 	return fNumWords;
 }
@@ -23,18 +31,29 @@ void msuClassicBuffer::fOpenFile(char *filename)
 	}
 	catch (char *e)
 	{
-		fprintf(stderr,"ERROR[ClassicBuffer.cxx]: Can't open evtfile %s\n",filename);
+		fprintf(stderr,"ERROR: Can't open evtfile %s\n",filename);
 	}
 	return;
 }
 void msuClassicBuffer::Clear()
 {
+	fReadWords = 0;
+	fBufferType = 0;
 	fNumWords = 0;
-	fSubevtType = 0;
+	fBufferType = 0;
 	fChecksum = 0;
 	fRunNum = 0;
-	for (int i=0;i<BUFFER_SIZE;i++) fBuffer[i] = 0;
-	fReadWords = 0;
+	fBufferNumber = 0;
+	fNumOfEvents = 0;
+	fNumOfLAMRegisters = 0;
+	fNumOfCPU = 0;
+	fNumOfBitRegisters = 0;
+
+	for (int i=0;i<fBufferSize;i++) fBuffer[i] = 0;
+}
+unsigned int msuClassicBuffer::GetBufferNumber()
+{
+	return fBufferNumber;
 }
 int msuClassicBuffer::GetNextBuffer() 
 {
@@ -42,17 +61,18 @@ int msuClassicBuffer::GetNextBuffer()
 
 	if (feof(fFP)) return 1;
 	else {
-		int nRead = fread(fBuffer, 2, BUFFER_SIZE, fFP);
-		if (nRead != BUFFER_SIZE) {
-			fprintf(stderr,"ERROR[ClassicBuffer.cxx]: Incorrect buffer size!\n");
+		int nRead = fread(fBuffer, 2, fBufferSize, fFP);
+		if (nRead != fBufferSize) {
+			fprintf(stderr,"ERROR: Incorrect buffer size!\n");
 			return -1;
 		}
 
 		fNumWords = fBuffer[fReadWords++];
-		fSubevtType = fBuffer[fReadWords++];
+		fBufferType = fBuffer[fReadWords++];
 		fChecksum = fBuffer[fReadWords++];
 		fRunNum = fBuffer[fReadWords++];
-		fBufferNumber = (fBuffer[fReadWords++] << 16) | (fBuffer[fReadWords++]);
+		fBufferNumber = (fBuffer[fReadWords++]);
+		fBufferNumber = fBufferNumber | (fBuffer[fReadWords++] << 16);
 		fNumOfEvents = fBuffer[fReadWords++];
 		fNumOfLAMRegisters = fBuffer[fReadWords++];
 		fNumOfCPU = fBuffer[fReadWords++];
@@ -67,6 +87,7 @@ void msuClassicBuffer::PrintBufferHeader()
 {
 	printf("\nBuffer Header Summary:\n");
 	printf("\tNum of words: %d\n",fNumWords);
+	printf("\tBuffer type: %d\n",fBufferType);
 	printf("\tChecksum: %d\n",fChecksum);
 	printf("\tRun number: %d\n",fRunNum);
 	printf("\tBuffer number: %d\n",fBufferNumber);
@@ -74,9 +95,8 @@ void msuClassicBuffer::PrintBufferHeader()
 	printf("\tNumber of LAM registers: %d\n",fNumOfLAMRegisters);
 	printf("\tNumber of CPU: %d\n",fNumOfCPU);
 	printf("\tNumber of bit registers: %d\n",fNumOfBitRegisters);
-	printf("\n");
 }
-int msuClassicBuffer::GetRunNumber() 
+unsigned int msuClassicBuffer::GetRunNumber() 
 {
 	return fRunNum;
 }
@@ -91,23 +111,10 @@ unsigned int msuClassicBuffer::GetWord()
 unsigned int msuClassicBuffer::GetLongWord()
 {
 	unsigned short int word[2];
-	unsigned short int item;
-	short goodWords=0;
 	if (fReadWords+1 < fNumWords) {
-		for (int i=0;i<2;i++) {
-			item = GetWord();
-				if (item != 0xffff) { 
-					word[i] = item;
-					goodWords++;
-				}
-		}
-		if (goodWords <2) 
-			return 0xFFFFFFFF;
-	#ifdef VMUSB
+		for (int i=0;i<2;i++) 
+			word[i] = GetWord();
 		return (word[1]<<16) | (word[0]);
-	#else
-		return (word[0]<<16) | (word[1]);
-	#endif
 	}
 
 	return 0xFFFFFFFF;
@@ -118,21 +125,33 @@ void msuClassicBuffer::Forward(int numOfWords)
 {
 	fReadWords += numOfWords;
 }
+void msuClassicBuffer::Rewind(int numOfWords)
+{
+	fReadWords -= numOfWords;
+}
 
-int msuClassicBuffer::GetPosition()
+unsigned int msuClassicBuffer::GetPosition()
 {
 	return fReadWords;
 }
 
+void msuClassicBuffer::DumpHeader()
+{
+	printf("\nBuffer Header:");
+	for (int i=0;i<16;i++) {
+		if (i % 10 == 0) 
+			printf("\n\t");
+		printf("0x%04X ",fBuffer[i]);
+	}
+	printf("\n");
+}
+
 void msuClassicBuffer::DumpBuffer()
 {
-	printf("\n\n");
-	unsigned int nRead = 0;
-	while (nRead < fNumWords) {
-		printf("0x%04X ",fBuffer[nRead++]);
-		if ((nRead) % 10 == 0) {
-			printf("\n");
-		}
+	printf("\nBuffer Length %d:", fNumWords);
+	for (int i=0;i<fNumWords && i<fBufferSize;i++) {
+		if (i % 10 == 0) printf("\n\t");
+		printf("0x%04X ",fBuffer[i]);
 	}
 	printf("\n");
 }

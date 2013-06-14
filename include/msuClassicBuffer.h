@@ -2,57 +2,61 @@
 #define MSUCLASSICBUFFER_H
 
 #define BUFFER_SIZE 13328 
-#define VMUSB
+//#define BUFFER_SIZE 4096 
+//#define VM_USB
 
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
 
-enum SubEvtType
+enum BufferType
 {
-	SUBEVT_TYPE_DATA = 1, 		//1
-	SUBEVT_TYPE_SCALERS,  		//2 
-	SUBEVT_TYPE_EPICS = 5,		//5
-	SUBEVT_TYPE_RUNBEGIN = 11, //11
-	SUBEVT_TYPE_RUNEND = 12 	//12
+	BUFFER_TYPE_DATA = 1, 		//1
+	BUFFER_TYPE_SCALERS,  		//2 
+	BUFFER_TYPE_EPICS = 5,		//5
+	BUFFER_TYPE_RUNBEGIN = 11, //11
+	BUFFER_TYPE_RUNEND = 12 	//12
 
 };
 
 class msuClassicBuffer
 {
 	private:
-		//File pointer to evt file.
+		///File pointer to evt file.
 		FILE *fFP;
-		//File name of evt file.
+		///File name of evt file.
 		char *fFileName;
+		///Buffer size.
+		const unsigned int fBufferSize;
 		///Number of words in buffer excluding the 16 word header.
-		short int fNumWords;
+		unsigned short int fNumWords;
 		///Type of events in this buffer.
-		short int fSubevtType;
+		unsigned short int fBufferType;
 		///Checksum should evaluate to 0.
 		short int fChecksum;
 		///Current run number.
-		short int fRunNum;
+		unsigned short int fRunNum;
 		///The current buffer number.
 		unsigned int fBufferNumber;
 		///The number of events in the current buffer.
-		short int fNumOfEvents;
+		unsigned short int fNumOfEvents;
 		///The number of LAM registers.
-		short int fNumOfLAMRegisters;
+		unsigned short int fNumOfLAMRegisters;
 		///The number of the CPU that generated the buffer.
-		short int fNumOfCPU;
+		unsigned short int fNumOfCPU;
 		///The number of bit registers.
-		short int fNumOfBitRegisters;
+		unsigned short int fNumOfBitRegisters;
 		///Event buffer containing all events in this buffer.
-		unsigned short int fBuffer[BUFFER_SIZE];
+		unsigned short int *fBuffer;
 		///The number of words read in the current buffer.
-		int fReadWords;
+		unsigned int fReadWords;
 
 		///Open evt file.
 		void fOpenFile(char *filename);
 	public:
 		///Default constructor
-		msuClassicBuffer(char *filename);
+		msuClassicBuffer(char *filename, unsigned int bufferSize=BUFFER_SIZE);
+		virtual ~msuClassicBuffer();
 		///Clear the current values for the buffer.
 		void Clear();
 		///Output the values stored in the buffer header.
@@ -60,19 +64,27 @@ class msuClassicBuffer
 		///Return next buffer.
 		int GetNextBuffer();
 		///Return the number of words in the current buffer.
-		int GetNumOfWords();
+		unsigned int GetNumOfWords();
+		///Return the size for each buffer.
+		int GetBufferSize();
 		///Return current buffer type.
-		int GetSubEvtType();
+		int GetBufferType();
+		///Returns the number of the current buffer.
+		unsigned int GetBufferNumber();
 		///Reutrn current buffer position.
-		int GetPosition();
+		unsigned int GetPosition();
 		///Read out next word in buffer.
 		unsigned int GetWord();
 		///Read out next long word in buffer.
 		unsigned int GetLongWord();
 		///Get run value for current buffer.
-		int GetRunNumber();
+		unsigned int GetRunNumber();
 		///Skip forward in the buffer by n words.
 		void Forward(int numOfWords);
+		///Skip backward in the buffer by n words.
+		void Rewind(int numOfWords);
+		///Dump the current buffer header in hex.
+		void DumpHeader();
 		///Dump the current buffer in hex.
 		void DumpBuffer();
 

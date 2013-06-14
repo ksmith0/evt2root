@@ -18,8 +18,8 @@ msuScalerData *msuClassicScaler::GetScalerData()
 void msuClassicScaler::ReadScalers(msuClassicBuffer *buffer)
 {
 	Clear();
-	if (buffer->GetSubEvtType() != SUBEVT_TYPE_SCALERS) {
-		fprintf(stderr,"ERROR: Not a scaler subevt!\n");
+	if (buffer->GetBufferType() != BUFFER_TYPE_SCALERS) {
+		fprintf(stderr,"ERROR: Not a scaler buffer!\n");
 		return;
 	}
 

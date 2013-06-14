@@ -6,7 +6,7 @@
 
 #include "TObject.h"
 
-class msuEventData : public TObject
+class msuEventData //: public TObject
 {
 	private:
 	public:

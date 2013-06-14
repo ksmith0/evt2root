@@ -21,8 +21,8 @@ evtRunBuffer::evtRunBuffer()
  * 	properly read 79 bytes to get run title.
  */
 void evtRunBuffer::ReadRunBegin(msuClassicBuffer *buffer) {
-	if (buffer->GetSubEvtType() != SUBEVT_TYPE_RUNBEGIN) {
-		fprintf(stderr,"ERROR: Not a run begin subevt!\n");
+	if (buffer->GetBufferType() != BUFFER_TYPE_RUNBEGIN) {
+		fprintf(stderr,"ERROR: Not a run begin buffer!\n");
 		return;
 	}
 

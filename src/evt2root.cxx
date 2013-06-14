@@ -28,32 +28,31 @@ int main (int argc, char *argv[])
 	int cnt=0;
 	while (buffer->GetNextBuffer() == 0)
 	{
-		//printf("\nsubEvt Type:%02d ",buffer->GetSubEvtType());
-		//printf("numWords:%02d\n",buffer->GetNumOfWords());
-		if (buffer->GetSubEvtType() == SUBEVT_TYPE_DATA) {
+		printf("Buffer: %d\r",cnt);
+
+		if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
 			while (buffer->GetPosition() < buffer->GetNumOfWords()) { 
 				
 				event->ReadEvent(buffer);
 				evtTree->Fill();
 			}
 		}
-		else if (buffer->GetSubEvtType() == SUBEVT_TYPE_SCALERS) {
+		else if (buffer->GetBufferType() == BUFFER_TYPE_SCALERS) {
 			scaler->ReadScalers(buffer);
 			scalerTree->Fill();
 		}
-		else if (buffer->GetSubEvtType() == SUBEVT_TYPE_RUNBEGIN) {
+		else if (buffer->GetBufferType() == BUFFER_TYPE_RUNBEGIN) {
 			runBuffer->ReadRunBegin(buffer);
 			printf("Run %d - %s\n",buffer->GetRunNumber(),runBuffer->GetRunTitle().c_str());
 			evtTree->SetTitle(runBuffer->GetRunTitle().c_str());
 			TParameter<int>("run",buffer->GetRunNumber()).Write();
 		}
-		else if (buffer->GetSubEvtType() == SUBEVT_TYPE_RUNEND) {
+		else if (buffer->GetBufferType() == BUFFER_TYPE_RUNEND) {
 			printf("Run Ended        \n");
 			break;
 		}
 		//else 
-		//	printf("Event Type: %d\n",buffer->GetSubEvtType());
-		printf("Buffer: %d\r",cnt);
+		//	printf("Event Type: %d\n",buffer->GetBufferType());
 		cnt++;
 	}
 
