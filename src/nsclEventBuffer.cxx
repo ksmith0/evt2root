@@ -49,13 +49,13 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, bool verbose) {
 	}
 #endif
 
+	int crate = -1;
 	for (int i=(readWords+1)/2;i<eventLength/2;i++) {
 		int warningSlot = -1;
 		int datum = buffer->GetLongWord();
 		readWords++; readWords++;
 		int type = (datum & ALLH_TYPEMASK) >> ALLH_TYPESHIFT;
 		int slot = (datum & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
-		int crate = -1;
 		if (verbose) {
 			printf ("\t0x%08X type: %d slot: %2d ",datum,type,slot);
 		}
