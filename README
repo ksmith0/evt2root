@@ -40,7 +40,6 @@ USAGE Notes:
 		* This error may be encountered when an evt file ends abruptly without a run end buffer.
 		* May also be encountered if the buffer size is incorrect. This is defined in include/nsclBuffer.h as BUFFER_SIZE. The correct buffer size is typically written in the name of the evt file. For example, run123-4096.evt, would indicate the run number was 123 and the buffer size was 4096. Typically the traditional Notre Dame systems use 4096 and the USB systems use 13328. 
 		* May be encountered if the VM_USB flag in include/nsclBuffer.h is enabled for non-USB systems. USB systems typically skip the bit register and LAM mask in the event buffers and this would lead to getting the wrong number of words in the next event. 
-		* Finally, it has been observed that some USB systems give a non-inclusive word count. A flag to turn this on or off is available in include/nsclEventBuffer.h as NONINCLUSIVE_EVT_WORD_CNT
 
 
 Enjoy!

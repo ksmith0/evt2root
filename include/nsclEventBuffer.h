@@ -1,8 +1,6 @@
 #ifndef NSCLEVENTBUFFER_H
 #define NSCLEVENTBUFFER_H
 
-//#define NONINCLUSIVE_EVT_WORD_CNT //The event buffer word count does not include itself.
-
 #include "nsclBuffer.h"
 #include "eventData.h"
 

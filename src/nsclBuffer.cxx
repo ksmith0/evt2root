@@ -114,7 +114,11 @@ unsigned int nsclBuffer::GetLongWord()
 	if (fReadWords+1 < fNumWords) {
 		for (int i=0;i<2;i++) 
 			word[i] = GetWord();
+#ifdef VM_USB
 		return (word[1]<<16) | (word[0]);
+#else
+		return (word[0]<<16) | (word[1]);
+#endif
 	}
 
 	return 0xFFFFFFFF;

@@ -1,9 +1,9 @@
 #ifndef NSCLBUFFER_H
 #define NSCLBUFFER_H
 
-//#define BUFFER_SIZE 13328 //Typical value for VM USB 
-#define BUFFER_SIZE 4096 //Another typical value
-//#define VM_USB //Are we using the USB version?
+#define BUFFER_SIZE 13328 //Typical value for VM USB 
+//#define BUFFER_SIZE 4096 //Another typical value
+#define VM_USB //Are we using the USB version?
 
 #include <iostream>
 #include <stdio.h>
