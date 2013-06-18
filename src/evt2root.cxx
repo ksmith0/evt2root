@@ -10,7 +10,7 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "TParameter.h"
-#include "TObjString.h"
+//#include "TObjString.h"
 
 int main (int argc, char *argv[])
 {
@@ -51,11 +51,11 @@ int main (int argc, char *argv[])
 		else if (buffer->GetBufferType() == BUFFER_TYPE_RUNBEGIN) {
 			runBuffer->ReadRunBegin(buffer);
 			printf("Run %d - %s\n",buffer->GetRunNumber(),runBuffer->GetRunTitle().c_str());
-			TObjString *runTitle = new TObjString (runBuffer->GetRunTitle().c_str());
-			evtTree->GetUserInfo()->Add(runTitle);
+			//TObjString *runTitle = new TObjString (runBuffer->GetRunTitle().c_str());
+			//evtTree->GetUserInfo()->Add(runTitle);
 			evtTree->SetTitle(runBuffer->GetRunTitle().c_str());
 			TParameter<int>("run",buffer->GetRunNumber()).Write();
-			delete runTitle;
+			//delete runTitle;
 		}
 		else if (buffer->GetBufferType() == BUFFER_TYPE_RUNEND) {
 			printf("Run Ended        \n");

@@ -105,7 +105,7 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, bool verbose) {
 			slot = (datum & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
 			if (verbose) printf ("\t0x%08X type: %d slot: %2d\n",datum,type,slot);
 		}
-		else printf("\n");
+		else if (verbose) printf("\n");
 	}
 	while (eventLength > readWords) {
 		int extraWord = buffer->GetWord();
