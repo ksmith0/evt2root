@@ -1,9 +1,6 @@
 #ifndef EVENTDATA_H
 #define EVENTDATA_H
 
-#define NUM_OF_DATA_SLOTS 17
-#define NUM_OF_DATA_CH 32
-
 #include "TObject.h"
 
 ///Traditional data acquisiton setup at Univ. of Notre Dame 2013
@@ -13,8 +10,8 @@
 class eventData : public TObject
 {
 	private:
-		int tdc[NUM_OF_DATA_CH];
-		int adc[NUM_OF_DATA_CH];
+		int tdc[32];
+		int adc[32];
 	public:
 		///Default Constructor.
 		eventData();
