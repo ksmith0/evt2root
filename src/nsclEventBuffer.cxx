@@ -59,11 +59,14 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, bool verbose) {
 	while ((eventLength-1)>readWords) {
 		int datum;
 #ifndef VM_USB
-		datum = buffer->GetLongWord();
-		readWords++; readWords++;
-		int wordCount = (datum & 0xFFFF0000) >> 16;
-		if (verbose) printf("\t0x%08X Preheader: Module words: %d\n",datum,wordCount);
-		if (wordCount <= 2) continue;
+		int packetLength = buffer->GetWord();
+		readWords++; 
+		int packetTag = buffer->GetWord();
+		if (verbose) {
+			printf("\t0x%04X Packet length: %d\n",packetLength);
+			printf("\t0x%04X Packet tag: %d\n",packetTag);
+		}
+		if (packetLength <= 2) continue;
 #endif
 		//Get HEADER
 		datum = buffer->GetLongWord();
