@@ -30,7 +30,7 @@ int main (int argc, char *argv[])
 		buffer->DumpHeader();
 		buffer->PrintBufferHeader();
 		if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
-			while (buffer->GetPosition() < buffer->GetNumOfWords()) { 
+			for (int i=0;i<buffer->GetNumOfEvents();i++) {
 				event->DumpEvent(buffer);
 				event->ReadEvent(buffer,true);
 			}

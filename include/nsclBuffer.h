@@ -65,6 +65,8 @@ class nsclBuffer
 		int GetNextBuffer();
 		///Return the number of words in the current buffer.
 		unsigned int GetNumOfWords();
+		///Return the number of events in the current buffer.
+		unsigned int GetNumOfEvents();
 		///Return the size for each buffer.
 		int GetBufferSize();
 		///Return current buffer type.

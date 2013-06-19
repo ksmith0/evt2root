@@ -38,8 +38,7 @@ int main (int argc, char *argv[])
 		printf("Buffer: %d\r",cnt);
 
 		if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
-			while (buffer->GetPosition() < buffer->GetNumOfWords()) { 
-				
+			for (int i=0;i<buffer->GetNumOfEvents();i++) {
 				event->ReadEvent(buffer);
 				evtTree->Fill();
 			}

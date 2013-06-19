@@ -24,6 +24,10 @@ unsigned int nsclBuffer::GetNumOfWords()
 {
 	return fNumWords;
 }
+unsigned int nsclBuffer::GetNumOfEvents()
+{
+	return fNumOfEvents;
+}
 void nsclBuffer::fOpenFile(char *filename)
 {
 	try {
