@@ -52,7 +52,9 @@ class nsclBuffer
 		unsigned int fReadWords;
 
 		///Open evt file.
-		void fOpenFile(char *filename);
+		void OpenFile(char *filename);
+		///Close evt file.
+		void CloseFile();
 	public:
 		///Default constructor
 		nsclBuffer(char *filename, unsigned int bufferSize=BUFFER_SIZE);

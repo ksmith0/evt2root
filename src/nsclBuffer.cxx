@@ -5,10 +5,11 @@ nsclBuffer::nsclBuffer(char *filename, unsigned int bufferSize)
 	fBufferSize(bufferSize)
 {
 	fBuffer = new unsigned short int[fBufferSize];
-	this->fOpenFile(fFileName);
+	this->OpenFile(fFileName);
 	this->Clear();
 }
 nsclBuffer::~nsclBuffer() {
+	CloseFile();
 	delete[] fBuffer;
 }
 int nsclBuffer::GetBufferType()
@@ -28,7 +29,7 @@ unsigned int nsclBuffer::GetNumOfEvents()
 {
 	return fNumOfEvents;
 }
-void nsclBuffer::fOpenFile(char *filename)
+void nsclBuffer::OpenFile(char *filename)
 {
 	try {
 		if ((fFP=fopen(filename,"r")) == NULL) throw filename;
@@ -38,6 +39,10 @@ void nsclBuffer::fOpenFile(char *filename)
 		fprintf(stderr,"ERROR: Can't open evtfile %s\n",filename);
 	}
 	return;
+}
+void nsclBuffer::CloseFile()
+{
+	fclose(fFP);
 }
 void nsclBuffer::Clear()
 {
@@ -68,7 +73,14 @@ int nsclBuffer::GetNextBuffer()
 		int nRead = fread(fBuffer, 2, fBufferSize, fFP);
 		if (nRead != fBufferSize) {
 			fprintf(stderr,"ERROR: Incorrect buffer size!\n");
+			fseek(fFP,-nRead*2,SEEK_CUR);
 			return -1;
+			/*struct stat info;
+			if (fstat(fFP,&info) < 0) {
+				fprintf(stderr,"ERROR: File pointer stat failed!\n");
+				return -1;
+			}*/
+
 		}
 
 		fNumWords = fBuffer[fReadWords++];

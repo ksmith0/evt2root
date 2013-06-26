@@ -70,5 +70,6 @@ int main (int argc, char *argv[])
 	file->Write();
 	file->Close();
 
+	delete buffer;
 	return 0;
 }
