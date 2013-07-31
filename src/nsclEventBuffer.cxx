@@ -27,7 +27,7 @@ void nsclEventBuffer::Clear()
  * \param verbose Verbosity flag. 
  */
 void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, bool verbose) {
-	fData->Clear();
+	fData->Reset();
 	int readWords=0;
 
 	int eventLength = buffer->GetWord();

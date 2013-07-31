@@ -4,9 +4,9 @@ ClassImp(eventData);
 
 eventData::eventData()
 {
-	Clear();
+	Reset();
 }
-void eventData::Clear()
+void eventData::Reset()
 {
 	for (int i=0;i<NUM_OF_DATA_SLOTS;i++) {
 		for (int j=0;j<NUM_OF_DATA_CH;j++) {

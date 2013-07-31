@@ -4,9 +4,9 @@ ClassImp(eventData);
 
 eventData::eventData()
 {
-	Clear();
+	Reset();
 }
-void eventData::Clear()
+void eventData::Reset()
 {
 	for (int i=0;i<32;i++) {
 		tdc[i] = 0;	

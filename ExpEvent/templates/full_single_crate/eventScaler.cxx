@@ -4,10 +4,10 @@ ClassImp(eventScaler);
 
 eventScaler::eventScaler()
 {
-	Clear();
+	Reset();
 }
 
-void eventScaler::Clear()
+void eventScaler::Reset()
 {
 	scalerCount = 0;
 	scalerTime = 0;

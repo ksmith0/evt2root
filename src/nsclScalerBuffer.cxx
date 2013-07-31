@@ -17,7 +17,7 @@ eventScaler *nsclScalerBuffer::GetScalerData()
 
 void nsclScalerBuffer::ReadScalers(nsclBuffer *buffer)
 {
-	Clear();
+	fScalerdata->Reset();
 	if (buffer->GetBufferType() != BUFFER_TYPE_SCALERS) {
 		fprintf(stderr,"ERROR: Not a scaler buffer!\n");
 		return;

@@ -24,7 +24,7 @@ class eventData : public TObject
 		///Default Constructor.
 		eventData();
 		///Clear the current values.
-		void Clear();
+		void Reset();
 		///Record the value from the specified location.
 		void SetValue(int crate, int slot, int ch, int value);
 
