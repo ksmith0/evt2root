@@ -7,11 +7,11 @@
 
 class eventScaler : public TObject
 {
-	private:
+	public:
 		unsigned int scalerTime;
 		int scalerCount; 
 		unsigned int scalers[NUM_OF_SCALER_CH];
-	public:
+
 		eventScaler();
 		void Reset();
 
