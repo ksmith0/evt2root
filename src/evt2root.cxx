@@ -20,17 +20,18 @@ int main (int argc, char *argv[])
 	}
 
 	nsclBuffer *buffer = new nsclBuffer(argv[1]);
-	nsclScalerBuffer *scaler = new nsclScalerBuffer();
+	nsclScalerBuffer *scalerBuffer = new nsclScalerBuffer();
 	nsclRunBuffer *runBuffer = new nsclRunBuffer();
-	nsclEventBuffer *event = new nsclEventBuffer();
+	nsclEventBuffer *eventBuffer = new nsclEventBuffer();
+	eventScaler *scaler = new eventScaler();
+	eventData *data = new eventData();
 
 	
 	TFile *file = new TFile(argv[2],"RECREATE");
 	TTree *evtTree = new TTree("evtTree","Events");
 	TTree *scalerTree = new TTree("scalerTree","Scalers");
-	scalerTree->Branch("scaler","msuScalerData",scaler->GetScalerData());
-	evtTree->Branch("event","nsclEventBufferData",event->GetEventData());
-	evtTree->BranchRef();
+	scalerTree->Branch("scaler","eventScaler",&scaler);
+	evtTree->Branch("event","eventData",&data);
 
 	int cnt=0;
 	while (buffer->GetNextBuffer() == 0)
@@ -39,12 +40,12 @@ int main (int argc, char *argv[])
 
 		if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
 			for (int i=0;i<buffer->GetNumOfEvents();i++) {
-				event->ReadEvent(buffer);
+				eventBuffer->ReadEvent(buffer,data);
 				evtTree->Fill();
 			}
 		}
 		else if (buffer->GetBufferType() == BUFFER_TYPE_SCALERS) {
-			scaler->ReadScalers(buffer);
+			scalerBuffer->ReadScalers(buffer,scaler);
 			scalerTree->Fill();
 		}
 		else if (buffer->GetBufferType() == BUFFER_TYPE_RUNBEGIN) {

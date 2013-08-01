@@ -17,9 +17,11 @@ int main (int argc, char *argv[])
 	else
 		buffer = new nsclBuffer(argv[1]);
 
-	nsclScalerBuffer *scaler = new nsclScalerBuffer();
+	nsclScalerBuffer *scalerBuffer = new nsclScalerBuffer();
 	nsclRunBuffer *runBuffer = new nsclRunBuffer();
-	nsclEventBuffer *event = new nsclEventBuffer();
+	nsclEventBuffer *eventBuffer = new nsclEventBuffer();
+	eventScaler *scaler = new eventScaler();
+	eventData *data = new eventData();
 
 	printf("Evt Dump: %s\n",argv[1]);
 	printf("Buffer Size: %d\n",buffer->GetBufferSize());
@@ -31,8 +33,8 @@ int main (int argc, char *argv[])
 		buffer->PrintBufferHeader();
 		if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
 			for (int i=0;i<buffer->GetNumOfEvents();i++) {
-				event->DumpEvent(buffer);
-				event->ReadEvent(buffer,true);
+				eventBuffer->DumpEvent(buffer);
+				eventBuffer->ReadEvent(buffer,data,true);
 			}
 		}
 		else if (buffer->GetBufferType() == BUFFER_TYPE_RUNEND) {

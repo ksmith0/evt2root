@@ -2,11 +2,6 @@
 
 
 nsclEventBuffer::nsclEventBuffer() {
-	fData = new eventData();
-}
-void nsclEventBuffer::Clear()
-{
-	
 }
 /**Typical event buffer:
  * 1. Event word count. (See Below)
@@ -26,8 +21,8 @@ void nsclEventBuffer::Clear()
  * \param buffer Pointer to the buffer being read.
  * \param verbose Verbosity flag. 
  */
-void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, bool verbose) {
-	fData->Reset();
+void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose) {
+	data->Reset();
 	int readWords=0;
 
 	int eventLength = buffer->GetWord();
@@ -97,7 +92,7 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, bool verbose) {
 
 					if (!overflow && !underflow) {
 						//Write DATA here
-						fData->SetValue(crate,slot,channel,value);
+						data->SetValue(crate,slot,channel,value);
 					}
 				}
 			}
@@ -134,8 +129,4 @@ void nsclEventBuffer::DumpEvent(nsclBuffer *buffer) {
 	}
 	printf("\n");
 	buffer->Rewind(eventLength);
-}
-eventData *nsclEventBuffer::GetEventData() 
-{
-	return fData;
 }

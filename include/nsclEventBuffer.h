@@ -44,18 +44,13 @@ class nsclEventBuffer
 {
 
 	private:
-		///Class contataining data for one event.
-		eventData *fData;
-		
+
 	public:
 		///Default constructor.
 		nsclEventBuffer();
 		///Reads current event and stores data.
-		void ReadEvent(nsclBuffer *buffer, bool verbose = false);
-		///Returns pointer to the event data.
-		eventData *GetEventData();
+		void ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose = false);
 		
-		void Clear();
 		///Dumps the words in the current event.
 		void DumpEvent(nsclBuffer *buffer); 
 

@@ -7,12 +7,9 @@
 class nsclScalerBuffer
 {
 	private:
-		eventScaler *fScalerData;
 	public:
 		nsclScalerBuffer();
-		void Clear();
-		eventScaler *GetScalerData();
-		void ReadScalers(nsclBuffer *buffer);
+		void ReadScalers(nsclBuffer *buffer,eventScaler *scaler);
 
 };
 
