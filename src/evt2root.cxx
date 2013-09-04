@@ -55,10 +55,14 @@ int main (int argc, char *argv[])
 			//evtTree->GetUserInfo()->Add(runTitle);
 			evtTree->SetTitle(runBuffer->GetRunTitle().c_str());
 			TParameter<int>("run",buffer->GetRunNumber()).Write();
+			TParameter<time_t>("runStartTime",runBuffer->GetRunStartTime()).Write();
 			//delete runTitle;
 		}
 		else if (buffer->GetBufferType() == BUFFER_TYPE_RUNEND) {
-			printf("Run Ended        \n");
+			runBuffer->ReadRunEnd(buffer);
+			TParameter<time_t>("runEndTime",runBuffer->GetRunEndTime()).Write();
+			TParameter<int>("runTimeElapsed",runBuffer->GetElapsedRunTime()).Write();
+			printf("Run Ended. Elapsed run time: %u s\n",runBuffer->GetElapsedRunTime());
 			break;
 		}
 		//else 

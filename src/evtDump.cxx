@@ -42,7 +42,13 @@ int main (int argc, char *argv[])
 			scalerBuffer->DumpScalers(buffer);
 			scalerBuffer->ReadScalers(buffer,scaler,true);
 		}
+		else if (buffer->GetBufferType() == BUFFER_TYPE_RUNBEGIN) {
+			runBuffer->DumpRunBuffer(buffer);
+			runBuffer->ReadRunBegin(buffer,true);
+		}
 		else if (buffer->GetBufferType() == BUFFER_TYPE_RUNEND) {
+			runBuffer->DumpRunBuffer(buffer);
+			runBuffer->ReadRunEnd(buffer,true);
 			printf("Run Ended        \n");
 			break;
 		}
