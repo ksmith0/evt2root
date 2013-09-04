@@ -53,8 +53,7 @@ void nsclScalerBuffer::ReadScalers(nsclBuffer *buffer, eventScaler *scaler, bool
 
 void nsclScalerBuffer::DumpScalers(nsclBuffer *buffer) {
 	int eventLength = 2*buffer->GetNumOfEvents()+10;
-	printf("\nScaler Dump Length: %d",eventLength);
-	printf("\n");
+	printf("\nScaler Dump Length: %d\n",eventLength);
 	for (int i=0;i<eventLength;i++) { 
 		if (i % 10 == 0) printf("\n\t");
 		printf("0x%04X ",buffer->GetWord());
