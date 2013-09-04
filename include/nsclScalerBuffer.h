@@ -9,7 +9,8 @@ class nsclScalerBuffer
 	private:
 	public:
 		nsclScalerBuffer();
-		void ReadScalers(nsclBuffer *buffer,eventScaler *scaler);
+		void ReadScalers(nsclBuffer *buffer,eventScaler *scaler, bool verbose = false);
+		void DumpScalers(nsclBuffer *buffer);
 
 };
 
