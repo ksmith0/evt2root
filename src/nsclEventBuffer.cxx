@@ -57,9 +57,10 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 		int packetLength = buffer->GetWord();
 		readWords++; 
 		int packetTag = buffer->GetWord();
+		readWords++; 
 		if (verbose) {
-			printf("\t0x%04X Packet length: %d\n",packetLength);
-			printf("\t0x%04X Packet tag: %d\n",packetTag);
+			printf("\t0x%04X Packet length: %d\n",packetLength,packetLength);
+			printf("\t0x%04X Packet tag: %d\n",packetTag,packetTag);
 		}
 		if (packetLength <= 2) continue;
 #endif
