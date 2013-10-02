@@ -20,6 +20,13 @@ nsclEventBuffer::nsclEventBuffer() {
  *
  * \param buffer Pointer to the buffer being read.
  * \param verbose Verbosity flag. 
+ *
+ * \bug The ND IO Register, Caen V977, does not return information on
+ *  crate, slot, or channel information. A raw word is dumped into the
+ *  data stream. The incorporation of modules similar to this will cause
+ *  a paradigm shift in the use of this code. We need do develop codes to
+ *  unpack the various modules and a way to specify which order those modules
+ *  should be unpacked.
  */
 void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose) {
 	data->Reset();
@@ -37,17 +44,6 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 #endif
 	if (verbose) printf("\n");
 
-#ifndef VM_USB
-	unsigned int bitRegister = buffer->GetWord();
-	readWords++;
-	if (verbose) printf("\t0x%04X Bit Register\n",bitRegister);
-	for (int i=1;i<bitRegister;i++) {
-		unsigned int lamMask = buffer->GetWord();
-		readWords++; 
-		if (verbose) printf("\t0x%04X LAM mask %d\n",lamMask,i);
-	}
-#endif
-
 	int crate = -1;
 	//Loop over remaining words. 
 	//	Subtract one to catch single small word at end of buffer.
@@ -63,7 +59,22 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 			printf("\t0x%04X Packet tag: %d\n",packetTag,packetTag);
 		}
 		if (packetLength <= 2) continue;
+
+		//Special code for ND IO Register.
+		if (packetTag == 10) {
+			for (int i=2;i<packetLength;i++) {
+				int value = buffer->GetWord();
+				readWords++;
+				if (verbose) {
+					printf("\t0x%04X value: %4d\n",value,value);
+				}
+				data->SetValue(0,13,-1,value);
+			}
+		}
+#else 
+		if (0);
 #endif
+		else {
 		//Get HEADER
 		datum = buffer->GetLongWord();
 		readWords++; readWords++;
@@ -105,6 +116,7 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 			if (verbose) printf ("\t0x%08X type: %d slot: %2d\n",datum,type,slot);
 		}
 		else if (verbose) printf("\n");
+		}
 	}
 	while (eventLength > readWords) {
 		int extraWord = buffer->GetWord();
