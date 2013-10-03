@@ -124,6 +124,7 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 		if (verbose) printf("\t0x%04X Extra Word?\n",extraWord);
 	}
 	if (verbose) printf("\n");
+	data->Calibrate();
 
 }
 

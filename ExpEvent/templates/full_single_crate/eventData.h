@@ -27,6 +27,8 @@ class eventData : public TObject
 		void Reset();
 		///Record the value from the specified location.
 		void SetValue(int crate, int slot, int ch, int value);
+		///Calibrates the data from one event.
+		void Calibrate();
 
 
 

@@ -23,3 +23,7 @@ void eventData::SetValue(int crate, int slot, int ch, int value)
 		}
 	}
 }
+void eventData::Calibrate()
+{
+
+}
