@@ -54,11 +54,12 @@ int main (int argc, char *argv[])
 	bool runStarted = false;
 	//Loop over files until we used all files or the run ended.
 	for (unsigned int fileNum=0;fileNum<inputFiles.size() && !runEnded;fileNum++) {
+		if (fileNum > 0) printf("\n");
+		printf("Reading file: %s\n",inputFiles[fileNum]);
 		nsclBuffer *buffer = new nsclBuffer(inputFiles[fileNum]);
-		int cnt=0;
-		while (buffer->GetNextBuffer() == 0 && !runEnded)
+		while (buffer->GetNextBuffer() > 1)
 		{
-			printf("Buffer: %d\r",cnt);
+			printf("Buffer: %d\r",buffer->GetBufferNumber());
 			if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
 				for (int i=0;i<buffer->GetNumOfEvents();i++) {
 					eventBuffer->ReadEvent(buffer,data);
@@ -70,7 +71,7 @@ int main (int argc, char *argv[])
 				scalerTree->Fill();
 			}
 			else if (buffer->GetBufferType() == BUFFER_TYPE_RUNBEGIN) {
-				if (cnt>0 && !runStarted) {
+				if (buffer->GetBufferNumber()>0 && !runStarted) {
 					fprintf(stderr,"WARNING: Buffer read before run started! Check input file order.\n");
 				}
 
@@ -98,7 +99,6 @@ int main (int argc, char *argv[])
 			}
 			//else 
 			//	printf("Event Type: %d\n",buffer->GetBufferType());
-			cnt++;
 		}
 		delete buffer;
 	}

@@ -66,13 +66,27 @@ unsigned int nsclBuffer::GetBufferNumber()
 }
 int nsclBuffer::GetNextBuffer() 
 {
+	int nRead = -1;
 	this->Clear();
 
 	if (feof(fFP)) return 1;
 	else {
-		int nRead = fread(fBuffer, 2, fBufferSize, fFP);
-		if (nRead != fBufferSize) {
-			fprintf(stderr,"ERROR: Incorrect buffer size!\n");
+		nRead = fread(fBuffer, 2, fBufferSize, fFP);
+		if (nRead == fBufferSize) {
+			fNumWords = fBuffer[fReadWords++];
+			fBufferType = fBuffer[fReadWords++];
+			fChecksum = fBuffer[fReadWords++];
+			fRunNum = fBuffer[fReadWords++];
+			fBufferNumber = (fBuffer[fReadWords++]);
+			fBufferNumber = fBufferNumber | (fBuffer[fReadWords++] << 16);
+			fNumOfEvents = fBuffer[fReadWords++];
+			fNumOfLAMRegisters = fBuffer[fReadWords++];
+			fNumOfCPU = fBuffer[fReadWords++];
+			fNumOfBitRegisters = fBuffer[fReadWords++];
+			Forward(6);
+		}
+		else if (nRead!=0) {
+			fprintf(stderr,"ERROR: Incorrect buffer size! Buffer had %d words.\n",nRead);
 			fseek(fFP,-nRead*2,SEEK_CUR);
 			return -1;
 			/*struct stat info;
@@ -80,23 +94,11 @@ int nsclBuffer::GetNextBuffer()
 				fprintf(stderr,"ERROR: File pointer stat failed!\n");
 				return -1;
 			}*/
-
 		}
 
-		fNumWords = fBuffer[fReadWords++];
-		fBufferType = fBuffer[fReadWords++];
-		fChecksum = fBuffer[fReadWords++];
-		fRunNum = fBuffer[fReadWords++];
-		fBufferNumber = (fBuffer[fReadWords++]);
-		fBufferNumber = fBufferNumber | (fBuffer[fReadWords++] << 16);
-		fNumOfEvents = fBuffer[fReadWords++];
-		fNumOfLAMRegisters = fBuffer[fReadWords++];
-		fNumOfCPU = fBuffer[fReadWords++];
-		fNumOfBitRegisters = fBuffer[fReadWords++];
-		Forward(6);
 	}
 
-	return 0;
+	return nRead;
 }
 
 void nsclBuffer::PrintBufferHeader() 
