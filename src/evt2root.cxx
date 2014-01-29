@@ -60,22 +60,20 @@ int main (int argc, char *argv[])
 		{
 			printf("Buffer: %d\r",cnt);
 			if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
-				if (cnt>0 && !runStarted) {
-					fprintf(stderr,"WARNING: Buffer read before run started! Check input file order\n");
-				}
-
 				for (int i=0;i<buffer->GetNumOfEvents();i++) {
 					eventBuffer->ReadEvent(buffer,data);
 					evtTree->Fill();
 				}
-
-				runStarted = true;
 			}
 			else if (buffer->GetBufferType() == BUFFER_TYPE_SCALERS) {
 				scalerBuffer->ReadScalers(buffer,scaler);
 				scalerTree->Fill();
 			}
 			else if (buffer->GetBufferType() == BUFFER_TYPE_RUNBEGIN) {
+				if (cnt>0 && !runStarted) {
+					fprintf(stderr,"WARNING: Buffer read before run started! Check input file order.\n");
+				}
+
 				runBuffer->ReadRunBegin(buffer);
 				printf("Run %d - %s\n",buffer->GetRunNumber(),runBuffer->GetRunTitle().c_str());
 				//TObjString *runTitle = new TObjString (runBuffer->GetRunTitle().c_str());
@@ -84,6 +82,8 @@ int main (int argc, char *argv[])
 				TParameter<int>("run",buffer->GetRunNumber()).Write();
 				TParameter<time_t>("runStartTime",runBuffer->GetRunStartTime()).Write();
 				//delete runTitle;
+
+				runStarted = true;
 			}
 			else if (buffer->GetBufferType() == BUFFER_TYPE_RUNEND) {
 				runBuffer->ReadRunEnd(buffer);
