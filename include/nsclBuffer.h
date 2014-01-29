@@ -25,7 +25,7 @@ class nsclBuffer
 		///File pointer to evt file.
 		FILE *fFP;
 		///File name of evt file.
-		char *fFileName;
+		const char *fFileName;
 		///Buffer size.
 		const unsigned int fBufferSize;
 		///Number of words in buffer excluding the 16 word header.
@@ -52,12 +52,12 @@ class nsclBuffer
 		unsigned int fReadWords;
 
 		///Open evt file.
-		void OpenFile(char *filename);
+		void OpenFile(const char *filename);
 		///Close evt file.
 		void CloseFile();
 	public:
 		///Default constructor
-		nsclBuffer(char *filename, unsigned int bufferSize=BUFFER_SIZE);
+		nsclBuffer(const char *filename, unsigned int bufferSize=BUFFER_SIZE);
 		virtual ~nsclBuffer();
 		///Clear the current values for the buffer.
 		void Clear();

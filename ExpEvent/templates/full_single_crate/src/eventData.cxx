@@ -28,3 +28,7 @@ void eventData::Calibrate()
 {
 
 }
+void eventData::Calibrate()
+{
+
+}

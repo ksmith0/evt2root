@@ -5,6 +5,6 @@
 #pragma link off all functions;
 #pragma link C++ nestedclasses;
 
-#pragma link C++ class eventScaler;
-#pragma link C++ class eventData;
+#pragma link C++ class eventScaler+;
+#pragma link C++ class eventData+;
 #endif

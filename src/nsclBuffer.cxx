@@ -1,6 +1,6 @@
 #include "nsclBuffer.h"
 
-nsclBuffer::nsclBuffer(char *filename, unsigned int bufferSize)
+nsclBuffer::nsclBuffer(const char *filename, unsigned int bufferSize)
 	: fFileName(filename),
 	fBufferSize(bufferSize)
 {
@@ -29,7 +29,7 @@ unsigned int nsclBuffer::GetNumOfEvents()
 {
 	return fNumOfEvents;
 }
-void nsclBuffer::OpenFile(char *filename)
+void nsclBuffer::OpenFile(const char *filename)
 {
 	try {
 		if ((fFP=fopen(filename,"r")) == NULL) throw filename;
