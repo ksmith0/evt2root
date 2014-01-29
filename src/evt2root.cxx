@@ -94,6 +94,7 @@ int main (int argc, char *argv[])
 					fprintf(stderr,"WARNING: Run ended before last file was scanned! Check input file order.\n");
 				}
 				runEnded = true;
+				break;
 			}
 			//else 
 			//	printf("Event Type: %d\n",buffer->GetBufferType());
