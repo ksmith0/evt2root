@@ -1,6 +1,15 @@
 cmake_minimum_required (VERSION 2.8)
 project (evt2root)
 
+#if user does not specify prefix we assign it to the exec directory
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+	message("Install Prefix not specified.")
+	file(MAKE_DIRECTORY exec)
+	set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/exec CACHE PATH
+			"Install Prefix" FORCE)
+endif ()
+message("Installing to ${CMAKE_INSTALL_PREFIX}")
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 find_package (ROOT REQUIRED)
