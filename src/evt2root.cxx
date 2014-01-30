@@ -108,8 +108,10 @@ int main (int argc, char *argv[])
 
 	//scalerTree->Print();
 	//evtTree->Print();
+	printf("Finishing up...");fflush(stdout);
 	file->Write();
 	file->Close();
+	printf("Done\n");
 
 	return 0;
 }
