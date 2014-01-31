@@ -6,7 +6,6 @@
 # ROOT_LIBRARIES      Most common libraries
 # ROOT_LIBRARY_DIR    PATH to the library directory 
 
-
 find_program(ROOT_CONFIG_EXECUTABLE root-config
   PATHS $ENV{ROOTSYS}/bin)
 
@@ -38,14 +37,14 @@ else()
   #set(ROOT_LIBRARIES ${ROOT_LIBRARIES} -lThread -lMinuit -lHtml -lVMC -lEG -lGeom -lTreePlayer -lXMLIO -lProof)
   #set(ROOT_LIBRARIES ${ROOT_LIBRARIES} -lProofPlayer -lMLP -lSpectrum -lEve -lRGL -lGed -lXMLParser -lPhysics)
   set(ROOT_LIBRARY_DIR ${ROOTSYS}/lib)
-
-  # Make variables changeble to the advanced user
-  mark_as_advanced(ROOT_CONFIG_EXECUTABLE)
-
-  if(NOT ROOT_FIND_QUIETLY)
-    message(STATUS "Found ROOT ${ROOT_VERSION} in ${ROOTSYS}")
-  endif()
 endif()
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(ROOT DEFAULT_MSG ROOT_CONFIG_EXECUTABLE
+		ROOTSYS ROOT_VERSION ROOT_INCLUDE_DIR ROOT_LIBRARIES	ROOT_LIBRARY_DIR)
+
+mark_as_advanced(ROOT_CONFIG_EXECUTABLE)
+
 
 
 include(CMakeParseArguments)
