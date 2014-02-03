@@ -27,7 +27,7 @@ int main (int argc, char *argv[])
 	printf("Buffer Size: %d\n",buffer->GetBufferSize());
 
 	int cnt=0;
-	while (buffer->GetNextBuffer() == 0)
+	while (buffer->GetNextBuffer() > 1)
 	{
 		buffer->DumpHeader();
 		buffer->PrintBufferHeader();
