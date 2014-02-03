@@ -22,9 +22,11 @@ int main (int argc, char *argv[])
 	const char* outputFile = "";
 	vector< const char* > inputFiles;
 	int c;
+	bool batchJob = false;
 	//Loop over options
-	while ((c = getopt(argc,argv,":o:")) != -1) {
+	while ((c = getopt(argc,argv,":o:b")) != -1) {
 		if (c=='o') outputFile = optarg;
+		if (c=='b') batchJob = true;
 		else if (c=='?') return usage(argv[0]);
 	}
 	//Check that an outputFile was given
@@ -59,7 +61,7 @@ int main (int argc, char *argv[])
 		nsclBuffer *buffer = new nsclBuffer(inputFiles[fileNum]);
 		while (buffer->GetNextBuffer() > 1)
 		{
-			printf("Buffer: %d\r",buffer->GetBufferNumber());
+			if (!batchJob) printf("Buffer: %d\r",buffer->GetBufferNumber());
 			if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
 				for (int i=0;i<buffer->GetNumOfEvents();i++) {
 					eventBuffer->ReadEvent(buffer,data);
