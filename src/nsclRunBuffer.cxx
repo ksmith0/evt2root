@@ -16,6 +16,7 @@ nsclRunBuffer::nsclRunBuffer()
  * 9. Ticks (64's of a second)
  *
  * \param[in] buffer Pointer to the buffer being read.
+ * \param[in] verbose Verbosity flag.  
  *
  */
 void nsclRunBuffer::ReadRunBegin(nsclBuffer *buffer,bool verbose) 
@@ -24,13 +25,28 @@ void nsclRunBuffer::ReadRunBegin(nsclBuffer *buffer,bool verbose)
 		fprintf(stderr,"ERROR: Not a run begin buffer!\n");
 		return;
 	}
+	
+	if (buffer->IsRingBuffer()) {
+		fRunNumber = buffer->GetWord();
+		nsclBuffer::word timeOffset = buffer->GetWord();
+		nsclBuffer::word timeStamp = buffer->GetWord();
+		fRunStartTime = timeStamp;
+		if (verbose) {
+			printf("\n\tRun Number: %d\n",fRunNumber);
+			printf("\tRun Start Time: %s",ctime(&fRunStartTime));
+		}
+	}
 
 	fRunTitle = GetTitle(buffer, verbose);
 	
-	if (verbose) printf("\t0x%08X Empty Longword\n",buffer->GetLongWord());
-	else buffer->Forward(2);
+	//If traditional buffer get run time
+	if (!buffer->IsRingBuffer()) {
+		if (verbose) printf("\t0x%08X Empty Four Byte Word\n",buffer->GetFourByteWord());
+		else buffer->Forward(2);
 
-	fRunStartTime = GetTime(buffer,verbose);
+		fRunStartTime = GetTime(buffer,verbose);
+		fRunNumber = buffer->GetRunNumber();
+	}
 }
 void nsclRunBuffer::ReadRunEnd(nsclBuffer *buffer,bool verbose)
 {
@@ -38,12 +54,28 @@ void nsclRunBuffer::ReadRunEnd(nsclBuffer *buffer,bool verbose)
 		fprintf(stderr,"ERROR: Not a run end buffer!\n");
 		return;
 	}
+	
+	if (buffer->IsRingBuffer()) {
+		fRunNumber = buffer->GetWord();
+		nsclBuffer::word timeOffset = buffer->GetWord();
+		nsclBuffer::word timeStamp = buffer->GetWord();
+		fElapsedRunTime = timeOffset;
+		fRunEndTime = timeStamp;
+		if (verbose) {
+			printf("\n\tRun Number: %d\n",fRunNumber);
+			printf("\tRun End Time: %s",ctime(&fRunEndTime));
+		}
+	}
+
 	GetTitle(buffer,verbose);
 
-	fElapsedRunTime = buffer->GetWord() | (unsigned int) (buffer->GetWord() << 16);
-	if (verbose) printf("\t0x%08X Elapsed Run Time: %u s\n",fElapsedRunTime,fElapsedRunTime);
+	//If traditional buffer get run time
+	if (!buffer->IsRingBuffer()) {
+		fElapsedRunTime = buffer->GetWord() | (unsigned int) (buffer->GetWord() << 16);
+		if (verbose) printf("\t0x%08X Elapsed Run Time: %u s\n",fElapsedRunTime,fElapsedRunTime);
 
-	fRunEndTime = GetTime(buffer,verbose);
+		fRunEndTime = GetTime(buffer,verbose);
+	}
 	
 
 }
@@ -51,34 +83,62 @@ std::string nsclRunBuffer::GetTitle(nsclBuffer *buffer,bool verbose)
 {
 	std::string title;
 	int readWords = 0;
-	for (int i=0;i<40;i++) {
-		int word = buffer->GetWord();
-		readWords++;
-		if (word == 0) break;
-		title.push_back(word & 0xFF);
-		int letter = (word & 0xFF00) >> 8;
-		if (letter)
-			title.push_back(letter);
-		if (verbose) {
-			if ((readWords-1) % 5 == 0) printf("\n\t");
-			if (letter)
-				printf("0x%04X %c%c ",word,(word & 0xFF),letter);
-			else
-				printf("0x%04X %c  ",word,(word & 0xFF));
-		}
+	//Maximum number of words to look at for title.
+	int maxWords = 0;
+	if (buffer->IsRingBuffer()) maxWords = buffer->GetNumOfWords() - 3;
+	else maxWords = 40;
 
-	}
-	if (verbose) {
-		for (int i=readWords;i<40;i++) {
-			if ((readWords-1) % 5 == 0) printf("\n\t");
-			printf("0x%04X    ",buffer->GetWord());
-			readWords++;
+	bool stringComplete = false; //Check if string is done.
+	//Loop over words until string is completed.
+	for (int i=0;i<maxWords && !stringComplete;i++) {
+		nsclBuffer::word datum = buffer->GetWord();
+		readWords++;
+		if (verbose) {
+			//Try to print a nice number of entries per line
+			if ((readWords-1) % (12/WORD_SIZE) == 0) printf("\n\t");
+			printf("%#0*X ",2*WORD_SIZE+2,datum);
 		}
+		if (datum == 0) {
+			if (verbose) printf("%*c",buffer->GetWordSize()+1,' ');
+			stringComplete = true;
+			break;
+		}
+		//Loop over the number of characters stored in aword
+		for (int charCount=0;charCount<buffer->GetWordSize();charCount++) {
+			//Keep storing characters until string ends
+			UShort_t bitShift = 8 * charCount;
+			char letter = (datum >> bitShift) & 0xFF;
+			if (letter != 0) {
+				title.push_back(letter);
+				if (verbose) printf("%c",letter);
+			}
+			else {
+				stringComplete = true;
+				//Pad the rest of the output
+				if (verbose) printf("%*c",buffer->GetWordSize()-charCount,' ');
+				break;
+			}
+		}
+		if (verbose) printf(" ");
+	}
+
+
+	if (verbose) {
+		//Print extraneous words
+		for (int i=readWords;i<maxWords;i++) {
+			nsclBuffer::word datum = buffer->GetWord();
+			readWords++;
+			if ((readWords-1) % (12/WORD_SIZE) == 0) printf("\n\t");
+			printf("%#0*X %*c ",2*buffer->GetWordSize()+2,datum,buffer->GetWordSize(),' ');
+		}
+		//Print the finished title
 		printf("\n\tTitle: %s\n",title.c_str());
 	}
-	buffer->Forward(40-readWords);
+	//If we didn't print the extra word fast forward over them.
+	else buffer->Forward(maxWords-readWords);
 
 	return title;
+
 }
 time_t nsclRunBuffer::GetTime(nsclBuffer *buffer,bool verbose)
 {
@@ -104,11 +164,11 @@ time_t nsclRunBuffer::GetTime(nsclBuffer *buffer,bool verbose)
 }
 void nsclRunBuffer::DumpRunBuffer(nsclBuffer *buffer)
 {
-	int eventLength = buffer->GetNumOfWords()-16;
+	int eventLength = buffer->GetNumOfWords();
 	printf("\nRun Buffer Dump Length: %d",eventLength);
 	for (int i=0;i<eventLength;i++) { 
-		if (i % 10 == 0) printf("\n\t");
-		printf("0x%04X ",buffer->GetWord());
+		if (i % (20/WORD_SIZE) == 0) printf("\n\t");
+		printf("%#0*X ",2*WORD_SIZE+2,buffer->GetWord());
 	}
 	printf("\n");
 	buffer->Rewind(eventLength);

@@ -1,21 +1,33 @@
+#include <vector>
+
 #include "nsclBuffer.h"
 #include "nsclScalerBuffer.h"
 #include "nsclRunBuffer.h"
 #include "nsclEventBuffer.h"
-#include <stdlib.h>
+
+int usage(const char *progName="") {
+	fprintf(stderr,"Usage: %s [-b] input.evt\n",progName);
+	fprintf(stderr,"\t-b\t Indicates raw buffer should be dumped.\n");
+	return 1;
+}
 
 int main (int argc, char *argv[])
 {
-	if (argc < 2 || argc > 3) {
-		fprintf(stderr,"Usage: %s [input.evt]\n",argv[0]);
-		return 1;
+	std::vector< const char* > inputFiles;
+	bool dumpRawBuffer = false;
+
+	//Loop over options
+	int c;
+	while ((c = getopt(argc,argv,"b")) != -1) {
+		if (c=='b') dumpRawBuffer = true;
+		else if (c=='?') return usage(argv[0]);
+	}
+	//Get input file arguments. Ignores everything except the first
+	for (int i=optind;i<argc;i++) { 
+		inputFiles.push_back(argv[i]);
 	}
 
-	nsclBuffer *buffer;
-	if (argc == 3) 
-		buffer = new nsclBuffer(argv[1],atoi(argv[2]));
-	else
-		buffer = new nsclBuffer(argv[1]);
+	nsclBuffer *buffer = new nsclBuffer(inputFiles[0]);
 
 	nsclScalerBuffer *scalerBuffer = new nsclScalerBuffer();
 	nsclRunBuffer *runBuffer = new nsclRunBuffer();
@@ -23,14 +35,15 @@ int main (int argc, char *argv[])
 	eventScaler *scaler = new eventScaler();
 	eventData *data = new eventData();
 
-	printf("Evt Dump: %s\n",argv[1]);
+	printf("Evt Dump: %s\n",inputFiles[0]);
 	printf("Buffer Size: %d\n",buffer->GetBufferSize());
 
 	int cnt=0;
-	while (buffer->GetNextBuffer() > 1)
+	while (buffer->GetNextBuffer() > 0)
 	{
 		buffer->DumpHeader();
 		buffer->PrintBufferHeader();
+		if (dumpRawBuffer) buffer->DumpBuffer();
 		if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
 			for (int i=0;i<buffer->GetNumOfEvents();i++) {
 				printf("\nEvent: %d\n",i);

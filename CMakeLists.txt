@@ -20,7 +20,13 @@ link_directories(${ROOT_LIBRARY_DIR})
 
 include_directories(ExpEvent/include)
 add_subdirectory (ExpEvent)
-set (EXTRA_LIBS ExpEventStatic)
 
+include_directories(include)
+include_directories(modules/include)
+add_subdirectory (modules)
+
+#include the generated module.h header file
+include_directories("${PROJECT_BINARY_DIR}/generated")
+set (EXTRA_LIBS ExpEvent_Static Modules)
 add_subdirectory (src)
 

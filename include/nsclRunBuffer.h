@@ -10,6 +10,7 @@ class nsclRunBuffer
 		std::string fRunTitle;
 		time_t fRunStartTime; 
 		time_t fRunEndTime; 
+		UInt_t fRunNumber;
 		unsigned int fElapsedRunTime;
 
 		time_t GetTime(nsclBuffer *buffer, bool verbose = false);
@@ -25,6 +26,8 @@ class nsclRunBuffer
 		///Get run start time.
 		time_t GetRunStartTime();
 		time_t GetRunEndTime();
+		///Get the run number.
+		Int_t GetRunNumber() {return fRunNumber;}
 		unsigned int GetElapsedRunTime();
 		void DumpRunBuffer(nsclBuffer *buffer);
 

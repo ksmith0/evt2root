@@ -3,6 +3,8 @@
  * containing the event data and scaler data.
  */
 
+#include <vector>
+
 #include "nsclBuffer.h"
 #include "nsclScalerBuffer.h"
 #include "nsclRunBuffer.h"
@@ -12,6 +14,7 @@
 #include "TParameter.h"
 //#include "TObjString.h"
 
+
 int usage(const char *progName="") {
 	fprintf(stderr,"Usage: %s -o output.root input1.evt [input2.evt...]\n",progName);
 	return 1;
@@ -20,9 +23,9 @@ int usage(const char *progName="") {
 int main (int argc, char *argv[])
 {
 	const char* outputFile = "";
-	vector< const char* > inputFiles;
-	int c;
+	std::vector< const char* > inputFiles;
 	bool batchJob = false;
+	int c;
 	//Loop over options
 	while ((c = getopt(argc,argv,":o:b")) != -1) {
 		if (c=='o') outputFile = optarg;
@@ -61,7 +64,7 @@ int main (int argc, char *argv[])
 		nsclBuffer *buffer = new nsclBuffer(inputFiles[fileNum]);
 		while (buffer->GetNextBuffer() > 1)
 		{
-			if (!batchJob) printf("Buffer: %d\r",buffer->GetBufferNumber());
+			if (!batchJob && buffer->GetBufferNumber() % 1000 == 0) printf("Buffer: %d\r",buffer->GetBufferNumber());
 			if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
 				for (int i=0;i<buffer->GetNumOfEvents();i++) {
 					eventBuffer->ReadEvent(buffer,data);
@@ -73,20 +76,24 @@ int main (int argc, char *argv[])
 				scalerTree->Fill();
 			}
 			else if (buffer->GetBufferType() == BUFFER_TYPE_RUNBEGIN) {
-				if (buffer->GetBufferNumber()>0 && !runStarted) {
-					fprintf(stderr,"WARNING: Buffer read before run started! Check input file order.\n");
+				//Some files have the start buffer written multiple times
+				//We only read the run start once
+				if (!runStarted) {
+					if (buffer->GetBufferNumber()>0) {
+						fprintf(stderr,"WARNING: Buffer read before run started! Check input file order.\n");
+					}
+					runBuffer->ReadRunBegin(buffer);
+					printf("Run %d - %s\n",runBuffer->GetRunNumber(),runBuffer->GetRunTitle().c_str());
+					//TObjString *runTitle = new TObjString (runBuffer->GetRunTitle().c_str());
+					//evtTree->GetUserInfo()->Add(runTitle);
+					evtTree->SetTitle(runBuffer->GetRunTitle().c_str());
+					TParameter<int>("run",runBuffer->GetRunNumber()).Write();
+					TParameter<time_t>("runStartTime",runBuffer->GetRunStartTime()).Write();
+					//delete runTitle;
+
+					scalerBuffer->SetRunStartTime(runBuffer->GetRunStartTime());
+					runStarted = true;
 				}
-
-				runBuffer->ReadRunBegin(buffer);
-				printf("Run %d - %s\n",buffer->GetRunNumber(),runBuffer->GetRunTitle().c_str());
-				//TObjString *runTitle = new TObjString (runBuffer->GetRunTitle().c_str());
-				//evtTree->GetUserInfo()->Add(runTitle);
-				evtTree->SetTitle(runBuffer->GetRunTitle().c_str());
-				TParameter<int>("run",buffer->GetRunNumber()).Write();
-				TParameter<time_t>("runStartTime",runBuffer->GetRunStartTime()).Write();
-				//delete runTitle;
-
-				runStarted = true;
 			}
 			else if (buffer->GetBufferType() == BUFFER_TYPE_RUNEND) {
 				runBuffer->ReadRunEnd(buffer);
