@@ -1,0 +1,19 @@
+/**\dir modules/include
+ *	Contains a number of headers for class capable of reading their
+ *	respective modules. Each module must have a \c static \c void method called
+ *	 \c ReadEvent(nsclBuffer*,eventData*,bool).
+ **/
+/**\file modules.h.in
+ * Header file which includes all module headers listed in evt_config.h
+ * We make use of CMake's CONFIGURE_FILE to get the list of header files
+ */
+
+#include "nsclBuffer.h"
+#include "eventData.h"
+
+///Module ReadEvent definition must follow this format.
+typedef void (*ModuleReadOut)(nsclBuffer*, eventData*, bool);
+
+//cmake configures the include statements for the modules
+@MODULE_HEADERS@
+
