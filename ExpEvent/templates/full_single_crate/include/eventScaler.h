@@ -12,10 +12,16 @@ class eventScaler : public TObject
 		unsigned int scalerEndTime;
 		unsigned int scalers[NUM_OF_SCALER_CH];
 
+		///Default Constructor
 		eventScaler();
+		virtual ~eventScaler() {};
+		///Reset the scaler values.
 		void Reset();
+		///Specify the run end time.
 		void SetEndTime(unsigned int time);
+		///Specify the run start time.
 		void SetStartTime(unsigned int time);
+		///Set the scaler value.
 		void SetValue(int channel, unsigned int value);
 
 	ClassDef(eventScaler,1)

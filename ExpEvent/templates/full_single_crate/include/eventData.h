@@ -23,6 +23,7 @@ class eventData : public TObject
 	public:
 		///Default Constructor.
 		eventData();
+		virtual ~eventData() {};
 		///Clear the current values.
 		void Reset();
 		///Record the value from the specified location.

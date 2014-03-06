@@ -29,5 +29,5 @@ void eventScaler::SetValue(int channel,unsigned int value)
 	if (channel >= 0 && channel < NUM_OF_SCALER_CH) 
 		scalers[channel] = value;
 	else
-		fprintf("stderr","WARNING: Unexpected scaler channel: %d Ignored!\n",channel);
+		fprintf(stderr,"WARNING: Unexpected scaler channel: %d Ignored!\n",channel);
 }
