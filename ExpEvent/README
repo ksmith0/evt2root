@@ -1,19 +1,26 @@
 evt2root Package: ExpEvent README
-Author: Karl Smith
-Date: June 14, 2013
+Author: Karl Smith <ksmith218@utk.edu>
+Date: Mar 6, 2014
 
 Before compiling the evt2root package one needs to provide a library specifying what the data in the event structure is. This information is provided by the ExpEvent library.
 
 The ExpEvent library needs to be coded by the end user for the specific data being read. Two classes are needed eventScaler and eventData. Some templates have been provided in the templates directory. 
 
-The template in template/full_single_crate will store data from any slot in a one crate system. It is assumed that each module only has 32 channels.
+The template in template/full_single_crate will store data from any slot in a one crate system. It is assumed that each module has 32 channels.
 
 The template in template/ND_Traditional will store data from the Notre Dame VME crate that is used in many multipurpose experiments. (One ADC in slot ## and a TDC in slot ##)
 
-The evt2root package reuires a Reset and SetValue method.
-The Reset method is designed to reset all parameters to their default values. The prototype is:
-void Reset();
-The SetValue method is designed to take unpacked inofmration including the crate, slot and channel number, as well as the value recorded and assign it to the propper member. The prototype for this method is:
-void SetValue(int crate, int slot, int ch, int value);
+All members of the classes are stored into their respective tree. If using temporary members, with the Calibrate method described below, simply adding '//!' after the definition will cause ROOT to ignore the variable upon tree construction. For example:
+	int varInTree;
+	int varNotInTree; //!
 
+The evt2root package requires a Reset, SetValue, and Calibrate method.
+The Reset method is designed to reset all parameters to their default values. This is important otherwise values not set on the next event will record the old values! The prototype is:
+	void Reset();
+
+The SetValue method is designed to take unpacked information including the crate, slot and channel number, as well as the value recorded and assign it to the proper member. The prototype for this method is:
+	void SetValue(int crate, int slot, int ch, int value);
+
+The Calibrate method simply allows for a post event calibration of calculation of some derived properties that require more than one variable from the event. This method may be empty if this feature is not required. The prototype is:
+	void Calibrat();
 

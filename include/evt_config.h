@@ -6,6 +6,10 @@
 ///Indicates the evt files come from a VM-USB crate.
 #define VM_USB true
 
+//Uncomment the following line to use a manually specified buffer size.
+// Most setups use the default buffer size and this line can be ignored.
+//#define BUFFER_SIZE 4096 ///< Manually defined buffer size.
+
 ///The list of modules to be unpacked.
 /**Modules must be listed in the order that they are to be unpacked. 
  * (Be sure to continue the define line with the '\' character.)

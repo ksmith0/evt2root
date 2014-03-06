@@ -1,18 +1,34 @@
 evt2root Package
 Author: Karl Smith
-Date: June 14, 2013
+Date: Mar 6, 2014
 
 CONFIGURATION Notes:
-	The ExpEvent library must be constructed prior to compilation. The source code for this library is stored in ExpEvent. A README is provided their for information on how to build the classes to store your data. Some templates are also provided as a starting point.
+	The configuration of evt2root must be tailored to the specific usage. These configurations are set in include/evt_config.h. You must indicate whether you are unpacking ring buffers (RING_BUFFER true) or the USB version of the traditional buffer (VM_USB true). Also, a list of modules (MODULE_LIST) to be unpacked is required. This list must be provided in the order in which those modules were packed. If two identical modules are used repeat the MODULE() line for each module. 
+	
+	Some of the available modules are:
+		Caen_General - Capable of reading Caen V785 ADC and V775 TDC.
+		Caen_IO_V977 - Capable of reading Caen V977 I/O.
+		Mesytec_ADC_MADC32 - Capabale of reading Mesytec MADC-32 ADC.
+		XIA_Pixie16 - Capable of reading XIA Pixie-16 Digitizers.
+
+	For example, the iceball setup with a Mesytec MADC-32 and a Caen V775 would read:
+	#define MODULE_LIST(MODULE) \
+		MODULE(Mesytec_ADC_MADC32) \
+		MODULE(Caen_General)
+
+	In addition, The ExpEvent library must be constructed prior to compilation. The source code for this library is stored in ExpEvent. A README is provided their for information on how to build the classes to store your data. Some templates are also provided as a starting point.
+
+ADVANCED DOCUMENTATION:
+	For advanced users who may want to use classes in a separate project or modify the functionality of this program a doxygen configuration file has been provided in the doc directory to generate HTML documentation.
 
 INSTALL Notes:
-	Once the ExpEvent code has been properly written the entire package may be built using cmake. Make a directory to store the build and run cmake in that location providing the root of the evt2root package as an argument. Once cmake is finished compile using make install.
+	Once the ExpEvent code has been properly written and the evt_config.h file configured the entire package may be built using cmake. Make a directory to store the build and run cmake in that location providing the root of the evt2root package as an argument. Once cmake is finished compile using make install.
 
 	Basic Compiling Instructions:
 	1. mkdir build
 	2. cd build
-	3. cmake ../
-	4. make install
+	3. cmake ..
+	4. make install [-j numOfProcessors]
 
 	Troubleshooting:
 	* cmake complains about missing files in ExpEvent:
@@ -38,8 +54,8 @@ USAGE Notes:
 	* ERROR: Wrong buffer size!
 		* If the buffer size is wrong one can use evtDump to inspect the first few buffers and identify the issue. Below are typical problems.
 		* This error may be encountered when an evt file ends abruptly without a run end buffer.
-		* May also be encountered if the buffer size is incorrect. This is defined in include/nsclBuffer.h as BUFFER_SIZE. The correct buffer size is typically written in the name of the evt file. For example, run123-4096.evt, would indicate the run number was 123 and the buffer size was 4096. Typically the traditional Notre Dame systems use 4096 and the USB systems use 13328. 
-		* May be encountered if the VM_USB flag in include/nsclBuffer.h is enabled for non-USB systems. USB systems typically skip the bit register and LAM mask in the event buffers and this would lead to getting the wrong number of words in the next event. 
+		* May be encountered if the VM_USB flag in include/evt_config.h is enabled for non-USB systems. USB systems typically skip the packet length and packet tag in the event buffers and this would lead to getting the wrong number of words in the next event. 
+		* May also be encountered if the buffer size is incorrect. If using a non-defualt buffer size then the buffer size (BUFFER_SIZE) must be set in evt_config.h. The correct buffer size is typically written in the name of the evt file. For example, run123-4096.evt, would indicate the run number was 123 and the buffer size was 4096. Typically the traditional Notre Dame systems use 4096 and the USB systems use 13328. These are the default values and the manual configuration of the buffer size is not necessary.
 
 
 Enjoy!
