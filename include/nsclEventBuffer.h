@@ -14,6 +14,7 @@ class nsclEventBuffer
 
 	private:
 		std::deque< ModuleReadOut > modules;
+		UInt_t GetEventLength(nsclBuffer *buffer);
 	public:
 		///Default constructor.
 		nsclEventBuffer();

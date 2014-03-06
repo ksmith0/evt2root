@@ -64,9 +64,11 @@ int main (int argc, char *argv[])
 		nsclBuffer *buffer = new nsclBuffer(inputFiles[fileNum]);
 		while (buffer->GetNextBuffer() > 1)
 		{
-			if (!batchJob && buffer->GetBufferNumber() % 1000 == 0) printf("Buffer: %d\r",buffer->GetBufferNumber());
+			if (!batchJob) {
+			  if (!buffer->IsRingBuffer() || buffer->GetBufferNumber() % 1000 == 0) printf("Buffer: %d\r",buffer->GetBufferNumber());
+			}
 			if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
-				for (int i=0;i<buffer->GetNumOfEvents();i++) {
+				for (int i=0;i<buffer->GetNumOfEvents() && buffer->GetPosition() < buffer->GetNumOfWords();i++) {
 					eventBuffer->ReadEvent(buffer,data);
 					evtTree->Fill();
 				}

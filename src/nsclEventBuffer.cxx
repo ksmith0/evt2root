@@ -28,22 +28,24 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 	data->Reset();
 
 	unsigned int eventStartPos = buffer->GetPosition();
-	unsigned int eventLength = buffer->GetWord();
-	//Ring buffer event length is in two byte words
-	if (buffer->IsRingBuffer()) eventLength /= buffer->GetWordSize()/2;
-	if (verbose) {
-		printf ("\nData Event:\n");
-		printf("\t%#06x length: %d",eventLength,eventLength);
+	if (eventStartPos >= buffer->GetNumOfWords()) {
+		fflush(stdout);
+		fprintf(stderr,"WARNING: Attempted to read event after reaching end of buffer!\n");
+		return;
 	}
 
-	if (buffer->IsUSB()) {
-		eventLength++;
-		if (verbose) printf("+1");
-	}	
-	if (verbose) printf("\n");
+	Int_t datum;
+	UInt_t eventLength = GetEventLength(buffer);
+	if (eventLength == 0) return;
 
-	//Loop over remaining words. 
-	//	Subtract one to catch single small word at end of buffer.
+	if (verbose) {
+		buffer->Rewind(1);
+		datum = buffer->GetWord();
+		printf ("\nData Event:\n");
+		printf("\t%#06x length: %d\n",datum,eventLength);
+	}
+
+	//Loop over each module
 	for(unsigned int module=0;module<modules.size();module++) {
 		if (!buffer->IsUSB() && !buffer->IsRingBuffer()) {
 			int packetLength = buffer->GetWord();
@@ -53,23 +55,8 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 				printf("\t%#06x Packet tag: %d\n",packetTag,packetTag);
 			}
 			if (packetLength <= 2) continue;
-/*
-		//Special code for ND IO Register.
-		if (packetTag == 10) {
-			for (int i=2;i<packetLength;i++) {
-				int value = buffer->GetWord();
-				readWords++;
-				if (verbose) {
-					printf("\t0x%04X value: %4d\n",value,value);
-				}
-				data->SetValue(0,13,-1,value);
-			}
-		}
-*/
-
 		}
 	
-		int datum;
 		bool boundaryWord = false;
 
 		//If we are using the USB version we need to check if we
@@ -77,7 +64,7 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 		//	(This occurs when the module is not readout and the
 		//	 header and trailer are not written into the buffer)
 		if (buffer->IsUSB()) {
-			int datum = buffer->GetFourByteWord();
+			datum = buffer->GetFourByteWord();
 			if (datum == 0xFFFFFFFF) boundaryWord = true;
 			buffer->RewindBytes(4);
 		}
@@ -87,6 +74,7 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 
 		//Check how many words were read.
 		if (buffer->GetPosition() - eventStartPos > eventLength) {
+			fflush(stdout);
 			fprintf(stderr,"ERROR: Module read too many words!\n");
 		}
 
@@ -114,24 +102,42 @@ void nsclEventBuffer::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbos
 	data->Calibrate();
 
 }
-void Prep(nsclBuffer *buffer) {
+UInt_t nsclEventBuffer::GetEventLength(nsclBuffer *buffer) 
+{
+	UInt_t eventLength = buffer->GetWord();
+
+	//Ring buffer event length is in two byte words
+	if (buffer->IsRingBuffer()) eventLength /= buffer->GetWordSize()/2;
+
+	if (buffer->IsUSB()) {
+		eventLength++;
+	}	
+
+	//A bad buffer may have a large event length.
+	if (eventLength > buffer->GetNumOfWords()) {
+		fflush(stdout);
+		fprintf(stderr,"ERROR: Event Length (%u) larger than number of words in buffer (%u)! Skipping Buffer!\n",eventLength,buffer->GetNumOfWords());
+		buffer->Forward(buffer->GetNumOfWords() - buffer->GetPosition());
+		return 0;
+	}
+	return eventLength;
 
 
 }
 void nsclEventBuffer::DumpEvent(nsclBuffer *buffer) {
-	nsclBuffer::word datum = buffer->GetWord();
-	nsclBuffer::word eventLength = datum;
-	//Ring buffer gives length in 2 byte words
-	if (buffer->IsRingBuffer()) eventLength /= buffer->GetWordSize()/2; 
-	printf("\nEvent Dump Length: %d",eventLength);
-
-	if (buffer->IsUSB()) {
-		eventLength++;
-		printf("+1");
+	if (buffer->GetPosition() >= buffer->GetNumOfWords()) {
+		fflush(stdout);
+		fprintf(stderr,"WARNING: Attempted to dump event after reaching end of buffer!\n");
+		return;
 	}
+
+	UInt_t eventLength = GetEventLength(buffer);
+	if (eventLength == 0) return;
+	//Rewind so that dump includes the event length word.
+	buffer->Rewind(1);
+
 	unsigned short wordSize = buffer->GetWordSize();
-	printf("\n\t%#0*x ",2*wordSize+2,datum);
-	for (int i=1;i<eventLength;i++) { 
+	for (int i=0;i<eventLength;i++) { 
 		if (i % (20/wordSize) == 0) printf("\n\t");
 		printf("%#0*x ",2*wordSize+2,buffer->GetWord());
 	}

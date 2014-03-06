@@ -45,7 +45,7 @@ int main (int argc, char *argv[])
 		buffer->PrintBufferHeader();
 		if (dumpRawBuffer) buffer->DumpBuffer();
 		if (buffer->GetBufferType() == BUFFER_TYPE_DATA) {
-			for (int i=0;i<buffer->GetNumOfEvents();i++) {
+			for (int i=0;i<buffer->GetNumOfEvents() && buffer->GetPosition() < buffer->GetNumOfWords();i++) {
 				printf("\nEvent: %d\n",i);
 				eventBuffer->DumpEvent(buffer);
 				eventBuffer->ReadEvent(buffer,data,true);
