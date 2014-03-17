@@ -176,9 +176,12 @@ UShort_t nsclBuffer::GetTwoByteWord()
 		return GetWord();
 	}
 	else if (fWordSize > 2 && fReadWords < fNumWords) {
-		return (fBuffer[fReadWords] >> 16*fFractionalWordPos) & 0xFFFF;
-		fFractionalWordPos = fFractionalWordPos++ % (fWordSize/2);
+		UShort_t retVal = (fBuffer[fReadWords] >> 16*fFractionalWordPos) & 0xFFFF;
+		//Increase the fractional word count.
+		fFractionalWordPos = (fFractionalWordPos+1) % (fWordSize/2);
+		///Check if we need a new word.
 		if (fFractionalWordPos == 0) fReadWords++;
+		return retVal;
 	}
 	return 0;	
 }
@@ -202,9 +205,12 @@ UInt_t nsclBuffer::GetFourByteWord(bool reverse)
 		return GetWord();
 	}
 	else if (fWordSize > 4 && fReadWords < fNumWords) {
-		return (fBuffer[fReadWords] >> 32*fFractionalWordPos) & 0xFFFFFFFF;
-		fFractionalWordPos = fFractionalWordPos++ % (fWordSize/4);
+		UShort_t retVal = (fBuffer[fReadWords] >> 32*fFractionalWordPos) & 0xFFFFFFFF;
+		//Increase the fractional word count.
+		fFractionalWordPos = (fFractionalWordPos+1) % (fWordSize/4);
+		///Check if we need a new word.
 		if (fFractionalWordPos == 0) fReadWords++;
+		return retVal;
 	}
 	else if (fWordSize == 2) {
 		return GetLongWord(reverse);
