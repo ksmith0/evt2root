@@ -4,6 +4,7 @@
  */
 
 #include <vector>
+#include <unistd.h>
 
 #include "nsclBuffer.h"
 #include "nsclScalerBuffer.h"
