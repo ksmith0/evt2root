@@ -4,19 +4,19 @@
 # ROOT_FOUND          If the ROOT is found
 # ROOT_INCLUDE_DIR    PATH to the include directory
 # ROOT_LIBRARIES      Most common libraries
+# ROOT_GUI_LIBRARIES  Most common gui libraries
 # ROOT_LIBRARY_DIR    PATH to the library directory 
 #
-# Updated by K. Smith (ksmith37@nd.edu) to properly handle
-#  dependncies in ROOT_GENERATE_DICTIONARY
+#Last updated by K. Smith (ksmit218@utk.edu) on Apr 10, 2014
 
+#Find the root-config executable
 find_program(ROOT_CONFIG_EXECUTABLE root-config
   PATHS $ENV{ROOTSYS}/bin)
+find_program(ROOTCINT_EXECUTABLE rootcint PATHS $ENV{ROOTSYS}/bin)
+find_program(GENREFLEX_EXECUTABLE genreflex PATHS $ENV{ROOTSYS}/bin)
 
-if(NOT ROOT_CONFIG_EXECUTABLE)
-  set(ROOT_FOUND FALSE)
-else()    
-  set(ROOT_FOUND TRUE)
-
+#If we found root-config then get all relevent varaiables
+if(ROOT_CONFIG_EXECUTABLE)
   execute_process(
     COMMAND ${ROOT_CONFIG_EXECUTABLE} --prefix 
     OUTPUT_VARIABLE ROOTSYS 
@@ -37,23 +37,21 @@ else()
     OUTPUT_VARIABLE ROOT_LIBRARIES
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-  #set(ROOT_LIBRARIES ${ROOT_LIBRARIES} -lThread -lMinuit -lHtml -lVMC -lEG -lGeom -lTreePlayer -lXMLIO -lProof)
-  #set(ROOT_LIBRARIES ${ROOT_LIBRARIES} -lProofPlayer -lMLP -lSpectrum -lEve -lRGL -lGed -lXMLParser -lPhysics)
+  execute_process(
+    COMMAND ${ROOT_CONFIG_EXECUTABLE} --glibs
+    OUTPUT_VARIABLE ROOT_GUI_LIBRARIES
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
   set(ROOT_LIBRARY_DIR ${ROOTSYS}/lib)
 endif()
 
+#---Report the status of finding ROOT-------------------
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(ROOT DEFAULT_MSG ROOT_CONFIG_EXECUTABLE
-		ROOTSYS ROOT_VERSION ROOT_INCLUDE_DIR ROOT_LIBRARIES	ROOT_LIBRARY_DIR)
+find_package_handle_standard_args(ROOT DEFAULT_MSG 
+		ROOTSYS ROOT_CONFIG_EXECUTABLE ROOTCINT_EXECUTABLE GENREFLEX_EXECUTABLE
+		ROOT_VERSION ROOT_INCLUDE_DIR ROOT_LIBRARIES ROOT_LIBRARY_DIR)
 
-mark_as_advanced(ROOT_CONFIG_EXECUTABLE)
-
-
-
-include(CMakeParseArguments)
-find_program(ROOTCINT_EXECUTABLE rootcint PATHS $ENV{ROOTSYS}/bin)
-find_program(GENREFLEX_EXECUTABLE genreflex PATHS $ENV{ROOTSYS}/bin)
-find_package(GCCXML)
+mark_as_advanced(ROOTSYS ROOT_LIBRARIES ROOT_GUI_LIBRARIES)
 
 #----------------------------------------------------------------------------
 # function ROOT_GENERATE_DICTIONARY( dictionary   
@@ -61,6 +59,7 @@ find_package(GCCXML)
 #                                    LINKDEF linkdef1 ... 
 #                                    OPTIONS opt1...)
 function(ROOT_GENERATE_DICTIONARY dictionary)
+  include(CMakeParseArguments)
   CMAKE_PARSE_ARGUMENTS(ARG "" "" "LINKDEF;OPTIONS" "" ${ARGN})
   #---Get the list of include directories------------------
   get_directory_property(incdirs INCLUDE_DIRECTORIES)
@@ -68,30 +67,19 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
   foreach( d ${incdirs})    
   	set(includedirs ${includedirs} -I${d})
   endforeach()
-  #---Get the list of header files-------------------------
-  set(headerfiles)
-  foreach(fp ${ARG_UNPARSED_ARGUMENTS})
-    file(GLOB files ${fp})
-    if(files)
-      foreach(f ${files})
-        if(NOT f MATCHES LinkDef)
-			 find_file(headerFile ${f} PATHS ${incdirs})
-          set(headerfiles ${headerfiles} ${headerFile})
-			 unset(headerFile CACHE)
-        endif()
-      endforeach()
-    else()
-		find_file(headerFile ${fp} PATHS ${incdirs})
-      set(headerfiles ${headerfiles} ${headerFile})
-		unset(headerFile CACHE)
-    endif()
-  endforeach()
   #---Get LinkDef.h file------------------------------------
   set(linkdefs)
   foreach( f ${ARG_LINKDEF})
 		find_file(linkFile ${f} PATHS ${incdirs})
       set(linkdefs ${linkdefs} ${linkFile})
 		unset(linkFile CACHE)
+  endforeach()
+  #---Get the list of header files-------------------------
+  set(headerfiles)
+  foreach(fp ${ARG_UNPARSED_ARGUMENTS})
+		find_file(headerFile ${fp} PATHS ${incdirs})
+      set(headerfiles ${headerfiles} ${headerFile})
+		unset(headerFile CACHE)
   endforeach()
   #---call rootcint------------------------------------------
   add_custom_command(OUTPUT ${dictionary}.cxx ${dictionary}.h
@@ -106,18 +94,20 @@ endfunction()
 #                                     SELECTION selectionfile ... 
 #                                     OPTIONS opt1...)
 function(REFLEX_GENERATE_DICTIONARY dictionary)  
+  include(CMakeParseArguments)
   CMAKE_PARSE_ARGUMENTS(ARG "" "" "SELECTION;OPTIONS" "" ${ARGN})
+  #---Get the list of include directories------------------
+  get_directory_property(incdirs INCLUDE_DIRECTORIES)
+  set(includedirs) 
+  foreach( d ${incdirs})    
+  	set(includedirs ${includedirs} -I${d})
+  endforeach()
   #---Get the list of header files-------------------------
   set(headerfiles)
   foreach(fp ${ARG_UNPARSED_ARGUMENTS})
-    file(GLOB files ${fp})
-    if(files)
-      foreach(f ${files})
-        set(headerfiles ${headerfiles} ${f})
-      endforeach()
-    else()
-      set(headerfiles ${headerfiles} ${fp})
-    endif()
+		find_file(headerFile ${fp} PATHS ${incdirs})
+      set(headerfiles ${headerfiles} ${headerFile})
+		unset(headerFile CACHE)
   endforeach()
   #---Get Selection file------------------------------------
   if(IS_ABSOLUTE ${ARG_SELECTION})
@@ -125,12 +115,6 @@ function(REFLEX_GENERATE_DICTIONARY dictionary)
   else() 
     set(selectionfile ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_SELECTION})
   endif()
-  #---Get the list of include directories------------------
-  get_directory_property(incdirs INCLUDE_DIRECTORIES)
-  set(includedirs) 
-  foreach( d ${incdirs})    
-    set(includedirs ${includedirs} -I${d})
-  endforeach()
   #---Get preprocessor definitions--------------------------
   get_directory_property(defs COMPILE_DEFINITIONS)
   foreach( d ${defs})    
@@ -141,12 +125,11 @@ function(REFLEX_GENERATE_DICTIONARY dictionary)
   if(MSVC)
     set(gccxmlopts "--gccxmlopt=\"--gccxml-compiler cl\"")
   else()
-    #set(gccxmlopts "--gccxmlopt=\'--gccxml-cxxflags -m64 \'")
     set(gccxmlopts)
   endif()  
-  #set(rootmapname ${dictionary}Dict.rootmap)
-  #set(rootmapopts --rootmap=${rootmapname} --rootmap-lib=${libprefix}${dictionary}Dict)
   #---Check GCCXML and get path-----------------------------
+  find_package(GCCXML)
+  
   if(GCCXML)
     get_filename_component(gccxmlpath ${GCCXML} PATH)
   else()
