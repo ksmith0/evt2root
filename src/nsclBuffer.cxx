@@ -129,11 +129,11 @@ int nsclBuffer::GetNextBuffer()
 		//Grab the entire buffer.
 		nRead = fread(fBuffer, fWordSize, fBufferSize, fFP);
 		if (nRead != fBufferSize) {
-			fprintf(stderr,"ERROR: Incorrect read size! Read %d words, expected %d words.\n",nRead,fNumWords);
+			fprintf(stderr,"ERROR: Buffer %d incorrect read size! Read %d words, expected %d words.\n",fBufferNumber,nRead,fNumWords);
 			return 0;
 		}
-		//RingBuffer and EPICS has extra 2 byte word?
-		if (IsRingBuffer() && fBufferType == BUFFER_TYPE_EPICS) fseek(fFP,2,SEEK_CUR);
+		//RingBuffer and EPICS has extra 1 byte word?
+		if (IsRingBuffer() && fBufferType == BUFFER_TYPE_EPICS) fseek(fFP,1,SEEK_CUR);
 	}
 
 	return nRead;
@@ -153,6 +153,8 @@ void nsclBuffer::PrintBufferHeader()
 		printf("\tNumber of CPU: %d\n",fNumOfCPU);
 		printf("\tNumber of bit registers: %d\n",fNumOfBitRegisters);
 	}
+	else
+		printf("\tBuffer number: %d\n",fBufferNumber);
 }
 nsclBuffer::word nsclBuffer::GetRunNumber() 
 {
