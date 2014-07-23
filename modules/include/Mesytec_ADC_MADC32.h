@@ -45,7 +45,9 @@ class Mesytec_ADC_MADC32 {
 			OVERFLOW_SHIFT = 14,
 
 			/// ADC DATUM Mask
-			DATUM_MASK = 0x1FFF,
+			DATUM_MASK_8K = 0x1FFF,
+			DATUM_MASK_4K = 0xFFF,
+			DATUM_MASK_2K = 0x7FF,
 			/// ADC DATUM Shift
 			DATUM_SHIFT = 0,
 

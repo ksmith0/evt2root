@@ -16,7 +16,14 @@ void Mesytec_ADC_MADC32::ReadEvent(nsclBuffer *buffer, eventData *data, bool ver
 	int type = (datum & SIG_MASK) >> SIG_SHIFT;
 	//Get Module ID (slot)
 	int slot = (datum & MDL_ID_MASK) >> MDL_ID_SHIFT;	
-	if (verbose) printf ("\t0x%08X type: %d slot: %2d ",datum,type,slot);		
+	//Get ADC resolution
+	int resolution = (datum & RESOLUTION_MASK) >> RESOLUTION_SHIFT;
+	//Get correct ADC mask
+	int datum_mask = 0;
+	if (resolution == 0) datum_mask = DATUM_MASK_2K; 
+	else if (resolution == 1 || resolution == 2) datum_mask = DATUM_MASK_4K; 
+	else if (resolution == 3 || resolution == 4) datum_mask = DATUM_MASK_8K; 
+	if (verbose) printf ("\t0x%08X type: %d slot: %2d resolution %d",datum,type,slot,resolution);		
 	if (type == MESY_HEADER) {				
 		//Get Channel Count
 		int count = (datum & CH_CNT_MASK) >> CH_CNT_SHIFT;
@@ -34,7 +41,7 @@ void Mesytec_ADC_MADC32::ReadEvent(nsclBuffer *buffer, eventData *data, bool ver
 				//Get Overflow
 				bool overflow = (datum & OVERFLOW_MASK) >> OVERFLOW_SHIFT;
 				//Get ADC value
-				int value = (datum & DATUM_MASK) >> DATUM_SHIFT;
+				int value = (datum & datum_mask) >> DATUM_SHIFT;
 				if (verbose) {
 					printf("\t0x%08X type: %d ch: %2d value: %4d overflow:%d\n",datum,type,channel,value,overflow);
 				}
