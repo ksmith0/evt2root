@@ -28,7 +28,7 @@ void Caen_General::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose)
 				int value   = (datum & DATAL_DATAMASK);
 				bool overflow = (datum & DATAL_OVBIT) != 0;
 				bool underflow= (datum & DATAL_UNBIT) != 0;
-				bool valid    = (datum& DATAL_VBIT)  != 0;
+				bool valid    = (datum& DATAL_VBIT)  != 0; //Only defined for V775
 				if (verbose) {
 					printf("\t%#08x type: %d geo: %2d ch: %2d value: %4d overflow:%d underflow:%d valid:%d\n",datum,type,geo,channel,value,overflow,underflow,valid);
 				}

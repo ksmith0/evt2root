@@ -35,7 +35,7 @@ class Caen_General {
 			// Low part of data
 			DATAL_UNBIT = 0x2000,
 			DATAL_OVBIT = 0x1000,
-			DATAL_VBIT = 0x40000,
+			DATAL_VBIT = 0x4000, //Only defined for the V775
 			DATAL_DATAMASK = 0x0fff
 		};
 		enum types {
