@@ -51,6 +51,11 @@ class Mesytec_ADC_MADC32 {
 			/// ADC DATUM Shift
 			DATUM_SHIFT = 0,
 
+			//ADC Resolution Mask
+			RESOLUTION_MASK = 0x7000,
+			//ADC Resolution Shift
+			RESOLUTION_SHIFT = 12,
+
 			/// Trigger/Time Stamp Mask
 			TRIG_CNT_MASK = 0x3FFFFFFF,
 			/// Trigger/Time Stamp Shift
