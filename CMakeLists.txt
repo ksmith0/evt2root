@@ -3,13 +3,23 @@ project (evt2root)
 
 #if user does not specify prefix we assign it to the exec directory
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-	message("Install Prefix not specified.")
+	message(STATUS "Install Prefix not specified.")
 	file(MAKE_DIRECTORY exec)
 	get_filename_component(INSTALL_DIR ${CMAKE_SOURCE_DIR}/exec REALPATH)
 	set(CMAKE_INSTALL_PREFIX ${INSTALL_DIR} CACHE PATH
 			"Install Prefix" FORCE)
 endif ()
-message("Installing to ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Installing to ${CMAKE_INSTALL_PREFIX}")
+
+#Define the default build type
+IF(NOT CMAKE_BUILD_TYPE)
+	SET(CMAKE_BUILD_TYPE Release CACHE STRING
+		"Build type, options are: None Debug Release
+			RelWithDebInfo MinSizeRel."
+		FORCE)
+	message(STATUS "Build type not defined, using default.")
+ENDIF(NOT CMAKE_BUILD_TYPE)
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
