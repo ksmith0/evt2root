@@ -69,7 +69,7 @@ int main (int argc, char *argv[])
 			if (!goodBuffer) goto nextBuffer;
 		}
 
-		printf("\nBuffer Position: %d Bytes",buffer->GetBufferBeginPosition());
+		printf("\nBuffer Position: %d Bytes (%.2f%%)",buffer->GetBufferBeginPosition(),buffer->GetFilePositionPercentage());
 
 		//Print out information about buffer header.
 		buffer->DumpHeader();

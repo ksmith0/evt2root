@@ -69,7 +69,10 @@ int main (int argc, char *argv[])
 			//If in batch mode the user will not see this.
 			if (!batchJob) {
 				//Print a buffer counter so the user sees that it is working.
-				if (buffer->GetBufferNumber() % 100 == 0) {printf("Buffer: %d File: %5.2f%%\r",buffer->GetBufferNumber(),(float)buffer->GetFilePosition()/buffer->GetFileSize());fflush(stdout);}
+				printf("Buffer: %d File: %5.2f%%\r",buffer->GetBufferNumber(),buffer->GetFilePositionPercentage());
+				if (buffer->GetBufferNumber() % 100 == 0) {
+					fflush(stdout);
+				}
 			}
 			if (buffer->GetBufferType() == buffer->BUFFER_TYPE_DATA) {
 				while (buffer->GetEventsRemaining()) {
@@ -112,7 +115,6 @@ int main (int argc, char *argv[])
 					fprintf(stderr,"WARNING: Run ended before last file was scanned! Check input file order.\n");
 				}
 				runEnded = true;
-				break;
 			}
 			else {
 				fflush(stdout);
@@ -120,7 +122,7 @@ int main (int argc, char *argv[])
 				buffer->PrintBufferHeader();
 			}	
 		}
-		printf("Read %d buffers. %5.2f%% of file read.\n",buffer->GetBufferNumber(),(float)buffer->GetFilePosition()/buffer->GetFileSize());
+		printf("Read %d buffers. %5.2f%% of file read.\n",buffer->GetBufferNumber(),buffer->GetFilePositionPercentage());
 		delete buffer;
 	}
 
