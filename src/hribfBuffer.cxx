@@ -58,12 +58,6 @@ int hribfBuffer::ReadNextBuffer()
 {
 	this->Clear();
 
-	if (!fFile.good()) {
-		fflush(stdout);
-		printf("ERROR: File not good.\n");
-		return -1;
-	}
-
 	if (!mainBuffer::ReadNextBuffer()) return 0;
 
 	fBufferType = GetWord();

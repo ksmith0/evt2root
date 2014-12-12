@@ -23,11 +23,6 @@ int nsclUSBBuffer::ReadNextBuffer()
 	UInt_t nRead = 0;
 	this->Clear();
 
-	if (!fFile.good()) {
-		printf("ERROR: File not good.\n");
-		return 0;
-	}
-
 	mainBuffer::ReadNextBuffer();
 
 	SetNumOfWords(GetWord());

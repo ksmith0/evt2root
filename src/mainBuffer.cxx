@@ -2,6 +2,7 @@
 #include "modules.h"
 
 mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigned int wordSize) :
+	fFileSize(0),
 	fHeaderSize(headerSize),
 	fBufferSize(bufferSize),
 	fBufferSizeBytes(bufferSize * wordSize),
@@ -38,7 +39,10 @@ void mainBuffer::Copy(UInt_t *source, unsigned int length)
 void mainBuffer::OpenFile(const char *filename)
 {
 	try {
-		fFile.open(filename, std::ios::in | std::ios::binary);
+		fFile.open(filename, std::ios::in | std::ios::binary | std::ios::ate);
+		fFileSize = fFile.tellg();
+		fFile.clear();
+		fFile.seekg(0);
 		if (!fFile.good()) throw filename;
 		fFileName = filename;
 	}
@@ -370,6 +374,12 @@ void mainBuffer::SetMiddleEndian(unsigned int wordSize, bool middleEndian) {
 }
 
 int mainBuffer::ReadNextBuffer() {
+	if (!fFile.good()) {
+		fflush(stdout);
+		printf("ERROR: File not good.\n");
+		return -1;
+	}
+
 	if (GetFilePosition() != 0) {
 		SeekBytes(fBufferSizeBytes - GetBufferPositionBytes());
 	}

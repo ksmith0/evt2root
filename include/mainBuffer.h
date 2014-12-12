@@ -24,6 +24,10 @@
 class mainBuffer
 {
 	private:
+		///File stream
+		std::ifstream fFile;
+		///Size of open file.
+		unsigned int fFileSize;
 		///Buffer contatiner.
 		std::vector< char > fBuffer;
 
@@ -38,8 +42,6 @@ class mainBuffer
 		ULong64_t fNumBytes;
 		
 	protected:
-		///File stream
-		std::ifstream fFile;
 		///File name of evt file.
 		const char *fFileName;
 		///Buffer header size.
@@ -140,8 +142,12 @@ class mainBuffer
 		int GetBufferType() {return fBufferType;};
 		///Returns the number of the current buffer.
 		unsigned int GetBufferNumber();
+
 		///Return current file position in bytes.
 		unsigned int GetFilePosition();
+		///Returnt he open file size.
+		unsigned int GetFileSize() {return fFileSize;};
+
 		///Return current buffer position in words.
 		unsigned int GetBufferPosition() 
 			{return GetBufferPositionBytes() / GetWordSize();};

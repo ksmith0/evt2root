@@ -18,12 +18,14 @@ int main (int argc, char *argv[])
 	std::vector< const char* > inputFiles;
 	bool dumpRawBuffer = false;
 	int bufferType = -1;
+	int ignoreBufferType = -1;
 
 	//Loop over options
 	int c;
-	while ((c = getopt(argc,argv,"bt:")) != -1) {
+	while ((c = getopt(argc,argv,"bt:i:")) != -1) {
 		if (c=='b') dumpRawBuffer = true;
 		if (c=='t') bufferType = atoi(optarg);
+		if (c=='i') ignoreBufferType = atoi(optarg);
 		else if (c=='?') return usage(argv[0]);
 	}
 	//Get input file arguments. Ignores everything except the first
@@ -46,6 +48,7 @@ int main (int argc, char *argv[])
 	{
 		//If not user specified buffer then we continue
 		if (bufferType != -1 && buffer->GetBufferType() != bufferType) continue;
+		if (ignoreBufferType != -1 && buffer->GetBufferType() == ignoreBufferType) continue;
 
 		printf("\nBuffer Position: %d Bytes",buffer->GetBufferBeginPosition());
 
@@ -74,8 +77,6 @@ int main (int argc, char *argv[])
 		else if (buffer->GetBufferType() == buffer->BUFFER_TYPE_RUNEND) {
 			buffer->DumpRunBuffer();
 			buffer->ReadRunEnd(true);
-			printf("Run Ended        \n");
-			break;
 		}
 	}
 }

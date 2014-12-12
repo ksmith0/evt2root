@@ -69,7 +69,7 @@ int main (int argc, char *argv[])
 			//If in batch mode the user will not see this.
 			if (!batchJob) {
 				//Print a buffer counter so the user sees that it is working.
-				if (buffer->GetBufferNumber() % 100 == 0) {printf("Buffer: %d\r",buffer->GetBufferNumber());fflush(stdout);}
+				if (buffer->GetBufferNumber() % 100 == 0) {printf("Buffer: %d File: %5.2f%%\r",buffer->GetBufferNumber(),(float)buffer->GetFilePosition()/buffer->GetFileSize());fflush(stdout);}
 			}
 			if (buffer->GetBufferType() == buffer->BUFFER_TYPE_DATA) {
 				while (buffer->GetEventsRemaining()) {
@@ -114,10 +114,13 @@ int main (int argc, char *argv[])
 				runEnded = true;
 				break;
 			}
-			//else 
-			//	printf("Event Type: %d\n",buffer->GetBufferType());
+			else {
+				fflush(stdout);
+				fprintf(stderr,"WARNING: Unknown buffer type!");
+				buffer->PrintBufferHeader();
+			}	
 		}
-		printf("Read %d buffers.\n",buffer->GetBufferNumber());
+		printf("Read %d buffers. %5.2f%% of file read.\n",buffer->GetBufferNumber(),(float)buffer->GetFilePosition()/buffer->GetFileSize());
 		delete buffer;
 	}
 
