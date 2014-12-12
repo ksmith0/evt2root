@@ -1,10 +1,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-///Indicates the evt files come from the NSCL "Ring" Buffer.
-#define RING_BUFFER false 
 ///Indicates the evt files come from a VM-USB crate.
-#define VM_USB true
+#define VM_USB false
+///Indicate the evt file is a ldf file from HRIBF
+#define LDF true
 
 //Uncomment the following line to use a manually specified buffer size.
 // Most setups use the default buffer size and this line can be ignored.
@@ -26,8 +26,11 @@
  * See modules/include for examples.
  */
 #define MODULE_LIST(MODULE) \
-	MODULE(Mesytec_ADC_MADC32) \
-	MODULE(Caen_General) 
+	MODULE(hribfModule) 
+//	MODULE(Caen_General)
+//	MODULE(Caen_IO_V977) \
+//	MODULE(Mesytec_ADC_MADC32) \
+//	MODULE(XIA_Pixie16) 
 
 #endif
 

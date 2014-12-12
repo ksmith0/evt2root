@@ -8,12 +8,6 @@
  * We make use of CMake's CONFIGURE_FILE to get the list of header files
  */
 
-#include "nsclBuffer.h"
-#include "eventData.h"
-
-///Module ReadEvent definition must follow this format.
-typedef void (*ModuleReadOut)(nsclBuffer*, eventData*, bool);
-
 //cmake configures the include statements for the modules
 @MODULE_HEADERS@
 

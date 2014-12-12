@@ -8,7 +8,7 @@
  *
  * \bug Assumes nsclBuffer::GetLongWord() returns a four byte word.
  */
-void Mesytec_ADC_MADC32::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose)
+void Mesytec_ADC_MADC32::ReadEvent(mainBuffer *buffer, bool verbose)
 {
 	//Get Header Long Word
 	int datum = buffer->GetLongWord();
@@ -23,11 +23,11 @@ void Mesytec_ADC_MADC32::ReadEvent(nsclBuffer *buffer, eventData *data, bool ver
 	if (resolution == 0) datum_mask = DATUM_MASK_2K; 
 	else if (resolution == 1 || resolution == 2) datum_mask = DATUM_MASK_4K; 
 	else if (resolution == 3 || resolution == 4) datum_mask = DATUM_MASK_8K; 
-	if (verbose) printf ("\t0x%08X type: %d slot: %2d resolution %d",datum,type,slot,resolution);		
+	if (verbose) printf ("\t0x%08X type: %d slot: %2d resolution: %d",datum,type,slot,resolution);		
 	if (type == MESY_HEADER) {				
 		//Get Channel Count
 		int count = (datum & CH_CNT_MASK) >> CH_CNT_SHIFT;
-		if (verbose) printf("count: %d\n",count);
+		if (verbose) printf(" count: %d\n",count);
 		//Loop Over Recorded Channels
 		for (int i=0; i<count-1;i++){
 			//Get Data Long Word
@@ -46,7 +46,6 @@ void Mesytec_ADC_MADC32::ReadEvent(nsclBuffer *buffer, eventData *data, bool ver
 					printf("\t0x%08X type: %d ch: %2d value: %4d overflow:%d\n",datum,type,channel,value,overflow);
 				}
 				//Write DATA
-				data->SetValue(0,slot,channel,value);						
 			}
 		}
 		//Get Trailer Long Word

@@ -1,8 +1,8 @@
 #ifndef CAEN_GENERAL_H
 #define CAEN_GENERAL_H
 
-#include "nsclBuffer.h"
-#include "eventData.h"
+#include "mainBuffer.h"
+#include "baseModule.h"
 
 /**Class capable of reading most Caen cards. Caen cards use a common
  * architecture for arranging output. This class is known to support 
@@ -11,7 +11,7 @@
  * and the Caen V775 32-channel Multievent TDC:
  * http://www.caen.it/csite/CaenProd.jsp?idmod=35
  */
-class Caen_General {
+class Caen_General : public baseModule {
 	private:
 		enum masks {
 			// All data words have these bits:
@@ -48,7 +48,7 @@ class Caen_General {
 
 	public:
 		Caen_General() {}
-		static void ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose=false);
+		void ReadEvent(mainBuffer *buffer, bool verbose=false);
 
 
 };

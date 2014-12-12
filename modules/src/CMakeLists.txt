@@ -32,5 +32,9 @@ endif()
 
 #Configure modules.h file with module headers
 CONFIGURE_FILE("../include/modules.h.in" "${PROJECT_BINARY_DIR}/generated/modules.h" @ONLY)
+#include the generated module.h header file
+include_directories("${PROJECT_BINARY_DIR}/generated")
+
+list(APPEND MODULE_SOURCES baseModule.cxx)
 
 add_library(Modules STATIC ${MODULE_SOURCES})

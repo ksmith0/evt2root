@@ -36,6 +36,11 @@ void nsclRunBuffer::ReadRunBegin(nsclBuffer *buffer,bool verbose)
 			printf("\tRun Start Time: %s",ctime(&fRunStartTime));
 		}
 	}
+	else if(buffer->IsLDF()) {
+		buffer->Forward(6);
+		UInt_t date[6];
+		for (int i=0;i<6;i++) date[i] = buffer->GetWord();
+	}
 
 	fRunTitle = GetTitle(buffer, verbose);
 	
@@ -70,7 +75,7 @@ void nsclRunBuffer::ReadRunEnd(nsclBuffer *buffer,bool verbose)
 	GetTitle(buffer,verbose);
 
 	//If traditional buffer get run time
-	if (!buffer->IsRingBuffer()) {
+	if (!buffer->IsRingBuffer() && !buffer->IsLDF()) {
 		fElapsedRunTime = buffer->GetWord() | (unsigned int) (buffer->GetWord() << 16);
 		if (verbose) printf("\t0x%08X Elapsed Run Time: %u s\n",fElapsedRunTime,fElapsedRunTime);
 
@@ -86,6 +91,7 @@ std::string nsclRunBuffer::GetTitle(nsclBuffer *buffer,bool verbose)
 	//Maximum number of words to look at for title.
 	int maxWords = 0;
 	if (buffer->IsRingBuffer()) maxWords = buffer->GetNumOfWords() - 3;
+	else if (buffer->IsLDF()) maxWords = 10;
 	else maxWords = 40;
 
 	bool stringComplete = false; //Check if string is done.

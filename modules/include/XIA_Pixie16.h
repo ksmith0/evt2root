@@ -1,4 +1,4 @@
-/**\file Mesytec_ADC_MADC32.h
+/**\file XIA_Pixie16.h
  *	Readout for the XIA Pixie-16 Digitizer:
  * http://www.xia.com/DGF_Pixie-16.html 
  *
@@ -8,14 +8,15 @@
 #ifndef XIA_PIXIE16_H
 #define XIA_PIXIE16_H
 
-#include "nsclBuffer.h"
+#include "mainBuffer.h"
 #include "eventData.h"
+#include "baseModule.h"
 
 ///Class capable of reading out a XIA Pixie-16 Digitizer.
 /**The class handles readout of the XIA Pixie-16 Digitizer:
  * http://www.xia.com/DGF_Pixie-16.html 
  */
-class XIA_Pixie16 {
+class XIA_Pixie16 : public baseModule {
 	private:
 		enum masks {
 			CHANNELID_MASK      =        0xF,  // Bits 0-3 inclusive
@@ -40,7 +41,7 @@ class XIA_Pixie16 {
 	public:
 		XIA_Pixie16() {}
 		///Readout the module.
-		static void ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose=false);
+		void ReadEvent(mainBuffer *buffer, bool verbose=false);
 };
 
 #endif

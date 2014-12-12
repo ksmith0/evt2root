@@ -1,10 +1,10 @@
 #include "XIA_Pixie16.h"
 
-/**Does not support readout of raw energy sums and baseline, readout of
- * QDC, or readout of a combination of both. Currently stores only the 
- * associated energy. 
+/**Unpack the Pizie16 modules according to the Rev D, Rev F format.
+ * 
+ * \bug Does not support readout of readout of QDC sums. 
  */
-void XIA_Pixie16::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose)
+void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 {
 	UInt_t datum = buffer->GetFourByteWord();
 	UShort_t chanID = (datum & CHANNELID_MASK) >> CHANNELID_SHIFT;
@@ -35,10 +35,8 @@ void XIA_Pixie16::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose)
 
 	datum = buffer->GetFourByteWord();
 	UShort_t energy = datum & LOWER16BIT_MASK; 
-	UShort_t traceLength = (datum & UPPER16BIT_MASK) >> 16;
+	UShort_t traceLength = ((datum & UPPER16BIT_MASK) >> 16) / 2;
 	if (verbose) printf("\t%#010x trace length: %d energy %d\n",datum,traceLength,energy);
-
-	data->SetValue(crateID,slotID,chanID,energy);
 
 	//Determine remaining words in header
 	bool readEnergySumsBaseLine = false;
@@ -52,14 +50,35 @@ void XIA_Pixie16::ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose)
 
 	//Raw energy sums and baseline should be here.
 	if (readEnergySumsBaseLine) {
+		UInt_t trailingEnergySum = buffer->GetFourByteWord();
+		UInt_t leadingEnergySum = buffer->GetFourByteWord();
+		UInt_t gapEnergySum = buffer->GetFourByteWord();
+		UInt_t baseline = buffer->GetFourByteWord();
+		if (verbose) {
+			printf("\t%#010x Trailing Energy Sum: %d\n",trailingEnergySum,trailingEnergySum);
+			printf("\t%#010x Leading Energy Sum: %d\n",leadingEnergySum,leadingEnergySum);
+			printf("\t%#010x Gap Energy Sum: %d\n",gapEnergySum,gapEnergySum);
+			printf("\t%#010x Baseline Value: %d\n",baseline,baseline);
+
+		}
 	}
 	//Raw QDC sum should be here.
 	if (readQDCSums) {
+		fflush(stdout);
+		fprintf(stderr,"ERROR: QDC Sums not supported!\n");
 	}
 
 	//Get trace 
+	int wordSize = buffer->GetWordSize();
 	for (int i=0;i<traceLength;i++) {
-		buffer->GetFourByteWord();
+		datum=buffer->GetFourByteWord();
+		if (verbose) {
+			if (i==0) printf("\t");
+			else if (i % (20/wordSize) == 0) printf("\n\t");
+			printf("%#0*x ",2*wordSize+2,datum);
+		}
 	}
+	if (verbose && traceLength > 0) printf("\n");
+
 
 }

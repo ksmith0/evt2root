@@ -9,13 +9,13 @@
 #ifndef MESYTEC_ADC_MADC32_H
 #define MESYTEC_ADC_MADC32_H
 
-#include "nsclBuffer.h"
-#include "eventData.h"
+#include "mainBuffer.h"
+#include "baseModule.h"
 
 /**Class capable of reading Mesytec ADC MADC-32:
  * http://www.mesytec.com/datasheets/MADC-32.pdf
  */
-class Mesytec_ADC_MADC32 {
+class Mesytec_ADC_MADC32 : public baseModule {
 	private:
 		///Mask and shifts
 		enum masks {
@@ -74,9 +74,8 @@ class Mesytec_ADC_MADC32 {
 	public:
 		Mesytec_ADC_MADC32() {}
 		///Readout the module.
-		static void ReadEvent(nsclBuffer *buffer, eventData *data, bool verbose=false);
+		void ReadEvent(mainBuffer *buffer, bool verbose=false);
 };
-
 
 
 #endif
