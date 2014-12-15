@@ -6,7 +6,7 @@
  */
 void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 {
-	UInt_t datum = buffer->GetFourByteWord();
+	UInt_t datum = buffer->GetWord(4);
 	UShort_t chanID = (datum & CHANNELID_MASK) >> CHANNELID_SHIFT;
 	UShort_t slotID = (datum & SLOTID_MASK) >> SLOTID_SHIFT;
 	UShort_t crateID = (datum & CRATEID_MASK) >> CRATEID_SHIFT;
@@ -22,10 +22,10 @@ void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 		printf("\t%*c overflow: %d finish code: %d\n",10,' ',overflowCode,finishCode);
 	}
 
-	UInt_t timeLow = buffer->GetFourByteWord();
+	UInt_t timeLow = buffer->GetWord(4);
 	if (verbose) printf("\t%#010x time stamp low bits\n",timeLow);
 
-	datum = buffer->GetFourByteWord();
+	datum = buffer->GetWord(4);
 	UShort_t timeHigh = datum & LOWER16BIT_MASK;
 	UShort_t timeCFD = (datum & UPPER16BIT_MASK)>>16;
 	if (verbose) printf("\t%#010x CFD frac. time: %u, time stamp high bits\n",datum,timeCFD);
@@ -33,7 +33,7 @@ void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 	ULong_t timestamp = timeLow + (timeHigh << 31);
 	if (verbose) printf("\t%*c time stamp: %lu\n",10,' ',timestamp);
 
-	datum = buffer->GetFourByteWord();
+	datum = buffer->GetWord(4);
 	UShort_t energy = datum & LOWER16BIT_MASK; 
 	UShort_t traceLength = ((datum & UPPER16BIT_MASK) >> 16) / 2;
 	if (verbose) printf("\t%#010x trace length: %d energy %d\n",datum,traceLength,energy);
@@ -50,10 +50,10 @@ void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 
 	//Raw energy sums and baseline should be here.
 	if (readEnergySumsBaseLine) {
-		UInt_t trailingEnergySum = buffer->GetFourByteWord();
-		UInt_t leadingEnergySum = buffer->GetFourByteWord();
-		UInt_t gapEnergySum = buffer->GetFourByteWord();
-		UInt_t baseline = buffer->GetFourByteWord();
+		UInt_t trailingEnergySum = buffer->GetWord(4);
+		UInt_t leadingEnergySum = buffer->GetWord(4);
+		UInt_t gapEnergySum = buffer->GetWord(4);
+		UInt_t baseline = buffer->GetWord(4);
 		if (verbose) {
 			printf("\t%#010x Trailing Energy Sum: %d\n",trailingEnergySum,trailingEnergySum);
 			printf("\t%#010x Leading Energy Sum: %d\n",leadingEnergySum,leadingEnergySum);
@@ -71,7 +71,7 @@ void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 	//Get trace 
 	int wordSize = buffer->GetWordSize();
 	for (int i=0;i<traceLength;i++) {
-		datum=buffer->GetFourByteWord();
+		datum=buffer->GetWord(4);
 		if (verbose) {
 			if (i==0) printf("\t");
 			else if (i % (20/wordSize) == 0) printf("\n\t");

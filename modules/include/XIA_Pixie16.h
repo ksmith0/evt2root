@@ -9,7 +9,6 @@
 #define XIA_PIXIE16_H
 
 #include "mainBuffer.h"
-#include "eventData.h"
 #include "baseModule.h"
 
 ///Class capable of reading out a XIA Pixie-16 Digitizer.
