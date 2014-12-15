@@ -2,6 +2,7 @@
 #include "modules.h"
 
 mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigned int wordSize) :
+	fFileSize(0),
 	fHeaderSize(headerSize),
 	fBufferSize(bufferSize),
 	fBufferSizeBytes(bufferSize * wordSize),
@@ -38,7 +39,10 @@ void mainBuffer::Copy(UInt_t *source, unsigned int length)
 void mainBuffer::OpenFile(const char *filename)
 {
 	try {
-		fFile.open(filename, std::ios::in | std::ios::binary);
+		fFile.open(filename, std::ios::in | std::ios::binary | std::ios::ate);
+		fFileSize = fFile.tellg();
+		fFile.clear();
+		fFile.seekg(0);
 		if (!fFile.good()) throw filename;
 		fFileName = filename;
 	}
@@ -159,10 +163,12 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 	ULong64_t mask = 0xFFFFFFFFFFFFFFFF >> 8*(8-numOfBytes);
 
 	if (numOfBytes > 8) {
+		fflush(stdout);
 		fprintf(stderr, "ERROR: Cannot retireve words larger than 8 bytes!\n");
 		return mask;
 	}
 	if (GetBufferPositionBytes() > GetNumOfBytes()) {
+		fflush(stdout);
 		fprintf(stderr,"ERROR: No words left in buffer!\n");
 		return mask;
 	}
@@ -224,9 +230,15 @@ void mainBuffer::SeekBytes(int numOfBytes)
 }
 
 
-unsigned int mainBuffer::GetFilePosition()
+unsigned long int mainBuffer::GetFilePosition()
 {
-	return fFile.tellg();
+	if (fFile.good()) return fFile.tellg();
+	else if (fFile.eof()) return fFileSize;
+	return 0;
+}
+float mainBuffer::GetFilePositionPercentage() {
+	float percent = ((long double)GetFilePosition()) / ((long double)GetFileSize()) * 100;
+	return percent;
 }
 
 
@@ -370,6 +382,12 @@ void mainBuffer::SetMiddleEndian(unsigned int wordSize, bool middleEndian) {
 }
 
 int mainBuffer::ReadNextBuffer() {
+	if (!fFile.good()) {
+		fflush(stdout);
+		printf("ERROR: File not good.\n");
+		return -1;
+	}
+
 	if (GetFilePosition() != 0) {
 		SeekBytes(fBufferSizeBytes - GetBufferPositionBytes());
 	}
@@ -377,7 +395,7 @@ int mainBuffer::ReadNextBuffer() {
 
 	fFile.read(&fBuffer[0], GetBufferSizeBytes());
 	if (fFile.gcount() != GetBufferSizeBytes()) {
-		fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetBufferSize());
+		if (fFile.gcount() !=0 )fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetBufferSize());
 		return 0;
 	}
 

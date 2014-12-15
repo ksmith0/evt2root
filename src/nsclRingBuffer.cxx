@@ -20,11 +20,6 @@ int nsclRingBuffer::ReadNextBuffer()
 	UInt_t nRead = 0;
 	this->Clear();
 
-	if (!fFile.good()) {
-		printf("ERROR: File not good.\n");
-		return -1;
-	}
-
 	mainBuffer::ReadNextBuffer();
 
 	//The "ring" buffer has buffers exactly the size of the event.

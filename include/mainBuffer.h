@@ -24,6 +24,10 @@
 class mainBuffer
 {
 	private:
+		///File stream
+		std::ifstream fFile;
+		///Size of open file.
+		unsigned long int fFileSize;
 		///Buffer contatiner.
 		std::vector< char > fBuffer;
 
@@ -38,8 +42,6 @@ class mainBuffer
 		ULong64_t fNumBytes;
 		
 	protected:
-		///File stream
-		std::ifstream fFile;
 		///File name of evt file.
 		const char *fFileName;
 		///Buffer header size.
@@ -140,8 +142,14 @@ class mainBuffer
 		int GetBufferType() {return fBufferType;};
 		///Returns the number of the current buffer.
 		unsigned int GetBufferNumber();
+
 		///Return current file position in bytes.
-		unsigned int GetFilePosition();
+		unsigned long int GetFilePosition();
+		///Return current file position in percent.
+		float GetFilePositionPercentage();
+		///Returnt he open file size.
+		unsigned long int GetFileSize() {return fFileSize;};
+
 		///Return current buffer position in words.
 		unsigned int GetBufferPosition() 
 			{return GetBufferPositionBytes() / GetWordSize();};
@@ -199,7 +207,7 @@ class mainBuffer
 		///Get run end time.
 		time_t GetRunEndTime() {return fRunEndTime;}
 		///Get run value for current buffer.
-		Int_t GetRunNumber() {return fRunNum;}
+		ULong64_t GetRunNumber() {return fRunNum;}
 		///Get the elapsed run time.
 		unsigned int GetElapsedRunTime() {return fElapsedRunTime;}
 

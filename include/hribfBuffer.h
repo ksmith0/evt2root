@@ -30,8 +30,8 @@ class hribfBuffer : public mainBuffer {
 			///Run Begin type.
 			BUFFER_TYPE_RUNBEGIN = 0x44414548, //"HEAD"
 			///Run End type.
-//			BUFFER_TYPE_RUNEND = 0x20464F45 //"EOF" 
-			BUFFER_TYPE_RUNEND = 0x44414544 //"DEAD" 
+			BUFFER_TYPE_RUNEND = 0x20464F45 //"EOF" 
+//			BUFFER_TYPE_RUNEND = 0x44414544 //"DEAD" 
 		};
 
 		///Default constructor

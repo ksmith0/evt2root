@@ -58,16 +58,11 @@ int hribfBuffer::ReadNextBuffer()
 {
 	this->Clear();
 
-	if (!fFile.good()) {
-		fflush(stdout);
-		printf("ERROR: File not good.\n");
-		return -1;
-	}
-
 	if (!mainBuffer::ReadNextBuffer()) return 0;
 
 	fBufferType = GetWord();
-	SetNumOfWords(GetWord());
+	if (fBufferType == BUFFER_TYPE_RUNEND) SetNumOfWords(2);
+	else SetNumOfWords(GetWord());
 	fBufferNumber++;
 	//No information about number of events in header we assume there is
 	// at least one.
@@ -94,6 +89,7 @@ void hribfBuffer::ReadRunEnd(bool verbose)
 		return;
 	}
 
+/*
 	std::string deadTime = ReadString(GetNumOfWords(),verbose);
 	if (verbose) {
 		printf("\t String: ");
@@ -104,6 +100,7 @@ void hribfBuffer::ReadRunEnd(bool verbose)
 		}
 		printf("\n");
 	}
+*/
 }
 
 void hribfBuffer::ReadRunBegin(bool verbose)
@@ -126,8 +123,8 @@ void hribfBuffer::ReadRunBegin(bool verbose)
 	fRunTitle = ReadString(20,verbose);
 	if (verbose) printf("\t Title: %s\n",fRunTitle.c_str());
 
-	UInt_t headerNumber = GetWord();	
-	if (verbose) printf("\t%#010X Header Number: %d\n",headerNumber,headerNumber);
+	fRunNum = GetWord();	
+	if (verbose) printf("\t%#010X Run Number: %d\n",fRunNum,fRunNum);
 
 	if (type.find("LIST DATA") == std::string::npos) {
 		fflush(stdout);

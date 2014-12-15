@@ -7,9 +7,10 @@
 #include "hribfBuffer.h"
 
 int usage(const char *progName="") {
-	fprintf(stderr,"Usage: %s [-b] [-t bufferType] input.evt\n",progName);
+	fprintf(stderr,"Usage: %s [-b] [-t bufferType] [-i bufferType] input.evt\n",progName);
 	fprintf(stderr,"\t-b\t Indicates raw buffer should be dumped.\n");
 	fprintf(stderr,"\t-t\t Only output buffers corresponding to the provided bufferType.\n");
+	fprintf(stderr,"\t-i\t Ignore buffers corresponding to the provided bufferType.\n");
 	return 1;
 }
 
@@ -17,19 +18,31 @@ int main (int argc, char *argv[])
 {
 	std::vector< const char* > inputFiles;
 	bool dumpRawBuffer = false;
-	int bufferType = -1;
+	std::vector<int> bufferType;
+	std::vector<int> ignoreBufferType;
 
 	//Loop over options
 	int c;
-	while ((c = getopt(argc,argv,"bt:")) != -1) {
+	while ((c = getopt(argc,argv,"bt:i:")) != -1) {
 		if (c=='b') dumpRawBuffer = true;
-		if (c=='t') bufferType = atoi(optarg);
+		if (c=='t') {
+			int type = atoi(optarg);
+			bufferType.push_back(type);
+			printf("Displaying only buffer type: %d\n",type);
+		}
+		if (c=='i') {
+			int type = atoi(optarg);
+			ignoreBufferType.push_back(type);
+			printf("Ignoring buffer type: %d\n",type);
+		}
 		else if (c=='?') return usage(argv[0]);
 	}
 	//Get input file arguments. Ignores everything except the first
 	for (int i=optind;i<argc;i++) { 
 		inputFiles.push_back(argv[i]);
 	}
+
+	printf("\n");
 
 	hribfBuffer *buffer = new hribfBuffer(inputFiles[0]);
 //	nsclClassicBuffer *buffer = new nsclClassicBuffer(inputFiles[0]);
@@ -41,13 +54,22 @@ int main (int argc, char *argv[])
 	printf("Header Size: %d words\n",buffer->GetHeaderSize());
 	printf("Buffer Size: %d words\n",buffer->GetBufferSize());
 
-	int cnt=0;
-	while (buffer->ReadNextBuffer() > 0)
+	nextBuffer: while (buffer->ReadNextBuffer() > 0)
 	{
-		//If not user specified buffer then we continue
-		if (bufferType != -1 && buffer->GetBufferType() != bufferType) continue;
+		//Skip any specified ignore buffers.
+		for (unsigned int i=0;i<ignoreBufferType.size();i++) 
+			if (buffer->GetBufferType() == ignoreBufferType[i]) goto nextBuffer;
 
-		printf("\nBuffer Position: %d Bytes",buffer->GetBufferBeginPosition());
+		//If not user specified buffer then we continue
+		if (bufferType.size() > 0) {
+			bool goodBuffer = false;
+			for (unsigned int i=0;i<bufferType.size() && !goodBuffer;i++) { 
+				if (buffer->GetBufferType() == bufferType[i]) goodBuffer=true;
+			}
+			if (!goodBuffer) goto nextBuffer;
+		}
+
+		printf("\nBuffer Position: %d Bytes (%.2f%%)",buffer->GetBufferBeginPosition(),buffer->GetFilePositionPercentage());
 
 		//Print out information about buffer header.
 		buffer->DumpHeader();
@@ -74,8 +96,6 @@ int main (int argc, char *argv[])
 		else if (buffer->GetBufferType() == buffer->BUFFER_TYPE_RUNEND) {
 			buffer->DumpRunBuffer();
 			buffer->ReadRunEnd(true);
-			printf("Run Ended        \n");
-			break;
 		}
 	}
 }
