@@ -2,10 +2,6 @@
 
 void Caen_General::ReadEvent(mainBuffer *buffer, bool verbose)
 {
-
-	//Indicate order of high and low bits. 
-	// Traditional 4096 buffer has bits swapped.	
-
 	//Get HEADER
 	UInt_t datum = buffer->GetWord(4);
 	int type = (datum & ALLH_TYPEMASK) >> ALLH_TYPESHIFT;
