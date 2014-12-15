@@ -24,15 +24,9 @@
 class mainBuffer
 {
 	private:
-		///File stream
-		std::ifstream fFile;
 		///Size of open file.
 		unsigned long int fFileSize;
-		///Buffer contatiner.
-		std::vector< char > fBuffer;
 
-		///Position of beginning of buffer in bytes.
-		unsigned int fBufferBeginPos;
 		///Current byte in buffer.
 		UInt_t fCurrentByte;
 
@@ -52,6 +46,13 @@ class mainBuffer
 		unsigned int fBufferSizeBytes;
 		///Size of a word in the buffer.
 		unsigned short int fWordSize;
+
+		///File stream
+		std::ifstream fFile;
+		///Buffer contatiner.
+		std::vector< char > fBuffer;
+		///Position of beginning of buffer in bytes.
+		unsigned int fBufferBeginPos;
 
 		///Type of events in this buffer.
 		ULong64_t fBufferType;
@@ -75,8 +76,6 @@ class mainBuffer
 		///The elapsed run time.
 		unsigned int fElapsedRunTime;
 
-		///The number of words read in the current buffer.
-		unsigned int fReadWords;
 		///The portion of word read.
 		unsigned short int fFractionalWordPos;
 		///The last word position of written data in buffer.
@@ -99,6 +98,9 @@ class mainBuffer
 		virtual UInt_t GetEventLength();
 		///Validates event length and returns result.
 		UInt_t ValidatedEventLength(UInt_t eventLength);
+
+		///Set the buffer size in bytes.
+		void SetBufferSize(ULong64_t bufferSizeiBytes);
 
 		///Deque tracking all the modules used in the data file.
 		std::vector< baseModule* > fModules;

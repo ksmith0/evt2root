@@ -4,21 +4,26 @@
 mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigned int wordSize) :
 	fFileSize(0),
 	fHeaderSize(headerSize),
-	fBufferSize(bufferSize),
-	fBufferSizeBytes(bufferSize * wordSize),
 	fWordSize(wordSize),
 	fBufferBeginPos(0),
 	fBufferNumber(-1)
 {
 	this->Clear();
+	SetBufferSize(bufferSize * wordSize);
 
-	fBuffer.resize(fBufferSize * fWordSize);
 	fMiddleEndian.assign(8,false);
 	MODULE_LIST(MODULE_FUNCTION)
 
 }
 mainBuffer::~mainBuffer() {
 	CloseFile();
+}
+
+void mainBuffer::SetBufferSize(ULong64_t bufferSizeBytes) {
+	fBufferSizeBytes = bufferSizeBytes;
+	fBufferSize = bufferSizeBytes / GetWordSize();
+	if (fBufferSizeBytes % GetWordSize() > 0) fBufferSize++;
+	fBuffer.resize(fBufferSizeBytes);
 }
 /**Copies data from an provided address with a specified length into the 
  * buffer.
@@ -58,14 +63,15 @@ void mainBuffer::CloseFile()
 }
 void mainBuffer::Clear()
 {
+	fCurrentByte = 0;	
 	fWritePosition = 0;
-	fReadWords = 0;
 	fFractionalWordPos = 0;
 	fBufferType = 0;
 	fNumWords = 0;
 	fChecksum = 0;
 	fRunNum = 0;
 	fNumOfEvents = 0;
+	fEventNumber = 0;
 }
 unsigned int mainBuffer::GetBufferNumber()
 {
@@ -93,6 +99,13 @@ void mainBuffer::DumpEvent() {
 }
 
 void mainBuffer::SetNumOfWords(ULong64_t numOfWords) {
+	if (fNumWords > fBufferSize) {
+		fflush(stdout);
+		fprintf(stderr,"ERROR: Number of words specified greater than buffer size!. Setting number of words to buffer size.\n");
+		fNumWords = fBufferSize;
+		fNumBytes = fBufferSizeBytes;
+		return;
+	}
 	fNumWords = numOfWords;
 	fNumBytes = numOfWords * fWordSize;
 }
@@ -101,7 +114,7 @@ void mainBuffer::DumpScalers() {
 	//Rewind to beginning of buffer then Fwd over the header.
 	Seek(-pos + fHeaderSize);
 
-	unsigned int eventLength = GetNumOfWords();
+	unsigned int eventLength = GetNumOfWords() - GetHeaderSize();
 	printf("\nScaler Dump Length: %d",eventLength);
 	for (int i=0;i<eventLength;i++) { 
 		if (i % (20/GetWordSize()) == 0) printf("\n %4d",i);
@@ -167,9 +180,9 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 		fprintf(stderr, "ERROR: Cannot retireve words larger than 8 bytes!\n");
 		return mask;
 	}
-	if (GetBufferPositionBytes() > GetNumOfBytes()) {
+	if (GetBufferPositionBytes() >= fBufferSizeBytes) {
 		fflush(stdout);
-		fprintf(stderr,"ERROR: No words left in buffer!\n");
+		fprintf(stderr,"ERROR: No bytes left in buffer (%u/%u)!\n",GetBufferPositionBytes(),fBufferSizeBytes);
 		return mask;
 	}
 	unsigned int bytesRemaining = GetNumOfBytes() - GetBufferPositionBytes();
@@ -247,7 +260,7 @@ void mainBuffer::DumpHeader()
 	unsigned int pos = GetBufferPositionBytes();
 	SeekBytes(-pos);
 	printf("\nBuffer Header:");
-	for (int i=0;i<fHeaderSize;i++) {
+	for (int i=0;i<GetHeaderSize();i++) {
 		if (i % (20/GetWordSize()) == 0) printf("\n %4d",i);
 		UInt_t datum = GetWord();
 		printf(" %#0*X",2*fWordSize+2,datum);
@@ -273,9 +286,9 @@ void mainBuffer::DumpRunBuffer()
 {	
 	unsigned int pos = GetBufferPosition();
 	//Rewind to beginning of buffer then Fwd over the header.
-	Seek(-pos + fHeaderSize);
+	Seek(-pos + GetHeaderSize());
 
-	unsigned int eventLength = GetNumOfWords();
+	unsigned int eventLength = GetNumOfWords() - GetHeaderSize();
 	printf("\nRun Buffer Dump Length: %u",eventLength);
 	for (int i=0;i<eventLength;i++) { 
 		if (i % (20/GetWordSize()) == 0) printf("\n %4d",i);
@@ -382,6 +395,7 @@ void mainBuffer::SetMiddleEndian(unsigned int wordSize, bool middleEndian) {
 }
 
 int mainBuffer::ReadNextBuffer() {
+	Clear();
 	if (!fFile.good()) {
 		fflush(stdout);
 		printf("ERROR: File not good.\n");
@@ -399,7 +413,6 @@ int mainBuffer::ReadNextBuffer() {
 		return 0;
 	}
 
-	fCurrentByte = 0;	
 	SetNumOfWords(GetBufferSize());
 
 	return fFile.gcount();

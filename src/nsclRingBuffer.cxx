@@ -5,6 +5,7 @@ nsclRingBuffer::nsclRingBuffer(const char *filename,int bufferSize, int headerSi
 	mainBuffer(headerSize,bufferSize,wordSize)
 {
 	OpenFile(filename);
+	SetBufferSize(wordSize);
 }
 nsclRingBuffer::~nsclRingBuffer() {
 }
@@ -17,13 +18,39 @@ nsclRingBuffer::~nsclRingBuffer() {
  */
 int nsclRingBuffer::ReadNextBuffer() 
 {
-	UInt_t nRead = 0;
-	this->Clear();
+	Clear();
+	if (!fFile.good()) {
+		fflush(stdout);
+		printf("ERROR: File not good.\n");
+		return -1;
+	}
 
-	mainBuffer::ReadNextBuffer();
+	fBufferBeginPos = GetFilePosition();
 
+	SetBufferSize(GetWordSize());
 	//The "ring" buffer has buffers exactly the size of the event.
-	fBufferSizeBytes = GetWord();
+	//Read the first word which should be the size of the buffer
+	fFile.read(&fBuffer[0], GetWordSize());
+	if (fFile.gcount() != GetWordSize()) {
+		if (fFile.gcount() !=0 )fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetWordSize());
+		return 0;
+	}
+	SetNumOfWords(1);
+	SetBufferSize(GetWord());
+
+	//Number of words is equal to the size of the buffer.
+	SetNumOfWords(fBufferSize);
+
+	//Read the remaining buffer, besides the one word we have read.
+	fFile.read(&fBuffer[GetWordSize()], GetBufferSizeBytes() - GetWordSize());
+	if (fFile.gcount() != GetBufferSizeBytes() - GetWordSize()) {
+		if (fFile.gcount() !=0 ) {
+			fflush(stdout);
+			fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetBufferSize());
+		}
+		return 0;
+	}
+
 	fBufferType = GetWord();
 	//Ring buffer event buffers only contain 1 event.
 	if (fBufferType == BUFFER_TYPE_DATA) fNumOfEvents = 1;
@@ -31,18 +58,13 @@ int nsclRingBuffer::ReadNextBuffer()
 	//Ring Buffer does not track buffer number, we iterate it manually.
 	fBufferNumber++;
 
-	//Ring buffer may contain a buffer that is not divisible by the word size.
-	// We force it to round up.
-	fBufferSize = fBufferSizeBytes / fWordSize;
-	if (fBufferSizeBytes % fWordSize != 0) fBufferSize++;
-	//NUmber of words is equal to the size of the buffer.
-	SetNumOfWords(fBufferSize);
-
 	return GetNumOfWords();
 }
 
 UInt_t nsclRingBuffer::GetEventLength() {
-	UInt_t eventLength = GetWord() / (GetWordSize()/2);
+	UInt_t datum = GetCurrentWord();
+	printf("Evnt Length %#010X\n",datum);
+	UInt_t eventLength = GetCurrentWord() / (GetWordSize()/2);
 
 	return ValidatedEventLength(eventLength);
 }
@@ -172,6 +194,8 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 			Seek(remainingWords);
 		}
 	}
+
+	fEventNumber++;
 
 	return 1;
 
