@@ -60,10 +60,13 @@ int nsclRingBuffer::ReadNextBuffer()
 
 	return GetNumOfWords();
 }
-
+/**The event length is returned without changing the position in the
+ * buffer.
+ *
+ * \return Event length in words.
+ */
 UInt_t nsclRingBuffer::GetEventLength() {
 	UInt_t datum = GetCurrentWord();
-	printf("Evnt Length %#010X\n",datum);
 	UInt_t eventLength = GetCurrentWord() / (GetWordSize()/2);
 
 	return ValidatedEventLength(eventLength);
@@ -153,8 +156,8 @@ void nsclRingBuffer::ReadRunBeginEnd(UInt_t &runNum, UInt_t &elapsedTime, time_t
  *
  */
 int nsclRingBuffer::ReadEvent(bool verbose) {
-	unsigned int eventStartPos = GetBufferPosition();
-	if (eventStartPos >= GetNumOfWords()) {
+	unsigned int eventStartPos = GetBufferPositionBytes();
+	if (eventStartPos >= GetNumOfBytes()) {
 		fflush(stdout);
 		fprintf(stderr,"WARNING: Attempted to read event after reaching end of buffer!\n");
 		return 0;
@@ -167,6 +170,9 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 		printf ("\nData Event:\n");
 		printf("\t%#010X Length: %d\n",(UInt_t)GetWord(),eventLength);
 	}
+	else Seek(1);
+
+	eventLength *= GetWordSize();
 
 	//Loop over each module
 	int headerSize = 2;
@@ -176,7 +182,7 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 		fModules[module]->ReadEvent(this,verbose);
 
 		//Check how many words were read.
-		if (GetBufferPosition() - eventStartPos > eventLength) {
+		if (GetBufferPositionBytes() - eventStartPos > eventLength) {
 			fflush(stdout);
 			fprintf(stderr,"ERROR: Module read too many words! (Buffer: %d)\n",GetBufferNumber());
 		}
@@ -184,20 +190,24 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 	}
 
 	//Fastforward over extra words
-	int remainingWords = eventStartPos + eventLength - GetBufferPosition();
-	if (remainingWords > 0) {
+	int remainingBytes = eventStartPos + eventLength - GetBufferPositionBytes();
+	if (remainingBytes > 0) {
 		if (verbose) {
-			for (int i=0;i<remainingWords;i++) 
-				printf("\t%#0*X Extra Word?\n",2*GetWordSize()+2,(UInt_t)GetWord());
+			for (int i=0;i<remainingBytes;i+=GetWordSize()) 
+				if (remainingBytes >= GetWordSize()) 
+					printf("\t%#0*X Extra Word?\n",2*GetWordSize()+2,(UInt_t)GetWord());
+				else {
+					printf("\t%#0*X Extra Bytes?\n",2*remainingBytes+2,(UInt_t)GetWord(remainingBytes));
+				}
 		}
 		else {
-			Seek(remainingWords);
+			SeekBytes(remainingBytes);
 		}
 	}
 
 	fEventNumber++;
 
-	return 1;
+	return GetBufferPositionBytes() - eventStartPos;
 
 }
 
