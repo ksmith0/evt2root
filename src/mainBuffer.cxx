@@ -181,7 +181,7 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 	}
 	if (GetBufferPositionBytes() >= fBufferSizeBytes) {
 		fflush(stdout);
-		fprintf(stderr,"ERROR: No bytes left in buffer (%u/%u)!\n",GetBufferPositionBytes(),fBufferSizeBytes);
+		fprintf(stderr,"ERROR: No bytes left in buffer %llu (%u/%u)!\n",fBufferNumber,GetBufferPositionBytes(),fBufferSizeBytes);
 		return mask;
 	}
 
@@ -299,7 +299,6 @@ void mainBuffer::DumpRunBuffer()
 	printf("\n");
 
 	//Rewind to previous position
-	printf("reqind %d %d\n",eventLength,-GetBufferPosition() + pos);
 	SeekBytes(-GetBufferPositionBytes() + pos);
 }
 
@@ -307,12 +306,13 @@ std::string mainBuffer::ConvertToString(ULong64_t datum) {
 	std::string title;
 
 	//Loop over the number of characters stored in a word
-	for (int charCount=0;charCount<8;charCount++) {
+	for (int charCount=0;charCount<sizeof(datum);charCount++) {
 		//Keep storing characters until string ends
 		ULong64_t bitShift = 8 * charCount;
 		char letter = (datum >> bitShift) & 0xFF;
-		if (letter != 0) title.push_back(letter);
-		else break;
+		//Break if end string character found.
+		if (letter == 0) break;
+		title.push_back(letter);
 	}
 
 	return title;
@@ -330,60 +330,78 @@ std::string mainBuffer::ReadString(unsigned int maxWords, bool verbose)
 	bool stringComplete = false; //Check if string is done.
 	//Number of words to print per line.
 	int wordsPerLine;
-	//word full of spaces.
-	std::string	wordOfSpaces;
+
+	//Some buffers contain long list of spaces after string
+	//if a verbose output we do  not want to print these.
 	ULong64_t wordOfSpacesHex = 0;
+	std::string wordOfSpaces;
+	for (int i=0;i<GetWordSize();i++) wordOfSpaces.push_back(' ');
 
 	if (verbose) {
 		//Try to print a nice number of entries per line
 		int verboseWordLength = 3 * GetWordSize() + 4;
 		wordsPerLine = 75 / verboseWordLength;
-
-		//Some buffers contain long list of spaces after string
-		//if a verbose output we do  not want to print these.
+	
+		//Get the hex for a word of spaces for verbose output.
 		for (int i=0;i<GetWordSize();i++) wordOfSpacesHex += 0X20 << 8*i;
-		wordOfSpaces = ConvertToString(wordOfSpacesHex);
-
 	}
 
 	//Loop over words until string is completed.
 	for (int i=0;i<maxWords && !stringComplete;i++) {
+		//Get the next word for conversion.
 		UInt_t datum = GetWord();
 		readWords++;
 
+		//If the word is null then the string must be complete.
 		if (datum == 0) {
 			stringComplete = true;
 			break;
 		}
 		
+		//Convert the word to a string.
 		std::string part = ConvertToString(datum);
-		if (part != wordOfSpaces) {
-			if (verbose) {
-				for (int numSpaces=0; numSpaces<spaceCount;numSpaces++) {
-					printedWords++;
-					if ((printedWords-1) % wordsPerLine == 0) printf("\n\t");
-					printf("%#0*llX ",2*GetWordSize()+2,wordOfSpacesHex);
-					printf("%s ",wordOfSpaces.data());
-				}
+
+		//If this word is just spaces we count it and continue.
+		// We will append the spaces later if we find any useful text.
+		if (part == wordOfSpaces) {
+			spaceCount++;
+			continue;
+		}
+
+		if (verbose) {
+			//Print any spaces and corresponding hex words that may have
+			// been skipped.
+			for (int numSpaces=0; numSpaces<spaceCount;numSpaces++) {
 				printedWords++;
 				if ((printedWords-1) % wordsPerLine == 0) printf("\n\t");
-				printf("%#0*X ",2*GetWordSize()+2,datum);
-				printf("%s ",part.data());
-				if (part.length() < GetWordSize()) {
-					printf("%*c",GetWordSize() - (int)part.length(), ' ');
-					stringComplete = true;
-				}
+				printf("%#0*llX ",2*GetWordSize()+2,wordOfSpacesHex);
+				printf("%s ",wordOfSpaces.data());
 			}
-			
-			for (int numSpaces=0; numSpaces<spaceCount;numSpaces++) 
-				title.append(wordOfSpaces);
-			spaceCount = 0;
-
-			title.append(part);
+			printedWords++;
+			if ((printedWords-1) % wordsPerLine == 0) printf("\n\t");
+			//Print the current word and its converted string.
+			printf("%#0*X ",2*GetWordSize()+2,datum);
+			printf("%s ",part.data());
 		}
-		else spaceCount++;
+
+		//If the length of the converted string is smaller than the word
+		// then we must have read a string termination character. We now
+		// pad the verbose output and marked the string as ccomplete.
+		if (part.length() < GetWordSize()) {
+			if (verbose) printf("%*c",GetWordSize() - (int)part.length(), ' ');
+			stringComplete = true;
+		}
+
+		//We append all the spaces we previously skipped.
+		for (int numSpaces=0; numSpaces<spaceCount;numSpaces++) 
+			title.append(wordOfSpaces);
+		spaceCount = 0;
+
+		//Finally we append the part of the string we found.
+		title.append(part);
 	}
 
+	//Seek over the remaining words.
 	Seek(maxWords-readWords);
 	if (verbose) printf("\n");
 
