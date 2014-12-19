@@ -98,16 +98,15 @@ void mainBuffer::DumpEvent() {
 	Seek(-eventLength);
 }
 
-void mainBuffer::SetNumOfWords(ULong64_t numOfWords) {
-	if (fNumWords > fBufferSize) {
+void mainBuffer::SetNumOfBytes(ULong64_t numOfBytes) {
+	if (numOfBytes > fBufferSizeBytes) {
 		fflush(stdout);
 		fprintf(stderr,"ERROR: Number of words specified greater than buffer size!. Setting number of words to buffer size.\n");
-		fNumWords = fBufferSize;
-		fNumBytes = fBufferSizeBytes;
-		return;
+		numOfBytes = fBufferSizeBytes;
 	}
-	fNumWords = numOfWords;
-	fNumBytes = numOfWords * fWordSize;
+	fNumBytes = numOfBytes;
+	fNumWords = numOfBytes / GetWordSize();
+	if (fNumBytes % GetWordSize() > 0) fNumWords++;
 }
 void mainBuffer::DumpScalers() {
 	unsigned int pos = GetBufferPosition();
@@ -185,9 +184,12 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 		fprintf(stderr,"ERROR: No bytes left in buffer (%u/%u)!\n",GetBufferPositionBytes(),fBufferSizeBytes);
 		return mask;
 	}
+
 	unsigned int bytesRemaining = GetNumOfBytes() - GetBufferPositionBytes();
-	if (numOfBytes > bytesRemaining) 
+	if (numOfBytes > bytesRemaining) {
 		numOfBytes = bytesRemaining;
+		fflush(stdout);
+	}
 
 	if (middleEndian && numOfBytes % 2 == 0) {
 		UInt_t wordSize = numOfBytes / 2;
@@ -284,9 +286,9 @@ void mainBuffer::DumpBuffer()
 
 void mainBuffer::DumpRunBuffer()
 {	
-	unsigned int pos = GetBufferPosition();
+	unsigned int pos = GetBufferPositionBytes();
 	//Rewind to beginning of buffer then Fwd over the header.
-	Seek(-pos + GetHeaderSize());
+	SeekBytes(-pos + GetHeaderSize()*GetWordSize());
 
 	unsigned int eventLength = GetNumOfWords() - GetHeaderSize();
 	printf("\nRun Buffer Dump Length: %u",eventLength);
@@ -297,8 +299,8 @@ void mainBuffer::DumpRunBuffer()
 	printf("\n");
 
 	//Rewind to previous position
-	Seek(-eventLength);
-	Seek(-GetBufferPosition() + pos);
+	printf("reqind %d %d\n",eventLength,-GetBufferPosition() + pos);
+	SeekBytes(-GetBufferPositionBytes() + pos);
 }
 
 std::string mainBuffer::ConvertToString(ULong64_t datum) {
@@ -402,14 +404,14 @@ int mainBuffer::ReadNextBuffer() {
 		return -1;
 	}
 
-	if (GetFilePosition() != 0) {
-		SeekBytes(fBufferSizeBytes - GetBufferPositionBytes());
-	}
 	fBufferBeginPos = GetFilePosition();
 
 	fFile.read(&fBuffer[0], GetBufferSizeBytes());
 	if (fFile.gcount() != GetBufferSizeBytes()) {
-		if (fFile.gcount() !=0 )fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetBufferSize());
+		if (fFile.gcount() !=0) {
+			fflush(stdout);
+			fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetBufferSize());
+		}
 		return 0;
 	}
 

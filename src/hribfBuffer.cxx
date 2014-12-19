@@ -124,7 +124,7 @@ void hribfBuffer::ReadRunBegin(bool verbose)
 	if (verbose) printf("\t Title: %s\n",fRunTitle.c_str());
 
 	fRunNum = GetWord();	
-	if (verbose) printf("\t%#010X Run Number: %d\n",fRunNum,fRunNum);
+	if (verbose) printf("\t%#010llX Run Number: %llu\n",fRunNum,fRunNum);
 
 	if (type.find("LIST DATA") == std::string::npos) {
 		fflush(stdout);

@@ -35,11 +35,11 @@ int nsclRingBuffer::ReadNextBuffer()
 		if (fFile.gcount() !=0 )fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetWordSize());
 		return 0;
 	}
-	SetNumOfWords(1);
+	SetNumOfBytes(GetWordSize());
 	SetBufferSize(GetWord());
 
 	//Number of words is equal to the size of the buffer.
-	SetNumOfWords(fBufferSize);
+	SetNumOfBytes(fBufferSizeBytes);
 
 	//Read the remaining buffer, besides the one word we have read.
 	fFile.read(&fBuffer[GetWordSize()], GetBufferSizeBytes() - GetWordSize());

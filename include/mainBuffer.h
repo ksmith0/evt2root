@@ -89,7 +89,10 @@ class mainBuffer
 		///Set the length of a data word in bytes.
 		void SetWordSize(int numOfBytes) {fWordSize = numOfBytes;};
 		///Set the number of good words in a buffer.
-		void SetNumOfWords(ULong64_t numOfWords);
+		void SetNumOfWords(ULong64_t numOfWords) 
+			{SetNumOfBytes(numOfWords * GetWordSize());};
+		///Set the number of good bytes in a buffer.
+		void SetNumOfBytes(ULong64_t numOfBytess);
 
 		///Get the run title
 		std::string ReadString(unsigned int maxWords, bool verbose=false);

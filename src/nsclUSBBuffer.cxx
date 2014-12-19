@@ -20,10 +20,7 @@ nsclUSBBuffer::~nsclUSBBuffer()
  */
 int nsclUSBBuffer::ReadNextBuffer() 
 {
-	UInt_t nRead = 0;
-	this->Clear();
-
-	mainBuffer::ReadNextBuffer();
+	if (mainBuffer::ReadNextBuffer() == 0) return 0;
 
 	SetNumOfWords(GetWord());
 	fBufferType = GetWord();

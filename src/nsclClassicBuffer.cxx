@@ -16,10 +16,7 @@ nsclClassicBuffer::~nsclClassicBuffer() {
  */
 int nsclClassicBuffer::ReadNextBuffer() 
 {
-	UInt_t nRead = 0;
-	this->Clear();
-
-	mainBuffer::ReadNextBuffer();
+	if (mainBuffer::ReadNextBuffer() == 0) return 0;
 	
 	SetNumOfWords(GetWord());
 	fBufferType = GetWord();
@@ -92,6 +89,7 @@ void nsclClassicBuffer::ReadRunBeginEnd(UInt_t elapsedTime, time_t &timeStamp, s
 	if (GetBufferType() != BUFFER_TYPE_RUNEND && 
 			GetBufferType() != BUFFER_TYPE_RUNBEGIN) 
 	{
+		fflush(stdout);
 		fprintf(stderr,"ERROR: Not a run begin/end buffer!\n");
 		return;
 	}
@@ -225,6 +223,7 @@ int nsclClassicBuffer::ReadEvent(bool verbose) {
 void nsclClassicBuffer::ReadScalers(bool verbose)
 {
 	if (GetBufferType() != BUFFER_TYPE_SCALERS) {
+		fflush(stdout);
 		fprintf(stderr,"ERROR: Not a scaler buffer!\n");
 		return;
 	}
