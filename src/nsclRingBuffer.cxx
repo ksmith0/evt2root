@@ -121,6 +121,8 @@ void nsclRingBuffer::ReadBodyHeader() {
 /**Unpacks the current buffer based on the type. Data buffers are ignored 
  * and left to the user to unpack for now.
  *
+ * \bug EPICS buffers are ignored.
+ *
  * \param[in] verbose Verbosity flag.
  */
 void nsclRingBuffer::UnpackBuffer(bool verbose) {
@@ -131,6 +133,8 @@ void nsclRingBuffer::UnpackBuffer(bool verbose) {
 		case BUFFER_TYPE_SCALERS: 
 			ReadScalers(verbose);
 			break;
+		case BUFFER_TYPE_EPICS:
+			return;
 		case BUFFER_TYPE_RUNBEGIN: 
 			ReadRunBegin(verbose);
 			break;
@@ -185,7 +189,27 @@ void nsclRingBuffer::PrintBufferHeader()
 	printf("\t%#010X Num of bytes: %u\n",(UInt_t)GetBufferSizeBytes(),(UInt_t)GetBufferSizeBytes());
 	printf("\t%10c Num of words: %llu\n",' ',GetNumOfWords());
 	printf("\t%10c Header size: %u words (%u Bytes)\n",' ',GetHeaderSize(),GetHeaderSizeBytes());
-	printf("\t%#010X Buffer type: %u\n",(UInt_t)fBufferType,(UInt_t)fBufferType);
+
+	printf("\t%#010X Buffer type: %u ",(UInt_t)fBufferType,(UInt_t)fBufferType);
+	switch (fBufferType) {
+		case BUFFER_TYPE_RUNBEGIN: printf("(Run Begin)");break;
+		case BUFFER_TYPE_RUNEND: printf("(Run End)");break;
+		case BUFFER_TYPE_RUNPAUSE: printf("(Run Pause)");break;
+		case BUFFER_TYPE_RUNRESUME: printf("(Run Resume)");break;
+		case BUFFER_PACKET_TYPES: printf("(Packet Types");break;
+		case BUFFER_TYPE_EPICS: printf("(EPICS)");break;
+		case BUFFER_TYPE_FORMAT: printf("(Format)");break;
+		case BUFFER_TYPE_SCALERS: printf("(Incremental Scalers)");break;
+		case BUFFER_TYPE_NONINCR_SCALERS: printf("(Nonincremental Scalers)");break;
+		case BUFFER_TYPE_DATA: printf("(Physics Data)");break;
+		case BUFFER_TYPE_DATA_COUNT: printf("(Data Count)");break;
+		case BUFFER_TYPE_EVB_FRAGMENT: printf("(EVB Fragment)");break;
+		case BUFFER_TYPE_EVB_UNKNOWN_PAYLOAD: printf("(EVB Unknown Payload)");break;
+		case BUFFER_TYPE_EVB_GLOM_INFO: printf("(EVB GLOM Info)");break;
+		default: printf("(Unknown)");break;
+	}
+	printf("\n");
+
 	printf("\t%10c Buffer number: %u\n",' ',(UInt_t)fBufferNumber);
 	printf("\t%#010X Body Header Length: %u\n",fBodyHeader.fLength,fBodyHeader.fLength);
 	if (fBodyHeader.fLength > 0) {
