@@ -7,8 +7,8 @@
 #include "hribfBuffer.h"
 
 int usage(const char *progName="") {
-	fprintf(stderr,"Usage: %s [-r] [-u] [-i bufferType] [-b bufferFormat] <-t bufferType> input.evt\n",progName);
-	fprintf(stderr,"\t-b bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
+	fprintf(stderr,"Usage: %s [-r] [-u] [-t bufferType] [-i bufferType] <-f bufferFormat>  input.evt\n",progName);
+	fprintf(stderr,"\t-f bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
 	fprintf(stderr,"\t               \t  nsclClassic, nsclUSB, nsclRing, hribf.\n");
 	fprintf(stderr,"\t-r\t Indicates raw buffer should be dumped.\n");
 	fprintf(stderr,"\t-u\t Indicates physics data unpacking is ignored.\n");
@@ -38,9 +38,10 @@ int main (int argc, char *argv[])
 	if (argc == 1) {return usage(argv[0]);}
 	//Loop over options
 	int c;
-	while ((c = getopt(argc,argv,":rub:t:i:")) != -1) {
+	while ((c = getopt(argc,argv,":ruf:t:i:")) != -1) {
 		switch (c) {
-			case 'b':
+			//buffer type
+			case 'f':
 				{
 					std::string formatString = optarg;
 					if (formatString == "nsclClassic") format = bufferFormat::NSCL_CLASSIC;
@@ -53,12 +54,15 @@ int main (int argc, char *argv[])
 					}
 					break;
 				}
+			//raw buffers
 			case 'r':
 				dumpRawBuffer = true;
 				break;
+			//unpack physics data
 			case 'u':
 				unpackPhysicsData = false;
 				break;
+			//specify specific buffer types to dump
 			case 't':
 				{
 					int type = atoi(optarg);
@@ -66,6 +70,7 @@ int main (int argc, char *argv[])
 					printf("Displaying only buffer type: %d\n",type);
 					break;
 				}
+			//specify specific buffer types to ignore
 			case 'i':
 				{
 					int type = atoi(optarg);
@@ -73,6 +78,7 @@ int main (int argc, char *argv[])
 					printf("Ignoring buffer type: %d\n",type);
 					break;
 				}
+			//unknown option
 			case '?': 
 			default:
 				return usage(argv[0]);
@@ -88,6 +94,7 @@ int main (int argc, char *argv[])
 		return usage(argv[0]);
 	}
 
+	//Build correct buffer object.
 	mainBuffer *buffer;
 	switch(format) {
 		case bufferFormat::HRIBF: buffer = new hribfBuffer(inputFiles[0]); break;
@@ -99,13 +106,14 @@ int main (int argc, char *argv[])
 			return 1;
 	}
 
+	//Print some useful buffer information.
 	printf("\n");
-
 	printf("Evt Dump: %s\n",inputFiles[0]);
 	printf("Word Size: %d Bytes\n",buffer->GetWordSize());
 	printf("Header Size: %d words\n",buffer->GetHeaderSize());
 	printf("Buffer Size: %d words\n",buffer->GetBufferSize());
 
+	//Loop over each buffer. Number of words read is returned.
 	nextBuffer: while (buffer->ReadNextBuffer() > 0)
 	{
 		//Skip any specified ignore buffers.
@@ -134,6 +142,7 @@ int main (int argc, char *argv[])
 		buffer->UnpackBuffer(true);
 		//Handle data events.
 		if (unpackPhysicsData && buffer->IsDataType()) {
+			//Loop over all events in a buffer.
 			while (buffer->GetEventsRemaining()) {
 				if (!buffer->ReadEvent()) break;
 			}
