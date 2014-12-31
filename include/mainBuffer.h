@@ -13,10 +13,6 @@
 
 #include "baseModule.h"
 
-#if RING_BUFFER && VM_USB
-	#error "Cannot declare both USB and Ring Buffer types!"
-#endif
-
 ///Defines a macro which pushes the defined modules in the modules deque.
 #define MODULE_FUNCTION(NAME) fModules.push_back(new NAME());
 
@@ -26,6 +22,14 @@ class mainBuffer
 	private:
 		///Size of open file.
 		unsigned long int fFileSize;
+		///Buffer header size in words.
+		unsigned int fHeaderSize;
+		///Buffer header size in bytes.
+		unsigned int fHeaderSizeBytes;
+		///Buffer size in words.
+		unsigned int fBufferSize;
+		///Buffer size in bytes.
+		unsigned int fBufferSizeBytes;
 
 		///Current byte in buffer.
 		UInt_t fCurrentByte;
@@ -38,12 +42,6 @@ class mainBuffer
 	protected:
 		///File name of evt file.
 		const char *fFileName;
-		///Buffer header size.
-		unsigned int fHeaderSize;
-		///Buffer size in words.
-		unsigned int fBufferSize;
-		///Buffer size in bytes.
-		unsigned int fBufferSizeBytes;
 		///Size of a word in the buffer.
 		unsigned short int fWordSize;
 
@@ -103,7 +101,9 @@ class mainBuffer
 		UInt_t ValidatedEventLength(UInt_t eventLength);
 
 		///Set the buffer size in bytes.
-		void SetBufferSize(ULong64_t bufferSizeiBytes);
+		void SetBufferSize(ULong64_t bufferSizeBytes);
+		///Set the header size in bytes.
+		void SetHeaderSize(ULong64_t headerSizeBytes);
 
 		///Deque tracking all the modules used in the data file.
 		std::vector< baseModule* > fModules;
@@ -141,8 +141,10 @@ class mainBuffer
 		unsigned int GetBufferSize() {return fBufferSize;};
 		///Return the size for each buffer.
 		unsigned int GetBufferSizeBytes() {return fBufferSizeBytes;};
-		///Return the size for each buffer.
-		int GetHeaderSize() {return fHeaderSize;};
+		///Return the size for each buffer in words.
+		unsigned int GetHeaderSize() {return fHeaderSize;};
+		///Return the size for each buffer in bytes.
+		unsigned int GetHeaderSizeBytes() {return fHeaderSizeBytes;};
 		///Return current buffer type.
 		int GetBufferType() {return fBufferType;};
 		///Returns the number of the current buffer.
@@ -216,6 +218,11 @@ class mainBuffer
 		///Get the elapsed run time.
 		unsigned int GetElapsedRunTime() {return fElapsedRunTime;}
 
+		///Indicate if the current buffer contains physics data.
+		virtual bool IsDataType() = 0;
+
+		///Unpack the current buffer
+		virtual void UnpackBuffer(bool verbose = false) = 0;
 		///Reads current event and stores data.
 		virtual int ReadEvent(bool verbose = false) = 0;
 		///Reads current scaler event.
@@ -225,6 +232,7 @@ class mainBuffer
 		///Read the run end buffer.
 		virtual void ReadRunEnd(bool verbose = false) = 0;
 
+		///Converts a binary word to a string.
 		std::string ConvertToString(ULong64_t word);
 };
 

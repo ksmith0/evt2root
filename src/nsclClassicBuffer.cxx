@@ -55,6 +55,29 @@ void nsclClassicBuffer::PrintBufferHeader()
 	printf("\t%#06X Number of bit registers: %u\n",fNumOfBitRegisters,fNumOfBitRegisters);
 }
 
+void nsclClassicBuffer::UnpackBuffer(bool verbose)
+{
+	switch(fBufferType) {
+		case BUFFER_TYPE_DATA:
+			return;
+		case BUFFER_TYPE_SCALERS: 
+			ReadScalers(verbose);
+			break;
+		case BUFFER_TYPE_RUNBEGIN: 
+			ReadRunBegin(verbose);
+			break;
+		case BUFFER_TYPE_RUNEND: 
+			ReadRunEnd(verbose);
+			break;
+
+	
+		default:
+			fflush(stdout);
+			fprintf(stderr,"WARNING: Unknown buffer type: %llu.\n",fBufferType);
+			return;
+	}
+}
+
 void nsclClassicBuffer::ReadRunBegin(bool verbose) 
 {
 	ReadRunBeginEnd(fElapsedRunTime,fRunStartTime,fRunTitle,verbose);
@@ -257,4 +280,9 @@ void nsclClassicBuffer::ReadScalers(bool verbose)
 		//Store Data
 		if (verbose) printf("\t%#010X ch: %d value: %u\n",value,ch,value);
 	}
+}
+
+bool nsclClassicBuffer::IsDataType() {
+	if (fBufferType == BUFFER_TYPE_DATA) return true;
+	return false;
 }

@@ -71,6 +71,31 @@ int hribfBuffer::ReadNextBuffer()
 
 	return GetNumOfWords();
 }
+/**Unpacks the current buffer based on the type. Data buffers are ignored 
+ * and left to the user to unpack for now.
+ *
+ * \param[in] verbose Verbosity flag.
+ */
+void hribfBuffer::UnpackBuffer(bool verbose) {
+	switch(fBufferType) {
+		case BUFFER_TYPE_DATA:
+			return;
+		case BUFFER_TYPE_SCALERS: 
+			ReadScalers(verbose);
+			break;
+		case BUFFER_TYPE_RUNBEGIN: 
+			ReadRunBegin(verbose);
+			break;
+		case BUFFER_TYPE_RUNEND: 
+			ReadRunEnd(verbose);
+			break;
+		default: 
+			fflush(stdout);
+			fprintf(stderr,"WARNING: Unknown buffer type: '%s'.\n",ConvertToString(fBufferType).c_str());
+			return;
+
+	}
+}
 
 void hribfBuffer::PrintBufferHeader() 
 {
@@ -174,4 +199,7 @@ UInt_t hribfBuffer::GetEventLength() {
 	return ValidatedEventLength(eventLength);
 }
 
-
+bool hribfBuffer::IsDataType() {
+	if (fBufferType == BUFFER_TYPE_DATA) return true;
+	return false;
+}

@@ -47,8 +47,13 @@ class nsclClassicBuffer : public mainBuffer {
 		///Clear the current values for the buffer.
 		virtual void Clear();
 
+		///Indicate if the current buffer contains physics data.
+		virtual bool IsDataType();
+
 		///Read the next buffer.
 		virtual int ReadNextBuffer();
+		///Unpack the current buffer.
+		void UnpackBuffer(bool verbose = false);
 		///Read the run start buffer.
 		virtual void ReadRunBegin(bool verbose=false);
 		///Read the run end buffer.

@@ -3,13 +3,13 @@
 
 mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigned int wordSize) :
 	fFileSize(0),
-	fHeaderSize(headerSize),
 	fWordSize(wordSize),
 	fBufferBeginPos(0),
-	fBufferNumber(-1)
+	fBufferNumber(0)
 {
 	this->Clear();
 	SetBufferSize(bufferSize * wordSize);
+	SetHeaderSize(headerSize * wordSize);
 
 	fMiddleEndian.assign(8,false);
 	MODULE_LIST(MODULE_FUNCTION)
@@ -18,7 +18,11 @@ mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigne
 mainBuffer::~mainBuffer() {
 	CloseFile();
 }
-
+void mainBuffer::SetHeaderSize(ULong64_t headerSizeBytes) {
+	fHeaderSizeBytes = headerSizeBytes;
+	fHeaderSize = headerSizeBytes / GetWordSize();
+	if (fHeaderSizeBytes % GetWordSize() > 0) fHeaderSize++;
+}
 void mainBuffer::SetBufferSize(ULong64_t bufferSizeBytes) {
 	fBufferSizeBytes = bufferSizeBytes;
 	fBufferSize = bufferSizeBytes / GetWordSize();
@@ -109,9 +113,9 @@ void mainBuffer::SetNumOfBytes(ULong64_t numOfBytes) {
 	if (fNumBytes % GetWordSize() > 0) fNumWords++;
 }
 void mainBuffer::DumpScalers() {
-	unsigned int pos = GetBufferPosition();
+	unsigned int pos = GetBufferPositionBytes();
 	//Rewind to beginning of buffer then Fwd over the header.
-	Seek(-pos + fHeaderSize);
+	SeekBytes(-pos + GetHeaderSizeBytes());
 
 	unsigned int eventLength = GetNumOfWords() - GetHeaderSize();
 	printf("\nScaler Dump Length: %d",eventLength);
@@ -123,7 +127,7 @@ void mainBuffer::DumpScalers() {
 
 	//Rewind to previous position
 	Seek(-eventLength);
-	Seek(-GetBufferPosition() + pos);
+	SeekBytes(-GetBufferPositionBytes() + pos);
 }
 /**Get event length from the current word. 
  *
@@ -181,7 +185,7 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 	}
 	if (GetBufferPositionBytes() >= fBufferSizeBytes) {
 		fflush(stdout);
-		fprintf(stderr,"ERROR: No bytes left in buffer %llu (%u/%u)!\n",fBufferNumber,GetBufferPositionBytes(),fBufferSizeBytes);
+		fprintf(stderr,"\nERROR: No bytes left in buffer %llu (%u/%u)!\n",fBufferNumber,GetBufferPositionBytes(),fBufferSizeBytes);
 		return mask;
 	}
 

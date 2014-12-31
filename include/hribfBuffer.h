@@ -38,8 +38,13 @@ class hribfBuffer : public mainBuffer {
 		hribfBuffer(const char *filename, int bufferSize=BUFFER_SIZE, 
 			int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
 
+		///Indicate if the current buffer contains physics data.
+		virtual bool IsDataType();
+
 		///Read the next buffer.
 		int ReadNextBuffer();
+		///Unpack the buffer.
+		void UnpackBuffer(bool verbose = false);
 		///Read the run start buffer.
 		void ReadRunBegin(bool verbose=false);
 		///Read the run end buffer.

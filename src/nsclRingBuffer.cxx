@@ -2,10 +2,13 @@
 
 
 nsclRingBuffer::nsclRingBuffer(const char *filename,int bufferSize, int headerSize, int wordSize) :
-	mainBuffer(headerSize,bufferSize,wordSize)
+	mainBuffer(headerSize,bufferSize,wordSize),
+	fVersion(0)
 {
 	OpenFile(filename);
-	SetBufferSize(wordSize);
+
+	//Ring buffer event buffers only contain 1 event.
+	fNumOfEvents = 1;
 }
 nsclRingBuffer::~nsclRingBuffer() {
 }
@@ -15,6 +18,13 @@ nsclRingBuffer::~nsclRingBuffer() {
  * Ring buffer headers contain the following:
  * 1. Number of bytes in buffer.
  * 2. Buffer type.
+ *
+ * In case of the specific BUFFER_TYPE_FORMAT we read the format of the
+ * buffer then rewind over the words read such that the user may do
+ * something with the buffer. 
+ *
+ * \note The version buffer here may indicate
+ *  that a paradigm shift is needed in the code organization.
  */
 int nsclRingBuffer::ReadNextBuffer() 
 {
@@ -27,23 +37,28 @@ int nsclRingBuffer::ReadNextBuffer()
 
 	fBufferBeginPos = GetFilePosition();
 
+	//Specify that the buffer is big enough for a word.
 	SetBufferSize(GetWordSize());
 	//The "ring" buffer has buffers exactly the size of the event.
 	//Read the first word which should be the size of the buffer
 	fFile.read(&fBuffer[0], GetWordSize());
+	//Check that we got the correct number of bytes.
 	if (fFile.gcount() != GetWordSize()) {
 		if (fFile.gcount() !=0 )fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetWordSize());
 		return 0;
 	}
+	//Specify the size of the readable buffer.
 	SetNumOfBytes(GetWordSize());
+
+	//Prepare the buffer for the current event.
 	SetBufferSize(GetWord());
 
-	//Number of words is equal to the size of the buffer.
-	SetNumOfBytes(fBufferSizeBytes);
-
-	//Read the remaining buffer, besides the one word we have read.
+	//Read the remaining buffer, besides the one word we have read placing
+	// them into the buffer after the first word.
 	fFile.read(&fBuffer[GetWordSize()], GetBufferSizeBytes() - GetWordSize());
+	//Check that we read the correct numebr of bytes.
 	if (fFile.gcount() != GetBufferSizeBytes() - GetWordSize()) {
+		//We only complain if we read an unexpected number of bytes.
 		if (fFile.gcount() !=0 ) {
 			fflush(stdout);
 			fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetBufferSize());
@@ -51,15 +66,107 @@ int nsclRingBuffer::ReadNextBuffer()
 		return 0;
 	}
 
+	//Number of bytes is equal to the size of the buffer.
+	SetNumOfBytes(GetBufferSizeBytes());
+	//Get the buffer type.
 	fBufferType = GetWord();
-	//Ring buffer event buffers only contain 1 event.
-	if (fBufferType == BUFFER_TYPE_DATA) fNumOfEvents = 1;
 
 	//Ring Buffer does not track buffer number, we iterate it manually.
 	fBufferNumber++;
 
+	//Seek over the extra header words.
+	//Assume that versions prior to 11 do not use the BUFFER_TYPE_FORMAT
+	if (fVersion >= 11 || fBufferType == BUFFER_TYPE_FORMAT) 
+		ReadBodyHeader();
+
 	return GetNumOfWords();
 }
+/**\bug Header size is hardcoded here.
+ */
+void nsclRingBuffer::Clear() {
+	mainBuffer::Clear();
+	SetHeaderSize(2 * GetWordSize());
+	fBodyHeader.fLength = 0;
+	fBodyHeader.fTimeStamp = 0;
+	fBodyHeader.fSourceID = 0;
+	fBodyHeader.fBarrier = 0;	
+}
+/**The body header was first specified in ring buffer version 11.
+ * The body header contains:
+ * 1. Body header length (inclusive).
+ * 2. Timestamp (8 Bytes).
+ * 3. Source ID
+ * 4. Barrier
+ *
+ * If there is no body header a null word is provided. Any specified extra 
+ * bytes are seeked over.
+ */
+void nsclRingBuffer::ReadBodyHeader() {
+	fBodyHeader.fLength = GetWord();
+	if (fBodyHeader.fLength == 0) 
+		//Increase the header size to include the null word.
+		SetHeaderSize(GetHeaderSizeBytes() + GetWordSize());
+	else {
+		//Increase the header size to include the body header.
+		SetHeaderSize(GetHeaderSizeBytes() + fBodyHeader.fLength);
+		fBodyHeader.fTimeStamp = GetLongWord();
+		fBodyHeader.fSourceID = GetWord();
+		fBodyHeader.fBarrier = GetWord();
+
+		//If the body header is larger then we skip over it.
+		if (fBodyHeader.fLength > 5*GetWordSize()) 
+			SeekBytes(fBodyHeader.fLength - 5 * GetWordSize());
+	}
+}
+/**Unpacks the current buffer based on the type. Data buffers are ignored 
+ * and left to the user to unpack for now.
+ *
+ * \param[in] verbose Verbosity flag.
+ */
+void nsclRingBuffer::UnpackBuffer(bool verbose) {
+	switch(fBufferType) {
+		case BUFFER_TYPE_DATA:
+		case BUFFER_TYPE_DATA_COUNT: 
+			return;
+		case BUFFER_TYPE_SCALERS: 
+			ReadScalers(verbose);
+			break;
+		case BUFFER_TYPE_RUNBEGIN: 
+			ReadRunBegin(verbose);
+			break;
+		case BUFFER_TYPE_RUNEND: 
+			ReadRunEnd(verbose);
+			break;
+		case BUFFER_TYPE_FORMAT: 
+			ReadVersion(verbose);
+			break;
+		default: 
+			fflush(stdout);
+			fprintf(stderr,"WARNING: Unknown buffer type: %llu.\n",fBufferType);
+			return;
+
+	}
+}
+
+UInt_t nsclRingBuffer::ReadVersion(bool verbose) {
+	if (fBufferType != BUFFER_TYPE_FORMAT) {
+		fprintf(stderr,"ERROR: Not a format (version) buffer!\n");
+		return 0;
+	}	
+
+	fVersion = GetWord();
+
+	if(verbose) {
+		printf("\t%#010X Version %d\n", fVersion, fVersion);
+	}
+
+	if (fVersion < 10 || fVersion > 11) {
+		fprintf(stderr,"WARNING: Unknown version %d.\n",fVersion);
+	}
+
+	return 1;
+}
+
 /**The event length is returned without changing the position in the
  * buffer.
  *
@@ -75,10 +182,18 @@ UInt_t nsclRingBuffer::GetEventLength() {
 void nsclRingBuffer::PrintBufferHeader() 
 {
 	printf("\nBuffer Header Summary:\n");
-	printf("\t%#010X Num of bytes: %u\n",(UInt_t)fBufferSizeBytes,(UInt_t)fBufferSizeBytes);
+	printf("\t%#010X Num of bytes: %u\n",(UInt_t)GetBufferSizeBytes(),(UInt_t)GetBufferSizeBytes());
 	printf("\t%10c Num of words: %llu\n",' ',GetNumOfWords());
+	printf("\t%10c Header size: %u words (%u Bytes)\n",' ',GetHeaderSize(),GetHeaderSizeBytes());
 	printf("\t%#010X Buffer type: %u\n",(UInt_t)fBufferType,(UInt_t)fBufferType);
 	printf("\t%10c Buffer number: %u\n",' ',(UInt_t)fBufferNumber);
+	printf("\t%#010X Body Header Length: %u\n",fBodyHeader.fLength,fBodyHeader.fLength);
+	if (fBodyHeader.fLength > 0) {
+		printf("\t%#018llX Timestamp: %llu\n",fBodyHeader.fTimeStamp,fBodyHeader.fTimeStamp);
+		printf("\t%#010X Source ID: %u\n",fBodyHeader.fSourceID,fBodyHeader.fSourceID);
+		printf("\t%#010X Barrier: %u\n",fBodyHeader.fBarrier,fBodyHeader.fBarrier);
+	}
+
 }
 
 void nsclRingBuffer::ReadRunBegin(bool verbose) 
@@ -127,9 +242,18 @@ void nsclRingBuffer::ReadRunBeginEnd(UInt_t &runNum, UInt_t &elapsedTime, time_t
 		printf("\t%#010X Run Buffer Timestamp: %s",UInt_t(timeStamp),ctime(&timeStamp));
 	}
 
+	//The number of words read in the run buffer.
+	UInt_t wordsRead = 3;
+
+	//Version 11 has an extra word in the run buffer.
+	if (fVersion >= 11) {
+		Seek(1);
+		wordsRead++;
+	}
+
 	//Maximum number of words in title is flexible.
 	// We pass the number of words in the event minus the three word preceeding it.
-	runTitle = ReadString(GetNumOfWords()-3,verbose);
+	runTitle = ReadString(GetNumOfWords()-GetHeaderSize()-wordsRead,verbose);
 
 	//Print the finished title
 	if (verbose) printf("\tTitle: %s\n",runTitle.c_str());
@@ -227,6 +351,8 @@ void nsclRingBuffer::ReadScalers(bool verbose)
 		return;
 	}
 
+	if (verbose) DumpScalers();
+
 	//Number of scalers to be read
 	UInt_t scalerCount = 0;
 
@@ -236,7 +362,11 @@ void nsclRingBuffer::ReadScalers(bool verbose)
 	UInt_t endTimeOffset = GetWord();
 	//Time stamp when scalers were read.
 	time_t timeStamp = GetWord();
+	
+	UInt_t intervalDivisor, isIncremental;
+	if (fVersion >= 11) intervalDivisor = GetWord();
 	scalerCount = GetWord();
+	if (fVersion >= 11) isIncremental = GetWord();
 
 	//Set scaler times.
 	//scaler->SetStartTime(fRunStartTime + startTimeOffset);
@@ -247,7 +377,11 @@ void nsclRingBuffer::ReadScalers(bool verbose)
 		printf("\t%#010X Start Time Offset: %d\n",startTimeOffset,startTimeOffset);
 		printf("\t%#010X End Time Offset: %d\n",endTimeOffset,endTimeOffset);
 		printf("\t%#010X Time Stamp: %s\n",UInt_t(timeStamp),ctime(&timeStamp));
+		if (fVersion >= 11) 
+			printf("\t%#010X Interval Divisor: %u\n",intervalDivisor,intervalDivisor);
 		printf("\t%#010X Channels: %d\n",scalerCount,scalerCount);
+		if (fVersion >= 11) 
+			printf("\t%#010X Is incremental: %u\n",isIncremental,isIncremental);
 	}
 
 	for (UInt_t ch = 0; ch < scalerCount;ch++) {
@@ -256,4 +390,9 @@ void nsclRingBuffer::ReadScalers(bool verbose)
 		//scaler->SetValue(ch,value);
 		if (verbose) printf("\t0x%08X ch: %d value: %u\n",value,ch,value);
 	}
+}
+
+bool nsclRingBuffer::IsDataType() {
+	if (fBufferType == BUFFER_TYPE_DATA) return true;
+	return false;
 }
