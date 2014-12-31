@@ -1,5 +1,4 @@
 #include "mainBuffer.h"
-#include "modules.h"
 
 mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigned int wordSize) :
 	fFileSize(0),
@@ -12,7 +11,6 @@ mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigne
 	SetHeaderSize(headerSize * wordSize);
 
 	fMiddleEndian.assign(8,false);
-	MODULE_LIST(MODULE_FUNCTION)
 
 }
 mainBuffer::~mainBuffer() {

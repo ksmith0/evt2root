@@ -1,5 +1,7 @@
 #include "Caen_General.h"
 
+ClassImp(Caen_General);
+
 void Caen_General::ReadEvent(mainBuffer *buffer, bool verbose)
 {
 	//Get HEADER

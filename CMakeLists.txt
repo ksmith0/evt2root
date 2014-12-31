@@ -37,8 +37,6 @@ add_subdirectory (modules)
 include_directories(ExpEvent/include)
 add_subdirectory (ExpEvent)
 
-#include the generated module.h header file
-include_directories("${PROJECT_BINARY_DIR}/generated")
 set (EXTRA_LIBS ExpEvent_Static Modules)
 add_subdirectory (src)
 

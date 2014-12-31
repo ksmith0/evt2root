@@ -50,6 +50,7 @@ class Caen_General : public baseModule {
 		Caen_General() {}
 		void ReadEvent(mainBuffer *buffer, bool verbose=false);
 
+	ClassDef(Caen_General,1);
 
 };
 

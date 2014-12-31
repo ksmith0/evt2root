@@ -18,6 +18,7 @@ class Caen_IO_V977 : public baseModule {
 		Caen_IO_V977() {}
 		void ReadEvent(mainBuffer *buffer, bool verbose=false);
 
+	ClassDef(Caen_IO_V977,1);
 };
 
 #endif

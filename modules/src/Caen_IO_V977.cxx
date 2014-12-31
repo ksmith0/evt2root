@@ -1,5 +1,7 @@
 #include "Caen_IO_V977.h"
 
+ClassImp(Caen_IO_V977);
+
 void Caen_IO_V977::ReadEvent(mainBuffer *buffer, bool verbose)
 {
 	int datum = buffer->GetWord();

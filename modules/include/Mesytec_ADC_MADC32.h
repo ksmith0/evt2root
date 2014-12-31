@@ -75,6 +75,8 @@ class Mesytec_ADC_MADC32 : public baseModule {
 		Mesytec_ADC_MADC32() {}
 		///Readout the module.
 		void ReadEvent(mainBuffer *buffer, bool verbose=false);
+
+	ClassDef(Mesytec_ADC_MADC32,1);
 };
 
 

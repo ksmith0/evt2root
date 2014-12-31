@@ -16,6 +16,7 @@ class hribfModule : public baseModule {
 		///Get value
 		UShort_t GetValue(UShort_t ch); 
 
+	ClassDef(hribfModule,1);
 };
 
 #endif

@@ -1,5 +1,7 @@
 #include "hribfModule.h"
 
+ClassImp(hribfModule);
+
 void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 	Clear();
 

@@ -1,5 +1,7 @@
 #include "XIA_Pixie16.h"
 
+ClassImp(XIA_Pixie16);
+
 /**Unpack the Pizie16 modules according to the Rev D, Rev F format.
  * 
  * \bug Does not support readout of readout of QDC sums. 

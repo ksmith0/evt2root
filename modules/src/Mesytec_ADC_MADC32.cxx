@@ -1,5 +1,7 @@
 #include "Mesytec_ADC_MADC32.h"
 
+ClassImp(Mesytec_ADC_MADC32);
+
 /**The buffer is read out and data is stored in the eventData structure.
  *
  * \param[in] buffer The buffer to be read.

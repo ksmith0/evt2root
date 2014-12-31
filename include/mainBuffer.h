@@ -13,9 +13,6 @@
 
 #include "baseModule.h"
 
-///Defines a macro which pushes the defined modules in the modules deque.
-#define MODULE_FUNCTION(NAME) fModules.push_back(new NAME());
-
 ///Class to handle main buffer in MAIN evt files.
 class mainBuffer
 {
@@ -234,6 +231,9 @@ class mainBuffer
 
 		///Converts a binary word to a string.
 		std::string ConvertToString(ULong64_t word);
+
+		///Add a module to be read during event unpacking.
+		void AddModule(baseModule* module) {fModules.push_back(module);};
 };
 
 #endif
