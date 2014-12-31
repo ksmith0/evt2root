@@ -25,13 +25,14 @@ class hribfBuffer : public mainBuffer {
 			BUFFER_TYPE_DATA = 0x41544144, //"DATA"
 			///Scaler type.
 			BUFFER_TYPE_SCALERS = 0X4C414353, //"SCAL" 
-			///EPICS
-			BUFFER_TYPE_EPICS = 11, 
 			///Run Begin type.
 			BUFFER_TYPE_RUNBEGIN = 0x44414548, //"HEAD"
-			///Run End type.
-			BUFFER_TYPE_RUNEND = 0x20464F45 //"EOF" 
-//			BUFFER_TYPE_RUNEND = 0x44414544 //"DEAD" 
+			///End of File buffer
+			BUFFER_TYPE_EOF = 0x20464F45, //"EOF " 
+			///Deadtime buffer
+			BUFFER_TYPE_DEAD = 0x44414544, //"DEAD" 
+			BUFFER_TYPE_DIR = 0x20524944, //"DIR "
+			BUFFER_TYPE_PAC = 0x20434150 //"PAC "
 		};
 
 		///Default constructor

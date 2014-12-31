@@ -61,7 +61,7 @@ int hribfBuffer::ReadNextBuffer()
 	if (!mainBuffer::ReadNextBuffer()) return 0;
 
 	fBufferType = GetWord();
-	if (fBufferType == BUFFER_TYPE_RUNEND) SetNumOfWords(2);
+	if (fBufferType == BUFFER_TYPE_EOF) SetNumOfWords(2);
 	else SetNumOfWords(GetWord());
 	fBufferNumber++;
 	//No information about number of events in header we assume there is
@@ -86,12 +86,14 @@ void hribfBuffer::UnpackBuffer(bool verbose) {
 		case BUFFER_TYPE_RUNBEGIN: 
 			ReadRunBegin(verbose);
 			break;
-		case BUFFER_TYPE_RUNEND: 
-			ReadRunEnd(verbose);
+		case BUFFER_TYPE_EOF: 
+		case BUFFER_TYPE_DEAD:
+		case BUFFER_TYPE_DIR:
+		case BUFFER_TYPE_PAC:
 			break;
 		default: 
 			fflush(stdout);
-			fprintf(stderr,"WARNING: Unknown buffer type: '%s'.\n",ConvertToString(fBufferType).c_str());
+			fprintf(stderr,"WARNING: Unknown buffer type: %#010X '%s'.\n",(UInt_t)fBufferType,ConvertToString(fBufferType).c_str());
 			return;
 
 	}
@@ -108,24 +110,6 @@ void hribfBuffer::PrintBufferHeader()
 }
 void hribfBuffer::ReadRunEnd(bool verbose) 
 {
-	if (GetBufferType() != BUFFER_TYPE_RUNEND) {
-		fflush(stdout);
-		fprintf(stderr,"ERROR: Not a run begin buffer!\n");
-		return;
-	}
-
-/*
-	std::string deadTime = ReadString(GetNumOfWords(),verbose);
-	if (verbose) {
-		printf("\t String: ");
-		int length=63;
-		for (int i=0;i<deadTime.length()/length;i++) {
-			if (i>0) printf("\t%9c",' ');
-			printf("%*s\n",length,deadTime.substr(i*length,length).c_str());
-		}
-		printf("\n");
-	}
-*/
 }
 
 void hribfBuffer::ReadRunBegin(bool verbose)
