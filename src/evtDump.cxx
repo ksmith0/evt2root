@@ -7,10 +7,11 @@
 #include "hribfBuffer.h"
 
 int usage(const char *progName="") {
-	fprintf(stderr,"Usage: %s [-r] [-t bufferType] [-i bufferType] [-b bufferFormat] input.evt\n",progName);
+	fprintf(stderr,"Usage: %s [-r] [-u] [-i bufferType] [-b bufferFormat] <-t bufferType> input.evt\n",progName);
 	fprintf(stderr,"\t-b bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
 	fprintf(stderr,"\t               \t  nsclClassic, nsclUSB, nsclRing, hribf.\n");
 	fprintf(stderr,"\t-r\t Indicates raw buffer should be dumped.\n");
+	fprintf(stderr,"\t-u\t Indicates physics data unpacking is ignored.\n");
 	fprintf(stderr,"\t-t\t Only output buffers corresponding to the provided bufferType.\n");
 	fprintf(stderr,"\t-i\t Ignore buffers corresponding to the provided bufferType.\n");
 	return 1;
@@ -29,6 +30,7 @@ int main (int argc, char *argv[])
 
 	std::vector< const char* > inputFiles;
 	bool dumpRawBuffer = false;
+	bool unpackPhysicsData = true;
 	std::vector<int> bufferType;
 	std::vector<int> ignoreBufferType;
 
@@ -36,7 +38,7 @@ int main (int argc, char *argv[])
 	if (argc == 1) {return usage(argv[0]);}
 	//Loop over options
 	int c;
-	while ((c = getopt(argc,argv,":rb:t:i:")) != -1) {
+	while ((c = getopt(argc,argv,":rub:t:i:")) != -1) {
 		switch (c) {
 			case 'b':
 				{
@@ -53,6 +55,9 @@ int main (int argc, char *argv[])
 				}
 			case 'r':
 				dumpRawBuffer = true;
+				break;
+			case 'u':
+				unpackPhysicsData = false;
 				break;
 			case 't':
 				{
@@ -128,7 +133,7 @@ int main (int argc, char *argv[])
 		//Do buffer specific tasks
 		buffer->UnpackBuffer(true);
 		//Handle data events.
-		if (buffer->IsDataType()) {
+		if (unpackPhysicsData && buffer->IsDataType()) {
 			while (buffer->GetEventsRemaining()) {
 				if (!buffer->ReadEvent()) break;
 			}
