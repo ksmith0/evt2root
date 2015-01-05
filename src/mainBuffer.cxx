@@ -179,9 +179,9 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 	if (numOfBytes > 8) {
 		fflush(stdout);
 		fprintf(stderr, "ERROR: Cannot retireve words larger than 8 bytes!\n");
-		return mask;
+		return 0xFFFFFFFFFFFFFFFF;
 	}
-	if (GetBufferPositionBytes() >= fBufferSizeBytes) {
+	if (GetBufferPositionBytes() >= fNumBytes) {
 		fflush(stdout);
 		fprintf(stderr,"\nERROR: No bytes left in buffer %llu (%u/%u)!\n",fBufferNumber,GetBufferPositionBytes(),fBufferSizeBytes);
 		return mask;
@@ -189,8 +189,9 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 
 	unsigned int bytesRemaining = GetNumOfBytes() - GetBufferPositionBytes();
 	if (numOfBytes > bytesRemaining) {
-		numOfBytes = bytesRemaining;
 		fflush(stdout);
+		fprintf(stderr,"WARNING: Requested more bytes (%d) than those remaining(%d)! Returning remaing bytes.\n",numOfBytes,bytesRemaining);
+		numOfBytes = bytesRemaining;
 	}
 
 	if (middleEndian && numOfBytes % 2 == 0) {

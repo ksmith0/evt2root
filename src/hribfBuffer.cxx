@@ -18,7 +18,7 @@ int hribfBuffer::ReadEvent(bool verbose) {
 	}
 
 	if (verbose) {
-		printf ("\nData Event:\n");
+		printf ("\nData Event %llu:\n",fEventNumber);
 	}
 
 	//Loop over each module
@@ -30,25 +30,14 @@ int hribfBuffer::ReadEvent(bool verbose) {
 
 	}
 
-	//Fastforward over extra words
-	while (GetBufferPosition() < GetNumOfWords()) {
-		UInt_t trailer = GetWord();
-			
-		if (trailer == 0xFFFFFFFF) {
-			if (verbose) printf("\t%#010X Trailer\n",trailer);
-			break;
-		}
-		if (verbose) printf("\t%#010X Extra Word?\n",trailer);
-	}
-
-		
 	//Increment the number of Events read.
 	fEventNumber++;
 
 	//There is no indication of the number of events so we peak at the next
 	// word to see if it is a trailer.
-	if (GetWord() < 0xFFFFFFFF) fNumOfEvents++;
-	Seek(-1);
+	if (GetBufferPositionBytes() < GetNumOfBytes()) {
+		if (GetCurrentWord() != 0xFFFFFFFF) fNumOfEvents++;
+	}
 
 	return GetBufferPosition() - eventStartPos;
 

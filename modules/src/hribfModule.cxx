@@ -2,24 +2,34 @@
 
 ClassImp(hribfModule);
 
+/**Each event consist of a series of 4 byte word containing the channel number of value.
+ * The channel number is contained in the lowest order byte and the value is 
+ * stored in the highest order two bytes.
+ *
+ * \param[in] buffer The buffer to extract the event from.
+ * \param[in] Verbosity flag.
+ */
 void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 	Clear();
 
-	UShort_t datum;
-	while ((datum=buffer->GetWord(2)) != 0xFFFF) {
-		UShort_t channel = (datum & 0xFF);
-		UShort_t value = buffer->GetWord(2);
+	while (buffer->GetBufferPositionBytes() < buffer->GetNumOfBytes()) {
+		UInt_t datum = buffer->GetWord();
+
+		//break if we find the trailer word.
+		if (datum == -1) {
+			if (verbose) printf("\t%#06X Trailer\n",datum);
+			break;
+		}
+		UShort_t channel = datum & 0xFF;
+		UShort_t value = datum >> 2;
 
 		if (verbose) {
-			printf("\t%#06X Channel: %d \t%#06X Value: %d\n",datum,channel,value,value);
+			printf("\t%#010X Channel: %d Value: %d\n",datum,channel,value);
 		}
 
 		if (fValues.size() <= channel) fValues.resize(channel+1);
 		fValues[channel]=value;
 	}
-
-	//Rewind trailer word.
-	buffer->SeekBytes(-2);
 }
 
 UShort_t hribfModule::GetValue(UShort_t ch) {
