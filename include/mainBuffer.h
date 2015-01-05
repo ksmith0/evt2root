@@ -9,8 +9,6 @@
 #include <vector>
 #include <map>
 
-#include "evt_config.h"
-
 #include "baseModule.h"
 
 ///Class to handle main buffer in MAIN evt files.
