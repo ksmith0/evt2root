@@ -6,14 +6,19 @@
 #include "nsclRingBuffer.h"
 #include "hribfBuffer.h"
 
+#include "Caen_IO_V977.h"
+#include "Caen_General.h"
+#include "hribfModule.h"
+
 int usage(const char *progName="") {
-	fprintf(stderr,"Usage: %s [-r] [-u] [-t bufferType] [-i bufferType] <-f bufferFormat>  input.evt\n",progName);
+	fprintf(stderr,"Usage: %s [-r] [-u] [-t bufferType] [-i bufferType] [-s numBuffersSkipped] <-f bufferFormat>  input.evt\n",progName);
 	fprintf(stderr,"\t-f bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
 	fprintf(stderr,"\t               \t  nsclClassic, nsclUSB, nsclRing, hribf.\n");
 	fprintf(stderr,"\t-r\t Indicates raw buffer should be dumped.\n");
 	fprintf(stderr,"\t-u\t Indicates physics data unpacking is ignored.\n");
 	fprintf(stderr,"\t-t\t Only output buffers corresponding to the provided bufferType.\n");
 	fprintf(stderr,"\t-i\t Ignore buffers corresponding to the provided bufferType.\n");
+	fprintf(stderr,"\t-s\t Skip the number of buffers specifed.\n");
 	return 1;
 }
 
@@ -29,6 +34,7 @@ int main (int argc, char *argv[])
 	bool useNsclRingBuffer = true;
 
 	std::vector< const char* > inputFiles;
+	int skipBuffers = 0; //Number of buffers to skip
 	bool dumpRawBuffer = false;
 	bool unpackPhysicsData = true;
 	std::vector<int> bufferType;
@@ -38,7 +44,7 @@ int main (int argc, char *argv[])
 	if (argc == 1) {return usage(argv[0]);}
 	//Loop over options
 	int c;
-	while ((c = getopt(argc,argv,":ruf:t:i:")) != -1) {
+	while ((c = getopt(argc,argv,":ruf:t:i:s:")) != -1) {
 		switch (c) {
 			//buffer type
 			case 'f':
@@ -78,6 +84,8 @@ int main (int argc, char *argv[])
 					printf("Ignoring buffer type: %d\n",type);
 					break;
 				}
+			//Specify the number of buffes to skip.
+			case 's': skipBuffers = atoi(optarg); break;
 			//unknown option
 			case '?': 
 			default:
@@ -106,6 +114,9 @@ int main (int argc, char *argv[])
 			return 1;
 	}
 
+	//\bug Hardcoded until config file is built
+	buffer->AddModule(new hribfModule());
+
 	//Print some useful buffer information.
 	printf("\n");
 	printf("Evt Dump: %s\n",inputFiles[0]);
@@ -116,6 +127,9 @@ int main (int argc, char *argv[])
 	//Loop over each buffer. Number of words read is returned.
 	nextBuffer: while (buffer->ReadNextBuffer() > 0)
 	{
+		//Skip the first n buffers specified.
+		if (buffer->GetBufferNumber() < skipBuffers) goto nextBuffer;
+
 		//Skip any specified ignore buffers.
 		for (unsigned int i=0;i<ignoreBufferType.size();i++) 
 			if (buffer->GetBufferType() == ignoreBufferType[i]) goto nextBuffer;
@@ -144,7 +158,7 @@ int main (int argc, char *argv[])
 		if (unpackPhysicsData && buffer->IsDataType()) {
 			//Loop over all events in a buffer.
 			while (buffer->GetEventsRemaining()) {
-				if (!buffer->ReadEvent()) break;
+				if (!buffer->ReadEvent(true)) break;
 			}
 		}
 	}
