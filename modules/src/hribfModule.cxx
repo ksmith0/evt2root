@@ -21,7 +21,7 @@ void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 			break;
 		}
 		UShort_t channel = datum & 0xFF;
-		UShort_t value = datum >> 2;
+		UShort_t value = datum >> 16;
 
 		if (verbose) {
 			printf("\t%#010X Channel: %d Value: %d\n",datum,channel,value);
