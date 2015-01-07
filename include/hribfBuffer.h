@@ -35,12 +35,19 @@ class hribfBuffer : public mainBuffer {
 			BUFFER_TYPE_PAC = 0x20434150 //"PAC "
 		};
 
-		///Default constructor
+		///Default constructor.
+		hribfBuffer(int bufferSize=BUFFER_SIZE, 
+			int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
+		///Construct and open the file.
 		hribfBuffer(const char *filename, int bufferSize=BUFFER_SIZE, 
 			int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
 
 		///Indicate if the current buffer contains physics data.
 		virtual bool IsDataType();
+		///Indicate if the current buffer contains scalers.
+		virtual bool IsScalerType();
+		///Indicate if the current buffer is a run begin buffer.
+		virtual bool IsRunBegin();
 
 		///Read the next buffer.
 		int ReadNextBuffer();

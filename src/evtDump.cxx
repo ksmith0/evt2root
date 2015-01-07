@@ -1,39 +1,38 @@
 #include <vector>
 #include <unistd.h>
 
-#include "nsclClassicBuffer.h"
-#include "nsclUSBBuffer.h"
-#include "nsclRingBuffer.h"
-#include "hribfBuffer.h"
-
-#include "Caen_IO_V977.h"
-#include "Caen_General.h"
-#include "hribfModule.h"
+#include "configFile.h"
+#include "supported.h"
 
 int usage(const char *progName="") {
-	fprintf(stderr,"Usage: %s [-r] [-u] [-t bufferType] [-i bufferType] [-s numBuffersSkipped] <-f bufferFormat>  input.evt\n",progName);
+	fprintf(stderr,"Usage: %s [-r] [-u] [-t bufferType] [-i bufferType] [-s numBuffersSkipped] -f bufferFormat -m moduleType [-c configFile] input.evt\n",progName);
+	fprintf(stderr,"\t-c\t Load the configuration file specified.\n");
 	fprintf(stderr,"\t-f bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
-	fprintf(stderr,"\t               \t  nsclClassic, nsclUSB, nsclRing, hribf.\n");
+	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_BUFFER_FORMATS);
+	fprintf(stderr,"\t-m moduleType\t Indicate the module to be unpacked. Possible options include:\n");
+	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_MODULES);
+	fprintf(stderr,"\n");
 	fprintf(stderr,"\t-r\t Indicates raw buffer should be dumped.\n");
 	fprintf(stderr,"\t-u\t Indicates physics data unpacking is ignored.\n");
-	fprintf(stderr,"\t-t\t Only output buffers corresponding to the provided bufferType.\n");
-	fprintf(stderr,"\t-i\t Ignore buffers corresponding to the provided bufferType.\n");
+	fprintf(stderr,"\t-t\t Only output buffers corresponding to the provided bufferType. mMay be called multiple times.\n");
+	fprintf(stderr,"\t-i\t Ignore buffers corresponding to the provided bufferType. May be called multiple times.\n");
 	fprintf(stderr,"\t-s\t Skip the number of buffers specifed.\n");
+	fprintf(stderr,"\n");
+	fprintf(stderr,"\t-h\t This help menu.\n");
 	return 1;
 }
 
 int main (int argc, char *argv[])
 {
-	enum class bufferFormat {
-		NSCL_CLASSIC, NSCL_USB, NSCL_RING, HRIBF
-	};
-	bufferFormat format;
 	bool useHribfBuffer = false;
 	bool useNsclClassicBuffer = false;
 	bool useNsclUSBBuffer = false;
 	bool useNsclRingBuffer = true;
+	const char* configFilename = "";
 
 	std::vector< const char* > inputFiles;
+	std::vector< std::pair< std::string, baseModule* > > modules;
+	mainBuffer* buffer = nullptr;
 	int skipBuffers = 0; //Number of buffers to skip
 	bool dumpRawBuffer = false;
 	bool unpackPhysicsData = true;
@@ -44,20 +43,111 @@ int main (int argc, char *argv[])
 	if (argc == 1) {return usage(argv[0]);}
 	//Loop over options
 	int c;
-	while ((c = getopt(argc,argv,":ruf:t:i:s:")) != -1) {
+	while ((c = getopt(argc,argv,":c:f:m:rut:i:s:h")) != -1) {
 		switch (c) {
+			//config file
+			case 'c': {
+				//Load the configuration file.
+				ConfigFile conf;
+				if (!conf.ReadFile(optarg)) {
+					fprintf(stderr,"ERROR: Unable to read configuration file!\n");
+					return 1;
+				}
+
+				//If the format hasn't been specified we try to read it from config.
+				if (buffer == nullptr) {
+					//No format was provided
+					if (conf.GetNumEntries("format") == 0) {
+						fflush(stdout);
+						fprintf(stderr,"ERROR: Buffer format not specified in configuration file!\n");
+						fprintf(stderr,"       Specify the format with key 'format'.\n");
+						fprintf(stderr,"       Supported buffer formats: %s\n",SUPPORTED_BUFFER_FORMATS); 
+						return 1;
+					}
+
+					buffer = GetBufferPointer(conf.GetOption("format"));
+					if (buffer == nullptr) {
+						fprintf(stderr,"ERROR: Unknown buffer format: %s.\n",optarg);
+						fprintf(stderr,"       Supported buffer formats: %s\n",SUPPORTED_BUFFER_FORMATS); 
+						return 1;
+					}
+				}
+				//If the format was already specified we warn the user.
+				else {
+					fflush(stdout);
+					fprintf(stderr,"WARNING: Overiding configuration file buffer format with command line option!\n");
+				}
+
+				//Get the modules
+				if (modules.empty()) {
+					//No modules were provided
+					if (conf.GetNumEntries("module") == 0) {
+						fflush(stdout);
+						fprintf(stderr,"ERROR: Buffer module list not specified in configuration file!\n");
+						fprintf(stderr,"       Specify modules with key 'module'.\n");
+						fprintf(stderr,"       Supported modules are: %s\n",SUPPORTED_BUFFER_FORMATS); 
+						return 1;
+					}
+
+					for (int i=0;i<conf.GetNumEntries("module");++i) {
+						std::string moduleName = conf.GetOption("module",i);
+						baseModule *modulePtr = GetModulePointer(moduleName);
+						if (modulePtr == nullptr) {
+							fflush(stdout);
+							fprintf(stderr,"ERROR: Unknown module %s, supported modules are:\n",moduleName.c_str());
+							fprintf(stderr,"       %s\n",SUPPORTED_MODULES);
+							return 1;
+						}
+						modules.push_back(std::pair< std::string, baseModule* >(moduleName,modulePtr));
+					}
+				}
+				else {
+					fflush(stdout);
+					fprintf(stderr,"WARNING: Overiding configuration file module list with command line options!\n");
+				}
+
+				break;
+			}
+
 			//buffer type
 			case 'f':
 				{
-					std::string formatString = optarg;
-					if (formatString == "nsclClassic") format = bufferFormat::NSCL_CLASSIC;
-					else if (formatString == "nsclUSB") format = bufferFormat::NSCL_USB;
-					else if (formatString == "nsclRing") format = bufferFormat::NSCL_RING;
-					else if (formatString == "hribf") format = bufferFormat::HRIBF;
-					else {
-						fprintf(stderr,"ERROR: Unknown buffer format: %s.\n",optarg);
-						return usage(argv[0]);
+					//If format already set we overide it.
+					if (buffer != nullptr) {
+						fflush(stdout);
+						fprintf(stderr,"WARNING: Overiding file buffer format with command line option!\n");
 					}
+
+					//Get the format
+					buffer = GetBufferPointer(optarg);
+					//Handle unknown format
+					if (buffer == nullptr) {
+						fprintf(stderr,"ERROR: Unknown buffer format: %s.\n",optarg);
+						fprintf(stderr,"       Supported buffer formats: %s\n",SUPPORTED_BUFFER_FORMATS); 
+						return 1;
+					}
+
+				
+					break;
+				}
+
+			//modules
+			case 'm':
+				{
+					if (!modules.empty()) {
+						fflush(stdout);
+						fprintf(stderr,"WARNING: Overiding module list with command line options!\n");
+						modules.clear();
+					}
+						
+					baseModule *modulePtr = GetModulePointer(optarg);
+					if (modulePtr == nullptr) {
+						fflush(stdout);
+						fprintf(stderr,"ERROR: Unknown module %s, supported modules are:\n",optarg);
+						fprintf(stderr,"       %s\n",SUPPORTED_MODULES);
+						return 1;
+					}
+					modules.push_back(std::pair< std::string, baseModule* >(optarg,modulePtr));
 					break;
 				}
 			//raw buffers
@@ -86,46 +176,53 @@ int main (int argc, char *argv[])
 				}
 			//Specify the number of buffes to skip.
 			case 's': skipBuffers = atoi(optarg); break;
+			//Help menu
+			case 'h': return usage(argv[0]);
 			//unknown option
 			case '?': 
 			default:
 				return usage(argv[0]);
 		}
 	}
-
-	//Get input file arguments. Ignores everything except the first
+	//Check that there are more arguments to take as inputs.
+	if (optind==argc) {
+		fflush(stdout);
+		fprintf(stderr,"ERROR: No input files specified!\n");
+		return 1;
+	}
+	
+	//Get input file arguments.
 	for (int i=optind;i<argc;i++) { 
 		inputFiles.push_back(argv[i]);
 	}
-	if (inputFiles.size() == 0) {
-		fprintf(stderr,"ERROR: No input files specified!\n");
-		return usage(argv[0]);
-	}
 
-	//Build correct buffer object.
-	mainBuffer *buffer;
-	switch(format) {
-		case bufferFormat::HRIBF: buffer = new hribfBuffer(inputFiles[0]); break;
-		case bufferFormat::NSCL_CLASSIC: buffer = new nsclClassicBuffer(inputFiles[0]); break;
-		case bufferFormat::NSCL_USB: buffer = new nsclUSBBuffer(inputFiles[0]); break;
-		case bufferFormat::NSCL_RING: buffer = new nsclRingBuffer(inputFiles[0]); break;
-		default:
-			fprintf(stderr,"ERROR: Unknown buffer format!\n");
-			return 1;
-	}
-
-	//\bug Hardcoded until config file is built
-	buffer->AddModule(new hribfModule());
+	//\bug Reads only the first input file.
+	if (!buffer->OpenFile(inputFiles[0])) return 1;
 
 	//Print some useful buffer information.
-	printf("\n");
-	printf("Evt Dump: %s\n",inputFiles[0]);
+	printf("Evt Dump: %s\n",buffer->GetFilename());
 	printf("Word Size: %d Bytes\n",buffer->GetWordSize());
 	printf("Header Size: %d words\n",buffer->GetHeaderSize());
 	printf("Buffer Size: %d words\n",buffer->GetBufferSize());
 
+	//Add modules to buffer
+	if (!modules.empty()) {
+		printf("Loaded modules: ");
+		for (std::vector< std::pair< std::string, baseModule* > >::iterator it = modules.begin(); it != modules.end(); ++it) {
+			if (it != modules.begin()) printf(", ");
+			printf("%s", std::get<0>(*it).c_str());
+			buffer->AddModule(std::get<1>(*it));
+		}
+		printf(".\n");
+	}
+	else {
+		fflush(stdout);
+		fprintf(stderr,"WARNING: No modules specifed data events will not be unpacked!\n");
+		unpackPhysicsData = false;
+	}
+	
 	//Loop over each buffer. Number of words read is returned.
-	nextBuffer: while (buffer->ReadNextBuffer() > 0)
+nextBuffer: while (buffer->ReadNextBuffer() > 0)
 	{
 		//Skip the first n buffers specified.
 		if (buffer->GetBufferNumber() < skipBuffers) goto nextBuffer;

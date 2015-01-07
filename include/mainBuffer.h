@@ -74,11 +74,6 @@ class mainBuffer
 		///The last word position of written data in buffer.
 		unsigned int fWritePosition;
 	
-		///Open evt file.
-		void OpenFile(const char *filename);
-		///Close evt file.
-		void CloseFile();
-
 		///Set the length of a data word in bytes.
 		void SetWordSize(int numOfBytes) {fWordSize = numOfBytes;};
 		///Set the number of good words in a buffer.
@@ -118,6 +113,12 @@ class mainBuffer
 		mainBuffer(const char *filename);
 		///Default destructor
 		virtual ~mainBuffer();
+
+		///Open evt file.
+		bool OpenFile(const char *filename);
+		///Close evt file.
+		void CloseFile();
+
 		///Clear the current values for the buffer.
 		virtual void Clear();
 		///Copy data into the current buffer.
@@ -145,6 +146,8 @@ class mainBuffer
 		///Returns the number of the current buffer.
 		unsigned int GetBufferNumber();
 
+		///Return the filename of the currently opened file.
+		const char* GetFilename() {return fFileName;};
 		///Return current file position in bytes.
 		unsigned long int GetFilePosition();
 		///Return current file position in percent.
@@ -215,6 +218,10 @@ class mainBuffer
 
 		///Indicate if the current buffer contains physics data.
 		virtual bool IsDataType() = 0;
+		///Indicate if the current buffer contains scalers.
+		virtual bool IsScalerType() = 0;
+		///Indicate if the current buffer is a run begin buffer.
+		virtual bool IsRunBegin() = 0;
 
 		///Unpack the current buffer
 		virtual void UnpackBuffer(bool verbose = false) = 0;

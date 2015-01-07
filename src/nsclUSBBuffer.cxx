@@ -1,8 +1,16 @@
 #include "nsclUSBBuffer.h"
 
-nsclUSBBuffer::nsclUSBBuffer
-	(const char *filename, bool moduleBoundaryWord, int bufferSize, 
-		int bufferHeaderSize, int wordSize) :
+nsclUSBBuffer::nsclUSBBuffer(int bufferSize, int bufferHeaderSize,
+	 int wordSize) :
+	nsclClassicBuffer(bufferSize,bufferHeaderSize,wordSize)
+{ 
+
+	//Four byte words have the low and high bits in the correct order.
+	SetMiddleEndian(4,false);
+}
+
+nsclUSBBuffer::nsclUSBBuffer(const char *filename, int bufferSize,
+	int bufferHeaderSize, int wordSize) :
 	nsclClassicBuffer
 		(filename,bufferSize,bufferHeaderSize,wordSize)
 { 

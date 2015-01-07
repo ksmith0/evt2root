@@ -81,11 +81,18 @@ class nsclRingBuffer : public mainBuffer
 		};
 
 		///Default constructor
-		nsclRingBuffer(const char *filename, int bufferSize=BUFFER_SIZE, int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
+		nsclRingBuffer(int bufferSize=BUFFER_SIZE, 
+			int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
+		nsclRingBuffer(const char *filename, int bufferSize=BUFFER_SIZE, 
+			int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
 		virtual ~nsclRingBuffer();
 
 		///Indicate if the current buffer contains physics data.
 		virtual bool IsDataType();
+		///Indicate if the current buffer contains scalers.
+		virtual bool IsScalerType();
+		///Indicate if the current buffer is a run begin buffer.
+		virtual bool IsRunBegin();
 
 		///Read the next buffer.
 		int ReadNextBuffer();

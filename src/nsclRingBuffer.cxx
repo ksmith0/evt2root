@@ -1,7 +1,16 @@
 #include "nsclRingBuffer.h"
 
+nsclRingBuffer::nsclRingBuffer(int bufferSize, int headerSize, 
+	int wordSize) :
+	mainBuffer(headerSize,bufferSize,wordSize),
+	fVersion(0)
+{
+	//Ring buffer event buffers only contain 1 event.
+	fNumOfEvents = 1;
+}
 
-nsclRingBuffer::nsclRingBuffer(const char *filename,int bufferSize, int headerSize, int wordSize) :
+nsclRingBuffer::nsclRingBuffer(const char *filename,int bufferSize, 
+	int headerSize, int wordSize) :
 	mainBuffer(headerSize,bufferSize,wordSize),
 	fVersion(0)
 {
@@ -418,5 +427,13 @@ void nsclRingBuffer::ReadScalers(bool verbose)
 
 bool nsclRingBuffer::IsDataType() {
 	if (fBufferType == BUFFER_TYPE_DATA) return true;
+	return false;
+}
+bool nsclRingBuffer::IsScalerType() {
+	if (fBufferType == BUFFER_TYPE_SCALERS) return true;
+	return false;
+}
+bool nsclRingBuffer::IsRunBegin() {
+	if (fBufferType == BUFFER_TYPE_RUNBEGIN) return true;
 	return false;
 }

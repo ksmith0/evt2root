@@ -2,6 +2,10 @@
 
 #include <sstream> 
 
+hribfBuffer::hribfBuffer(int bufferSize,int headerSize, int wordSize) :
+		mainBuffer(headerSize,bufferSize,wordSize)
+{
+}
 hribfBuffer::hribfBuffer(const char *filename, int bufferSize, 
 	int headerSize, int wordSize) :
 		mainBuffer(headerSize,bufferSize,wordSize)
@@ -174,5 +178,13 @@ UInt_t hribfBuffer::GetEventLength() {
 
 bool hribfBuffer::IsDataType() {
 	if (fBufferType == BUFFER_TYPE_DATA) return true;
+	return false;
+}
+bool hribfBuffer::IsScalerType() {
+	if (fBufferType == BUFFER_TYPE_SCALERS) return true;
+	return false;
+}
+bool hribfBuffer::IsRunBegin() {
+	if (fBufferType == BUFFER_TYPE_RUNBEGIN) return true;
 	return false;
 }

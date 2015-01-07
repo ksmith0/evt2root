@@ -1,6 +1,14 @@
 #include "nsclClassicBuffer.h"
 
-nsclClassicBuffer::nsclClassicBuffer(const char *filename,int bufferSize, int bufferHeaderSize, int wordSize) :
+nsclClassicBuffer::nsclClassicBuffer(int bufferSize, int bufferHeaderSize,
+	int wordSize) :
+	mainBuffer(bufferHeaderSize,bufferSize,wordSize)
+{
+	//Four byte words have the low and high bits swapped.
+	SetMiddleEndian(4);
+}
+nsclClassicBuffer::nsclClassicBuffer(const char *filename,int bufferSize, 
+	int bufferHeaderSize, int wordSize) :
 	mainBuffer(bufferHeaderSize,bufferSize,wordSize)
 {
 	OpenFile(filename);
@@ -284,5 +292,13 @@ void nsclClassicBuffer::ReadScalers(bool verbose)
 
 bool nsclClassicBuffer::IsDataType() {
 	if (fBufferType == BUFFER_TYPE_DATA) return true;
+	return false;
+}
+bool nsclClassicBuffer::IsScalerType() {
+	if (fBufferType == BUFFER_TYPE_SCALERS) return true;
+	return false;
+}
+bool nsclClassicBuffer::IsRunBegin() {
+	if (fBufferType == BUFFER_TYPE_RUNBEGIN) return true;
 	return false;
 }

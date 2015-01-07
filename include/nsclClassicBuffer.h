@@ -41,7 +41,10 @@ class nsclClassicBuffer : public mainBuffer {
 		};
 
 		///Default constructor
-		nsclClassicBuffer(const char* filename,int bufferSize=BUFFER_SIZE, int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
+		nsclClassicBuffer(int bufferSize=BUFFER_SIZE, 
+			int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
+		nsclClassicBuffer(const char* filename,int bufferSize=BUFFER_SIZE, 
+			int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
 		virtual ~nsclClassicBuffer();
 
 		///Clear the current values for the buffer.
@@ -49,6 +52,10 @@ class nsclClassicBuffer : public mainBuffer {
 
 		///Indicate if the current buffer contains physics data.
 		virtual bool IsDataType();
+		///Indicate if the current buffer contains scalers.
+		virtual bool IsScalerType();
+		///Indicate if the current buffer is a run begin buffer.
+		virtual bool IsRunBegin();
 
 		///Read the next buffer.
 		virtual int ReadNextBuffer();

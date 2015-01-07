@@ -43,21 +43,19 @@ void mainBuffer::Copy(UInt_t *source, unsigned int length)
 }
 */
 
-void mainBuffer::OpenFile(const char *filename)
+bool mainBuffer::OpenFile(const char *filename)
 {
-	try {
-		fFile.open(filename, std::ios::in | std::ios::binary | std::ios::ate);
-		fFileSize = fFile.tellg();
-		fFile.clear();
-		fFile.seekg(0);
-		if (!fFile.good()) throw filename;
-		fFileName = filename;
+	fFile.open(filename, std::ios::in | std::ios::binary | std::ios::ate);
+	fFileSize = fFile.tellg();
+	fFile.clear();
+	fFile.seekg(0);
+	if (!fFile.good()) {
+		fflush(stdout);
+		fprintf(stderr,"ERROR: Unable to open: %s\n",filename);
+		return false;
 	}
-	catch (char *e)
-	{
-		fprintf(stderr,"ERROR: Can't open evtfile %s\n",filename);
-	}
-	return;
+	fFileName = filename;
+	return true;
 }
 void mainBuffer::CloseFile()
 {

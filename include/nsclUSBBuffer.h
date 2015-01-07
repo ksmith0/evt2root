@@ -20,7 +20,10 @@ class nsclUSBBuffer : public nsclClassicBuffer {
 
 	public:
 		///Default constructor
-		nsclUSBBuffer(const char* filename,bool moduleBoundaryWord=true, int bufferSize=BUFFER_SIZE, int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
+		nsclUSBBuffer(int bufferSize=BUFFER_SIZE, 
+			int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
+		nsclUSBBuffer(const char* filename, int bufferSize=BUFFER_SIZE, 
+			int headerSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
 		virtual ~nsclUSBBuffer();
 		///Read the next buffer.
 		virtual int ReadNextBuffer();
