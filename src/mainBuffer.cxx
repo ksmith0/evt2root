@@ -181,7 +181,7 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 	}
 	if (GetBufferPositionBytes() >= fNumBytes) {
 		fflush(stdout);
-		fprintf(stderr,"\nERROR: No bytes left in buffer %llu (%u/%u)!\n",fBufferNumber,GetBufferPositionBytes(),fBufferSizeBytes);
+		fprintf(stderr,"\nERROR: No bytes left in buffer %llu (%u/%llu)!\n",fBufferNumber,GetBufferPositionBytes(),fNumBytes);
 		return mask;
 	}
 
