@@ -33,6 +33,8 @@ int main (int argc, char *argv[])
 	std::vector< const char* > inputFiles;
 	std::vector< std::pair< std::string, baseModule* > > modules;
 	mainBuffer* buffer = nullptr;
+	ConfigFile *conf = nullptr;
+
 	int skipBuffers = 0; //Number of buffers to skip
 	bool dumpRawBuffer = false;
 	bool unpackPhysicsData = true;
@@ -48,8 +50,8 @@ int main (int argc, char *argv[])
 			//config file
 			case 'c': {
 				//Load the configuration file.
-				ConfigFile conf;
-				if (!conf.ReadFile(optarg)) {
+				conf = new ConfigFile;
+				if (!conf->ReadFile(optarg)) {
 					fprintf(stderr,"ERROR: Unable to read configuration file!\n");
 					return 1;
 				}
@@ -57,7 +59,7 @@ int main (int argc, char *argv[])
 				//If the format hasn't been specified we try to read it from config.
 				if (buffer == nullptr) {
 					//No format was provided
-					if (conf.GetNumEntries("format") == 0) {
+					if (conf->GetNumEntries("format") == 0) {
 						fflush(stdout);
 						fprintf(stderr,"ERROR: Buffer format not specified in configuration file!\n");
 						fprintf(stderr,"       Specify the format with key 'format'.\n");
@@ -65,7 +67,7 @@ int main (int argc, char *argv[])
 						return 1;
 					}
 
-					buffer = GetBufferPointer(conf.GetOption("format"));
+					buffer = GetBufferPointer(conf->GetOption("format"));
 					if (buffer == nullptr) {
 						fprintf(stderr,"ERROR: Unknown buffer format: %s.\n",optarg);
 						fprintf(stderr,"       Supported buffer formats: %s\n",SUPPORTED_BUFFER_FORMATS); 
@@ -81,7 +83,7 @@ int main (int argc, char *argv[])
 				//Get the modules
 				if (modules.empty()) {
 					//No modules were provided
-					if (conf.GetNumEntries("module") == 0) {
+					if (conf->GetNumEntries("module") == 0) {
 						fflush(stdout);
 						fprintf(stderr,"ERROR: Buffer module list not specified in configuration file!\n");
 						fprintf(stderr,"       Specify modules with key 'module'.\n");
@@ -89,8 +91,8 @@ int main (int argc, char *argv[])
 						return 1;
 					}
 
-					for (int i=0;i<conf.GetNumEntries("module");++i) {
-						std::string moduleName = conf.GetOption("module",i);
+					for (int i=0;i<conf->GetNumEntries("module");++i) {
+						std::string moduleName = conf->GetOption("module",i);
 						baseModule *modulePtr = GetModulePointer(moduleName);
 						if (modulePtr == nullptr) {
 							fflush(stdout);
@@ -115,7 +117,7 @@ int main (int argc, char *argv[])
 					//If format already set we overide it.
 					if (buffer != nullptr) {
 						fflush(stdout);
-						fprintf(stderr,"WARNING: Overiding file buffer format with command line option!\n");
+						fprintf(stderr,"WARNING: Overiding file buffer format with command line option: %s!\n",optarg);
 					}
 
 					//Get the format
@@ -134,7 +136,7 @@ int main (int argc, char *argv[])
 			//modules
 			case 'm':
 				{
-					if (!modules.empty()) {
+					if (conf) {
 						fflush(stdout);
 						fprintf(stderr,"WARNING: Overiding module list with command line options!\n");
 						modules.clear();
@@ -184,6 +186,8 @@ int main (int argc, char *argv[])
 				return usage(argv[0]);
 		}
 	}
+	//Clean up config file.
+	delete conf;
 	//Check that there are more arguments to take as inputs.
 	if (optind==argc) {
 		fflush(stdout);
