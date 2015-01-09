@@ -23,7 +23,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-add_definitions(-std=gnu++0x)
+add_definitions(-std=gnu++1y)
 
 find_package (ROOT REQUIRED)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ROOT_CXX_FLAGS}")
@@ -33,13 +33,16 @@ link_directories(${ROOT_LIBRARY_DIR})
 include_directories(utilities/include)
 add_subdirectory(utilities)
 
-include_directories(include)
 include_directories(modules/include)
+include_directories(buffers/include)
+add_subdirectory(buffers)
+
 add_subdirectory (modules)
 
 include_directories(ExpEvent/include)
 add_subdirectory (ExpEvent)
 
-set (EXTRA_LIBS ExpEvent_Static Modules Utilities)
+set (EXTRA_LIBS ExpEvent_Static Modules Buffers Utilities)
+include_directories(include)
 add_subdirectory (src)
 
