@@ -1,15 +1,15 @@
 #ifndef MAINBUFFER_H
 #define MAINBUFFER_H
 
-#include <iostream>
 #include <fstream>
-#include <stdio.h>
-#include <string.h>
-#include <Rtypes.h>
-#include <vector>
-#include <map>
 
-#include "baseModule.h"
+#include <string>
+#include <vector>
+
+#include <Rtypes.h> //Basic ROOT types
+
+//We must forward declare baseModule.
+class baseModule;
 
 ///Class to handle main buffer in MAIN evt files.
 class mainBuffer
@@ -98,7 +98,7 @@ class mainBuffer
 		///Deque tracking all the modules used in the data file.
 		std::vector< baseModule* > fModules;
 
-		//std::map<unsigned int, bool> fMiddleEndian;
+		///Switch whether word of size index is middle endian.
 		std::vector<bool> fMiddleEndian;
 		///Identify words of the specified length as middle endian.
 		void SetMiddleEndian(unsigned int wordSize, bool middleEndian=true);

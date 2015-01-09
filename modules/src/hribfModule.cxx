@@ -1,4 +1,5 @@
 #include "hribfModule.h"
+#include "mainBuffer.h"
 
 ClassImp(hribfModule);
 

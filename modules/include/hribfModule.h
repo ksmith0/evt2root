@@ -1,7 +1,6 @@
 #ifndef HRIBFMODULE_H
 #define HRIBFMODULE_H
 
-#include "mainBuffer.h"
 #include "baseModule.h"
 
 class hribfModule : public baseModule {

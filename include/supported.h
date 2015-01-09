@@ -6,23 +6,18 @@
 
 #include <string>
 
-#include "mainBuffer.h"
 #include "nsclClassicBuffer.h"
 #include "nsclUSBBuffer.h"
 #include "nsclRingBuffer.h"
 #include "hribfBuffer.h"
 
-#include "baseModule.h"
 #include "Caen_IO_V977.h"
 #include "Caen_General.h"
 #include "hribfModule.h"
 
-
-
 enum class bufferFormat {
 	UNKNOWN, NSCL_CLASSIC, NSCL_USB, NSCL_RING, HRIBF
 };
-
 
 mainBuffer *GetBufferPointer(std::string formatString) {
 	if (formatString == "nsclClassic") return new nsclClassicBuffer();

@@ -1,4 +1,5 @@
 #include "XIA_Pixie16.h"
+#include "mainBuffer.h"
 
 ClassImp(XIA_Pixie16);
 

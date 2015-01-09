@@ -1,4 +1,5 @@
 #include "nsclClassicBuffer.h"
+#include "baseModule.h"
 
 nsclClassicBuffer::nsclClassicBuffer(int bufferSize, int bufferHeaderSize,
 	int wordSize) :

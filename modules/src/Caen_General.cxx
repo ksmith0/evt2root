@@ -1,4 +1,5 @@
 #include "Caen_General.h"
+#include "mainBuffer.h"
 
 ClassImp(Caen_General);
 

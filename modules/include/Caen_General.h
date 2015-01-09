@@ -1,7 +1,6 @@
 #ifndef CAEN_GENERAL_H
 #define CAEN_GENERAL_H
 
-#include "mainBuffer.h"
 #include "baseModule.h"
 
 /**Class capable of reading most Caen cards. Caen cards use a common

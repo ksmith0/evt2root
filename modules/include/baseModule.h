@@ -3,7 +3,7 @@
 
 #include "TObject.h"
 
-//Declare the mainBuffer to be defined later.
+//We must forward declare mainBuffer.
 class mainBuffer;
 
 class baseModule : public TObject 

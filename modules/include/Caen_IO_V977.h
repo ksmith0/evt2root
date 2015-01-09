@@ -1,7 +1,6 @@
 #ifndef CAEN_IO_V977
 #define CAEN_IO_V977
 
-#include "mainBuffer.h"
 #include "baseModule.h"
 
 /**Readout class for Caen I/O V977:

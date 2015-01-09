@@ -1,4 +1,5 @@
 #include "hribfBuffer.h"
+#include "baseModule.h"
 
 #include <sstream> 
 

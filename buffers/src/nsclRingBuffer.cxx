@@ -1,4 +1,5 @@
 #include "nsclRingBuffer.h"
+#include "baseModule.h"
 
 nsclRingBuffer::nsclRingBuffer(int bufferSize, int headerSize, 
 	int wordSize) :

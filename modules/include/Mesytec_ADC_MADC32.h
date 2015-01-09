@@ -9,7 +9,6 @@
 #ifndef MESYTEC_ADC_MADC32_H
 #define MESYTEC_ADC_MADC32_H
 
-#include "mainBuffer.h"
 #include "baseModule.h"
 
 /**Class capable of reading Mesytec ADC MADC-32:

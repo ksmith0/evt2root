@@ -1,4 +1,5 @@
 #include "nsclUSBBuffer.h"
+#include "baseModule.h"
 
 nsclUSBBuffer::nsclUSBBuffer(int bufferSize, int bufferHeaderSize,
 	 int wordSize) :
