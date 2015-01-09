@@ -1,6 +1,8 @@
 #include <vector>
 #include <unistd.h>
 
+#include "TClass.h"
+
 #include "configFile.h"
 #include "supported.h"
 
@@ -31,7 +33,7 @@ int main (int argc, char *argv[])
 	const char* configFilename = "";
 
 	std::vector< const char* > inputFiles;
-	std::vector< std::pair< std::string, baseModule* > > modules;
+	std::vector< baseModule* > modules;
 	mainBuffer* buffer = nullptr;
 	ConfigFile *conf = nullptr;
 
@@ -92,15 +94,14 @@ int main (int argc, char *argv[])
 					}
 
 					for (int i=0;i<conf->GetNumEntries("module");++i) {
-						std::string moduleName = conf->GetOption("module",i);
-						baseModule *modulePtr = GetModulePointer(moduleName);
+						baseModule *modulePtr = GetModulePointer(conf->GetOption("module",i));
 						if (modulePtr == nullptr) {
 							fflush(stdout);
-							fprintf(stderr,"ERROR: Unknown module %s, supported modules are:\n",moduleName.c_str());
+							fprintf(stderr,"ERROR: Unknown module %s, supported modules are:\n",conf->GetOption("module",i).c_str());
 							fprintf(stderr,"       %s\n",SUPPORTED_MODULES);
 							return 1;
 						}
-						modules.push_back(std::pair< std::string, baseModule* >(moduleName,modulePtr));
+						modules.push_back(modulePtr);
 					}
 				}
 				else {
@@ -149,7 +150,7 @@ int main (int argc, char *argv[])
 						fprintf(stderr,"       %s\n",SUPPORTED_MODULES);
 						return 1;
 					}
-					modules.push_back(std::pair< std::string, baseModule* >(optarg,modulePtr));
+					modules.push_back(modulePtr);
 					break;
 				}
 			//raw buffers
@@ -212,10 +213,10 @@ int main (int argc, char *argv[])
 	//Add modules to buffer
 	if (!modules.empty()) {
 		printf("Loaded modules: ");
-		for (std::vector< std::pair< std::string, baseModule* > >::iterator it = modules.begin(); it != modules.end(); ++it) {
+		for (auto it = modules.begin(); it != modules.end(); ++it) {
 			if (it != modules.begin()) printf(", ");
-			printf("%s", std::get<0>(*it).c_str());
-			buffer->AddModule(std::get<1>(*it));
+			printf("%s", (*it)->IsA()->GetName());
+			buffer->AddModule(*it);
 		}
 		printf(".\n");
 	}

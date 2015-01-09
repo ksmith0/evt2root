@@ -9,20 +9,12 @@
 #include "configFile.h"
 #include "supported.h"
 
-#include "nsclClassicBuffer.h"
-#include "nsclUSBBuffer.h"
-#include "nsclRingBuffer.h"
-#include "hribfBuffer.h"
-
-#include "Caen_IO_V977.h"
-#include "Caen_General.h"
-#include "hribfModule.h"
-
 #include "eventScaler.h"
 #include "eventData.h"
 
-#include "TTree.h"
+#include "TClass.h"
 #include "TFile.h"
+#include "TTree.h"
 #include "TParameter.h"
 //#include "TObjString.h"
 
@@ -35,7 +27,7 @@ int usage(const char *progName="") {
 int main (int argc, char *argv[])
 {
 	const char* outputFile = "";
-	std::vector< std::pair< std::string, baseModule* > > modules;
+	std::vector< baseModule* > modules;
 	mainBuffer* buffer = nullptr;
 	ConfigFile *conf = nullptr;
 	std::vector< const char* > inputFiles;
@@ -90,20 +82,19 @@ int main (int argc, char *argv[])
 					}
 
 					for (int i=0;i<conf->GetNumEntries("module");++i) {
-						std::string moduleName = conf->GetOption("module",i);
-						baseModule *modulePtr = GetModulePointer(moduleName);
+						baseModule *modulePtr = GetModulePointer(conf->GetOption("module",i));
 						if (modulePtr == nullptr) {
 							fflush(stdout);
-							fprintf(stderr,"ERROR: Unknown module %s, supported modules are:\n",moduleName.c_str());
+							fprintf(stderr,"ERROR: Unknown module %s, supported modules are:\n",conf->GetOption("module",i).c_str());
 							fprintf(stderr,"       %s\n",SUPPORTED_MODULES);
 							return 1;
 						}
-						modules.push_back(std::pair< std::string, baseModule* >(moduleName,modulePtr));
+						modules.push_back(modulePtr);
 					}
 				}
 				else {
 					fflush(stdout);
-					fprintf(stderr,"WARNING: Overiding configuration file module list with command line options!\n");
+					fprintf(stderr,"WARNING: Overriding configuration file module list with command line options!\n");
 				}
 
 				break;
@@ -112,10 +103,10 @@ int main (int argc, char *argv[])
 			//buffer type
 			case 'f':
 				{
-					//If format already set we overide it.
+					//If format already set we override it.
 					if (buffer != nullptr) {
 						fflush(stdout);
-						fprintf(stderr,"WARNING: Overiding file buffer format with command line option: %s!\n",optarg);
+						fprintf(stderr,"WARNING: Overriding file buffer format with command line option: %s!\n",optarg);
 					}
 
 					//Get the format
@@ -136,7 +127,7 @@ int main (int argc, char *argv[])
 				{
 					if (conf) {
 						fflush(stdout);
-						fprintf(stderr,"WARNING: Overiding module list with command line options!\n");
+						fprintf(stderr,"WARNING: Overriding module list with command line options!\n");
 						modules.clear();
 					}
 						
@@ -147,7 +138,7 @@ int main (int argc, char *argv[])
 						fprintf(stderr,"       %s\n",SUPPORTED_MODULES);
 						return 1;
 					}
-					modules.push_back(std::pair< std::string, baseModule* >(optarg,modulePtr));
+					modules.push_back(modulePtr);
 					break;
 				}
 			case 'o': outputFile = optarg; break;
@@ -163,7 +154,7 @@ int main (int argc, char *argv[])
 	//Check that an outputFile was given
 	// and that there are more arguments to take as inputs.
 	// The buffer has been defines.
-	// And there are soem modules to unpack.
+	// And there are some modules to unpack.
 	if (!strcmp(outputFile,"") || optind==argc || buffer==nullptr || modules.empty()) {
 		return usage(argv[0]);
 	}
@@ -174,10 +165,10 @@ int main (int argc, char *argv[])
 
 	//Add modules to buffer
 	printf("Loaded modules: ");
-	for (std::vector< std::pair< std::string, baseModule* > >::iterator it = modules.begin(); it != modules.end(); ++it) {
+	for (auto it = modules.begin(); it != modules.end(); ++it) {
 		if (it != modules.begin()) printf(", ");
-		printf("%s", std::get<0>(*it).c_str());
-		buffer->AddModule(std::get<1>(*it));
+		printf("%s", (*it)->IsA()->GetName());
+		buffer->AddModule(*it);
 	}
 	printf(".\n");
 
@@ -192,10 +183,10 @@ int main (int argc, char *argv[])
 
 	//Add branch for each module
 	std::map< std::string, unsigned int > moduleCount;
-	for (std::vector< std::pair< std::string, baseModule* > >::iterator it = modules.begin(); it != modules.end(); ++it) {
-		std::string moduleName = std::get<0>(*it);
+	for (auto it = modules.begin(); it != modules.end(); ++it) {
+		std::string moduleName = (*it)->IsA()->GetName();
 		std::string branchName = moduleName + std::to_string(moduleCount[moduleName]);
-		evtTree->Branch(branchName.c_str(),moduleName.c_str(),&std::get<1>(*it));
+		evtTree->Branch(branchName.c_str(),moduleName.c_str(),*it);
 		moduleCount[moduleName]++;
 	}
 
@@ -272,7 +263,7 @@ int main (int argc, char *argv[])
 	}
 	delete buffer;
 
-	//Provide some error messages if the reun start or end are not found.
+	//Provide some error messages if the run start or end are not found.
 	if (!runStarted) fprintf(stderr,"ERROR: Run start never found!\n");
 	if (!runEnded) fprintf(stderr,"ERROR: Run end never found!\n");
 
