@@ -21,6 +21,13 @@
 
 int usage(const char *progName="") {
 	fprintf(stderr,"Usage: %s [-b] -c configFile -o output.root input1.evt [input2.evt...]\n",progName);
+	fprintf(stderr,"\t-c configFile\t Load the configuration file specified.\n");
+	fprintf(stderr,"\t-f bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
+	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_BUFFER_FORMATS);
+	fprintf(stderr,"\t-m moduleType\t Indicate the module to be unpacked. Possible options include:\n");
+	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_MODULES);
+	fprintf(stderr,"\n");
+	fprintf(stderr,"\t-b\tSet batch mode. (Progress output is suppressed.)\n");
 	return 1;
 }
 
@@ -67,7 +74,7 @@ int main (int argc, char *argv[])
 				//If the format was already specified we warn the user.
 				else {
 					fflush(stdout);
-					fprintf(stderr,"WARNING: Overiding configuration file buffer format with command line option!\n");
+					fprintf(stderr,"WARNING: Overriding configuration file buffer format with command line option!\n");
 				}
 
 				//Get the modules

@@ -8,7 +8,7 @@
 
 int usage(const char *progName="") {
 	fprintf(stderr,"Usage: %s [-r] [-u] [-t bufferType] [-i bufferType] [-s numBuffersSkipped] -f bufferFormat -m moduleType [-c configFile] input.evt\n",progName);
-	fprintf(stderr,"\t-c\t Load the configuration file specified.\n");
+	fprintf(stderr,"\t-c configFile\t Load the configuration file specified.\n");
 	fprintf(stderr,"\t-f bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
 	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_BUFFER_FORMATS);
 	fprintf(stderr,"\t-m moduleType\t Indicate the module to be unpacked. Possible options include:\n");
@@ -16,9 +16,9 @@ int usage(const char *progName="") {
 	fprintf(stderr,"\n");
 	fprintf(stderr,"\t-r\t Indicates raw buffer should be dumped.\n");
 	fprintf(stderr,"\t-u\t Indicates physics data unpacking is ignored.\n");
-	fprintf(stderr,"\t-t\t Only output buffers corresponding to the provided bufferType. mMay be called multiple times.\n");
+	fprintf(stderr,"\t-t\t Only output buffers corresponding to the provided bufferType. May be called multiple times.\n");
 	fprintf(stderr,"\t-i\t Ignore buffers corresponding to the provided bufferType. May be called multiple times.\n");
-	fprintf(stderr,"\t-s\t Skip the number of buffers specifed.\n");
+	fprintf(stderr,"\t-s\t Skip the number of buffers specified.\n");
 	fprintf(stderr,"\n");
 	fprintf(stderr,"\t-h\t This help menu.\n");
 	return 1;
@@ -106,7 +106,7 @@ int main (int argc, char *argv[])
 				}
 				else {
 					fflush(stdout);
-					fprintf(stderr,"WARNING: Overiding configuration file module list with command line options!\n");
+					fprintf(stderr,"WARNING: Overriding configuration file module list with command line options!\n");
 				}
 
 				break;
@@ -118,7 +118,7 @@ int main (int argc, char *argv[])
 					//If format already set we overide it.
 					if (buffer != nullptr) {
 						fflush(stdout);
-						fprintf(stderr,"WARNING: Overiding file buffer format with command line option: %s!\n",optarg);
+						fprintf(stderr,"WARNING: Overriding file buffer format with command line option: %s!\n",optarg);
 					}
 
 					//Get the format
@@ -139,7 +139,7 @@ int main (int argc, char *argv[])
 				{
 					if (conf) {
 						fflush(stdout);
-						fprintf(stderr,"WARNING: Overiding module list with command line options!\n");
+						fprintf(stderr,"WARNING: Overriding module list with command line options!\n");
 						modules.clear();
 					}
 						
@@ -177,7 +177,7 @@ int main (int argc, char *argv[])
 					printf("Ignoring buffer type: %d\n",type);
 					break;
 				}
-			//Specify the number of buffes to skip.
+			//Specify the number of buffers to skip.
 			case 's': skipBuffers = atoi(optarg); break;
 			//Help menu
 			case 'h': return usage(argv[0]);
@@ -222,7 +222,7 @@ int main (int argc, char *argv[])
 	}
 	else {
 		fflush(stdout);
-		fprintf(stderr,"WARNING: No modules specifed data events will not be unpacked!\n");
+		fprintf(stderr,"WARNING: No modules specified data events will not be unpacked!\n");
 		unpackPhysicsData = false;
 	}
 	
