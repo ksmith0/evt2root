@@ -55,8 +55,8 @@ int hribfBuffer::ReadNextBuffer()
 	if (!mainBuffer::ReadNextBuffer()) return 0;
 
 	fBufferType = GetWord();
-	if (fBufferType == BUFFER_TYPE_EOF) SetNumOfWords(2);
-	else SetNumOfWords(GetWord());
+	if (fBufferType == BUFFER_TYPE_EOF) SetNumOfWords(GetHeaderSize());
+	else SetNumOfWords(GetWord() + GetHeaderSize());
 	fBufferNumber++;
 	//No information about number of events in header we assume there is
 	// at least one.
@@ -83,8 +83,10 @@ void hribfBuffer::UnpackBuffer(bool verbose) {
 		case BUFFER_TYPE_DIR:
 			ReadDir(verbose);
 			break;
-		case BUFFER_TYPE_EOF: 
 		case BUFFER_TYPE_DEAD:
+			ReadDead(verbose);
+			break;
+		case BUFFER_TYPE_EOF: 
 		case BUFFER_TYPE_PAC:
 			break;
 		default: 
@@ -93,6 +95,15 @@ void hribfBuffer::UnpackBuffer(bool verbose) {
 			return;
 
 	}
+}
+/**DEAD buffer contains ASCII string of dead time information.
+ *
+ * \param[in] verbose Verbosity flag.
+ */
+void hribfBuffer::ReadDead(bool verbose) {
+	std::string deadTimeStr = ReadString(GetNumOfWords() - GetHeaderSize(),verbose);
+
+	if (verbose) printf("\t%s\n",deadTimeStr.c_str());
 }
 
 /**DIR buffer is usually found at the beginning of a file (run) and contains the following:

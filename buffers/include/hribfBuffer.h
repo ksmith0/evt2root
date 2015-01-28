@@ -63,6 +63,8 @@ class hribfBuffer : public mainBuffer {
 		void ReadScalers(bool verbose = false);
 		///Reads "DIR" Buffer
 		void ReadDir(bool verbose = false);
+		///Reads "DEAD" Buffer
+		void ReadDead(bool verbose = false);
 
 		///Print a summary of the buffer header.
 		void PrintBufferHeader();
