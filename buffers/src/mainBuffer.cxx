@@ -276,7 +276,7 @@ void mainBuffer::DumpBuffer()
 	unsigned int pos = GetBufferPositionBytes();
 	SeekBytes(-pos);
 	printf("\nBuffer Length %llu:", GetNumOfWords());
-	for (int i=0;i<fBufferSize;i++) {
+	for (int i=0;i<GetNumOfWords();i++) {
 		if (i % (20/GetWordSize()) == 0) printf("\n %4d",i);
 		UInt_t datum = GetWord();
 		printf(" %#0*X",2*fWordSize+2,datum);
