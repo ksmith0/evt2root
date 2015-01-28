@@ -80,9 +80,11 @@ void hribfBuffer::UnpackBuffer(bool verbose) {
 		case BUFFER_TYPE_RUNBEGIN: 
 			ReadRunBegin(verbose);
 			break;
+		case BUFFER_TYPE_DIR:
+			ReadDir(verbose);
+			break;
 		case BUFFER_TYPE_EOF: 
 		case BUFFER_TYPE_DEAD:
-		case BUFFER_TYPE_DIR:
 		case BUFFER_TYPE_PAC:
 			break;
 		default: 
@@ -90,6 +92,36 @@ void hribfBuffer::UnpackBuffer(bool verbose) {
 			fprintf(stderr,"WARNING: Unknown buffer type: %#010X '%s'.\n",(UInt_t)fBufferType,ConvertToString(fBufferType).c_str());
 			return;
 
+	}
+}
+
+/**DIR buffer is usually found at the beginning of a file (run) and contains the following:
+ * 	1. The length of a buffer (typically 8194).
+ * 	2. The number of buffers in the file (run).
+ * 	3. An unknown value
+ * 	4. The run number.
+ * 	5. An unknown value
+ * 	6. An unknown value
+ *
+ * 	\bug The buffer length is hard coded to 8194 and the value from this buffer is ignored. 
+ *
+ * \param[in] verbose Verbosity flag.
+ */
+void hribfBuffer::ReadDir(bool verbose) {
+	unsigned int bufferLength = GetWord();
+	unsigned int numberOfBuffers = GetWord();
+	unsigned int word1 = GetWord();
+	unsigned int word2 = GetWord();
+	fRunNum = GetWord();
+	unsigned int word3 = GetWord();
+
+	if (verbose) {
+		printf("\t%#010X Buffer Length: %u\n",bufferLength,bufferLength);
+		printf("\t%#010X Number of Buffers: %u\n",numberOfBuffers,numberOfBuffers);
+		printf("\t%#010X Unknown Word: %u\n",word1,word1);
+		printf("\t%#010X Run Number: %u\n",fRunNum,fRunNum);
+		printf("\t%#010X Unknown Word: %u\n",word2,word2);
+		printf("\t%#010X Unknown Word: %u\n",word3,word3);
 	}
 }
 

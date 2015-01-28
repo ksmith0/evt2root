@@ -61,6 +61,8 @@ class hribfBuffer : public mainBuffer {
 		int ReadEvent(bool verbose=false);
 		///Reads current scaler event.
 		void ReadScalers(bool verbose = false);
+		///Reads "DIR" Buffer
+		void ReadDir(bool verbose = false);
 
 		///Print a summary of the buffer header.
 		void PrintBufferHeader();
