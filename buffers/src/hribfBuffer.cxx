@@ -130,7 +130,7 @@ void hribfBuffer::ReadDir(bool verbose) {
 		printf("\t%#010X Buffer Length: %u\n",bufferLength,bufferLength);
 		printf("\t%#010X Number of Buffers: %u\n",numberOfBuffers,numberOfBuffers);
 		printf("\t%#010X Unknown Word: %u\n",word1,word1);
-		printf("\t%#010X Run Number: %u\n",fRunNum,fRunNum);
+		printf("\t%#010llX Run Number: %llu\n",fRunNum,fRunNum);
 		printf("\t%#010X Unknown Word: %u\n",word2,word2);
 		printf("\t%#010X Unknown Word: %u\n",word3,word3);
 	}
