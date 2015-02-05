@@ -9,8 +9,10 @@
 #include "configFile.h"
 #include "supported.h"
 
+#ifdef USE_EXPEVENT
 #include "eventScaler.h"
 #include "eventData.h"
+#endif
 
 #include "TClass.h"
 #include "TFile.h"
@@ -179,14 +181,17 @@ int main (int argc, char *argv[])
 	}
 	printf(".\n");
 
-	eventScaler *scaler = new eventScaler();
-	eventData *data = new eventData();
-	
 	TFile *file = new TFile(outputFile,"RECREATE");
 	TTree *evtTree = new TTree("evtTree","Events");
 	TTree *scalerTree = new TTree("scalerTree","Scalers");
+
+#ifdef USE_EXPEVENT
+	eventScaler *scaler = new eventScaler();
+	eventData *data = new eventData();
+
 	scalerTree->Branch("scaler","eventScaler",&scaler);
 	evtTree->Branch("event","eventData",&data);
+#endif
 
 	//Add branch for each module
 	std::map< std::string, unsigned int > moduleCount;
@@ -219,9 +224,13 @@ int main (int argc, char *argv[])
 			}
 			if (buffer->IsDataType()) {
 				while (buffer->GetEventsRemaining()) {
-					data->Reset();
 					if (!buffer->ReadEvent()) break;
+
+#ifdef USE_EXPEVENT
+					data->Reset();
 					data->SetValues(buffer->GetModules());
+#endif
+
 					evtTree->Fill();
 				}
 			}
