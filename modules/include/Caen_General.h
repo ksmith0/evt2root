@@ -1,6 +1,8 @@
 #ifndef CAEN_GENERAL_H
 #define CAEN_GENERAL_H
 
+#include <vector>
+
 #include "baseModule.h"
 
 /**Class capable of reading most Caen cards. Caen cards use a common
@@ -45,9 +47,19 @@ class Caen_General : public baseModule {
 			INVALID = 6
 		};
 
+		///Vector containing module values, maps are not supported for drawing by ROOT.
+		std::vector<UInt_t> fValues;
+		std::vector<Bool_t> fOverflow;
+		std::vector<Bool_t> fUnderflow;
+		std::vector<Bool_t> fValid;
+
 	public:
 		Caen_General() {}
 		void ReadEvent(mainBuffer *buffer, bool verbose=false);
+		///Returns the value set for the specified channel.
+		UInt_t GetValue(UShort_t channel);
+		//Clears the values stored.
+		void Clear();
 
 	ClassDef(Caen_General,1);
 

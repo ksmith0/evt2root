@@ -3,8 +3,13 @@
 
 ClassImp(Caen_General);
 
+void Caen_General::Clear() {
+	fValues.clear();
+}
 void Caen_General::ReadEvent(mainBuffer *buffer, bool verbose)
 {
+	Clear();
+
 	//Get HEADER
 	UInt_t datum = buffer->GetWord(4);
 	int type = (datum & ALLH_TYPEMASK) >> ALLH_TYPESHIFT;
@@ -28,6 +33,17 @@ void Caen_General::ReadEvent(mainBuffer *buffer, bool verbose)
 				bool overflow = (datum & DATAL_OVBIT) != 0;
 				bool underflow= (datum & DATAL_UNBIT) != 0;
 				bool valid    = (datum& DATAL_VBIT)  != 0; //Only defined for V775
+
+				if (fValues.size() <= channel) fValues.resize(channel+1);
+				if (fOverflow.size() <= channel) fOverflow.resize(channel+1);
+				if (fUnderflow.size() <= channel) fUnderflow.resize(channel+1);
+				if (fValid.size() <= channel) fValid.resize(channel+1);
+				fValues[channel] = value;
+				fOverflow[channel] = overflow;
+				fUnderflow[channel] = underflow;
+				fValid[channel] = valid;
+								
+
 				if (verbose) {
 					printf("ch: %2d value: %4d overflow:%d underflow:%d valid:%d\n",channel,value,overflow,underflow,valid);
 				}
@@ -43,3 +59,8 @@ void Caen_General::ReadEvent(mainBuffer *buffer, bool verbose)
 	}
 	else if (verbose) printf("\n");
 }	
+
+UInt_t Caen_General::GetValue(UShort_t channel) {
+	if (fValues.size() > channel) return fValues.at(channel);
+	return 0;
+}
