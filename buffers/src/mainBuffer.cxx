@@ -201,8 +201,8 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 
 	ULong64_t retVal = 0;
 
-	for (int i=0;i<numOfBytes;i++)
-		retVal += (fBuffer.at(fCurrentByte++) & 0xFF) << 8*i;
+	for (int i=0;i<numOfBytes;i++) 
+		retVal += (ULong64_t) (fBuffer.at(fCurrentByte++) & 0xFF) << 8*i;
 
 	return retVal & mask;	
 }
@@ -260,6 +260,9 @@ float mainBuffer::GetFilePositionPercentage() {
 
 void mainBuffer::DumpHeader()
 {
+	//If the header size is zero there is nothing to do.
+	if (GetHeaderSize() == 0) return;
+
 	unsigned int pos = GetBufferPositionBytes();
 	SeekBytes(-pos);
 	printf("\nBuffer Header:");
