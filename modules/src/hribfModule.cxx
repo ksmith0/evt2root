@@ -35,5 +35,5 @@ void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 
 UShort_t hribfModule::GetValue(UShort_t ch) {
 	if (fValues.size() > ch) return fValues.at(ch);
-	else 0;
+	return 0;
 }
