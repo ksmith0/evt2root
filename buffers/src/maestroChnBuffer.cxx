@@ -2,6 +2,7 @@
 #include "TDirectory.h"
 #include "TH1F.h"
 #include "TParameter.h"
+#include "TString.h"
 
 maestroChnBuffer::maestroChnBuffer(int headerSize, int bufferSize, int wordSize) : 
 	mainBuffer(headerSize,bufferSize,wordSize),
@@ -9,17 +10,39 @@ maestroChnBuffer::maestroChnBuffer(int headerSize, int bufferSize, int wordSize)
 	fCurrentChannel(0),
 	fNumberOfChannels(0)
 {
-	fRunBeginRead = false;
 }
 
 maestroChnBuffer::~maestroChnBuffer() {
+	delete fHist;
 }
 
 int maestroChnBuffer::ReadNextBuffer() {
+	//Force a read of the header even if it was skipped as we need it to
+	// find the trailer.
+	if (GetBufferNumber() > 0 && fNumberOfChannels == 0)
+		UnpackBuffer();
+
+	//The trailer has a 512 bytes buffer.
+	if (GetBufferNumber() > fNumberOfChannels / 8) 
+		SetBufferSize(512);	
+
+	//Do a simple read
 	if (mainBuffer::ReadNextBuffer() == 0) return 0;
+
+	//Establish buffer type.
+	if (GetBufferNumber() == 0) 
+		fBufferType = BUFFER_TYPE_RUNBEGIN;
+	else if (GetBufferNumber() > fNumberOfChannels / 8) {
+		fBufferType = BUFFER_TYPE_RUNEND;
+	}
+	else
+		fBufferType = BUFFER_TYPE_DATA;
+
+	//Iterate the buffer number and set event number information.
 	fBufferNumber++;
 	fEventNumber = 0;
 	fNumOfEvents = 1;
+
 	return GetNumOfWords();
 }
 
@@ -37,6 +60,7 @@ void maestroChnBuffer::PrintBufferHeader() {
 
 	printf("\nBuffer Header Summary:\n");
 	printf("\tBuffer Number: %d\n",GetBufferNumber());
+	printf("\tBuffer Type: %d\n",GetBufferType());
 }
 
 /**Run begin is a 32 byte record containing the following:
@@ -68,8 +92,8 @@ void maestroChnBuffer::ReadRunBegin(bool verbose)
 	Short_t segmentNum = GetWord(2);
 
 	if (verbose) {
-		printf("\t%#06hX Type: %hd\n",type,type);
-		printf("\t%#06hX MCA: %hd\n",MCANum,MCANum);
+		printf("\t%#06hX Header Type: %hd\n",type,type);
+		printf("\t%#06hX MCA Number: %hd\n",MCANum,MCANum);
 		printf("\t%#06hX Segment Number: %hd\n",segmentNum,segmentNum);
 		printf("\tStorage Seconds String:");
 	}
@@ -109,12 +133,11 @@ void maestroChnBuffer::ReadRunBegin(bool verbose)
 		TParameter<Float_t>("liveTime",liveTime/50).Write();
 		TParameter<Float_t>("realTime",realTime/50).Write();
 	}
-	fRunBeginRead = true;
 }
 
 int maestroChnBuffer::ReadEvent(bool verbose) {
 	if (!fHist) {
-		fHist = new TH1F("hMCA",";Channel;Counts / Channel",fNumberOfChannels,fStartingChannel,fStartingChannel+fNumberOfChannels);
+		fHist = new TH1F("hMCARaw",";Channel;Counts / Channel",fNumberOfChannels,fStartingChannel,fStartingChannel+fNumberOfChannels);
 		fCurrentChannel = 1;
 	}
 
@@ -130,26 +153,60 @@ int maestroChnBuffer::ReadEvent(bool verbose) {
 }
 
 void maestroChnBuffer::ReadRunEnd(bool verbose) {
+	
+	Short_t trailerType = GetWord(2);
+	SeekBytes(2);
+
+	int numOfPars;
+	//Older version MAESTRO V3 and prior 
+	if (trailerType == -101) numOfPars = 2;
+	//Newer versions MAESTRO V3.1 and newer
+	else if (trailerType == -102) numOfPars = 3;
+	else {
+		fflush(stdout);
+		fprintf(stderr,"ERROR: Unknown trailerType %d!\n",trailerType);
+		return;
+	}
+	if (verbose) printf("\t%#06X Trailer Type: %d\n",trailerType,trailerType);
+
+	//Read energy and peak shape calibrations
+	Float_t energyCal[3]={0}, peakCal[3]={0};
+	for (int i=0;i<numOfPars;i++) {
+		UInt_t word = GetWord(4);
+		energyCal[i] = word;
+		if (verbose) printf("\t%#010X Energy Calib     Par %d: %+e\n",word,i,energyCal[i]);
+	}
+	if (trailerType == -101) SeekBytes(2);
+	for (int i=0;i<numOfPars;i++) {
+		UInt_t word = GetWord(4);
+		peakCal[i] = word;
+		if (verbose) printf("\t%#010X Peak Shape Calib Par %d: %+e\n",word,i,peakCal[i]);
+	}
+	if (trailerType == -101) SeekBytes(2);
+
+	SeekBytes(228);
+	
+	UShort_t detDescLength = GetWord(1);
+	if (verbose) {
+		printf("\t%#04hX Detector Description Length: %hu\n",detDescLength,detDescLength);
+		printf("\tDetector Description:");
+	}
+	std::string detDesc = ReadString(32,verbose);
+	SeekBytes(-1);
+	UShort_t sampleDescLength = GetWord(1);
+	if (verbose) {
+		printf("\t%#04hX Sample Description Length: %hu\n",sampleDescLength,sampleDescLength);
+		printf("\tSample Description:");
+	}
+	std::string sampleDesc = ReadString(32,verbose);
+
 	//If the histogram was created and the current directory is writable
 	//	then write out the histogram.
 	if (fHist && gDirectory->IsWritable()) {
+		fHist->SetTitle(Form("%s - %s",detDesc.c_str(),sampleDesc.c_str()));
 		fHist->Write();
-		delete fHist;
-		fHist = 0;
 	}
 
-	Short_t trailerType = GetWord(2);
-	if (verbose) printf("\t%#06X Trailer Type: %d\n",trailerType,trailerType);
-	if (trailerType == -102) {
-		SeekBytes(2);
-		Int_t energyCal[3], peakCal[3];
-		for (int i=0;i<3;i++) energyCal[i] = GetWord(4);
-		for (int i=0;i<3;i++) peakCal[i] = GetWord(4);
-		if (verbose) {
-			for (int i=0;i<3;i++) printf("\t%#010X Energy Calib     Par %d: %+d\n",energyCal[i],i,energyCal[i]);
-			for (int i=0;i<3;i++) printf("\t%#010X Peak Shape Calib Par %d: %+d\n",peakCal[i],i,peakCal[i]);
-		}		
-	}
 }
 
 bool maestroChnBuffer::IsRunBegin() {

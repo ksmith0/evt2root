@@ -18,7 +18,6 @@ class TH1F;
  */
 class maestroChnBuffer : public mainBuffer {
 	private:
-		bool fRunBeginRead;
 		UShort_t fStartingChannel;
 		Short_t fNumberOfChannels;
 		///Pointer to output histogram.
@@ -29,7 +28,17 @@ class maestroChnBuffer : public mainBuffer {
 	public:
 		maestroChnBuffer(int headerSize = BUFFER_HEADER_SIZE, int bufferSize = BUFFER_SIZE, int wordSize = WORD_SIZE);
 		virtual ~maestroChnBuffer();
-		
+
+		enum BufferType
+		{
+			///Run Begin type.
+			BUFFER_TYPE_RUNBEGIN = 1,
+			///Physics data type.
+			BUFFER_TYPE_DATA = 2, 		
+			///Run End type.
+			BUFFER_TYPE_RUNEND = 3 
+		};
+
 		///Indicate if the current buffer contains physics data.
 		virtual bool IsDataType();
 		///Indicate if the current buffer contains scalers.
