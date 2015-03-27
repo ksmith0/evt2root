@@ -303,3 +303,7 @@ bool nsclClassicBuffer::IsRunBegin() {
 	if (fBufferType == BUFFER_TYPE_RUNBEGIN) return true;
 	return false;
 }
+bool nsclClassicBuffer::IsRunEnd() {
+	if (fBufferType == BUFFER_TYPE_RUNEND) return true;
+	return false;
+}

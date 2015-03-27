@@ -166,7 +166,7 @@ class mainBuffer
 		///Return the current writing position in the buffer, effectively the buffer size.
 		unsigned int GetWritePosition() {return fWritePosition;}
 		///Return the number of events remaining in the current buffer.
-		unsigned int GetEventsRemaining() {return fEventNumber - fNumOfEvents;};
+		unsigned int GetEventsRemaining() {return fNumOfEvents - fEventNumber;};
 		///Return the vector of modules.
 		std::vector<baseModule*> GetModules() {return fModules;};
 		///Return a pointer to the specified module.
@@ -222,6 +222,8 @@ class mainBuffer
 		virtual bool IsScalerType() = 0;
 		///Indicate if the current buffer is a run begin buffer.
 		virtual bool IsRunBegin() = 0;
+		///Indicate if the current buffer is a run end buffer.
+		virtual bool IsRunEnd() = 0;
 
 		///Unpack the current buffer
 		virtual void UnpackBuffer(bool verbose = false) = 0;

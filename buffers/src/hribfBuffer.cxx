@@ -314,3 +314,7 @@ bool hribfBuffer::IsRunBegin() {
 	if (fBufferType == BUFFER_TYPE_RUNBEGIN) return true;
 	return false;
 }
+bool hribfBuffer::IsRunEnd() {
+	if (fBufferType == BUFFER_TYPE_EOF) return true;
+	return false;
+}

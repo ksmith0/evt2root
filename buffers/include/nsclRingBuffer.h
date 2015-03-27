@@ -93,6 +93,8 @@ class nsclRingBuffer : public mainBuffer
 		virtual bool IsScalerType();
 		///Indicate if the current buffer is a run begin buffer.
 		virtual bool IsRunBegin();
+		///Indicate if the current buffer is a run end buffer.
+		virtual bool IsRunEnd();
 
 		///Read the next buffer.
 		int ReadNextBuffer();

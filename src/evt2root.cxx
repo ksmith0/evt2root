@@ -154,6 +154,7 @@ int main (int argc, char *argv[])
 			case 'b': batchJob = true; break;
 			case '?':
 			default:
+				fprintf(stderr,"ERROR: Unknown option!");
 				return usage(argv[0]);
 		}
 	}
@@ -162,9 +163,9 @@ int main (int argc, char *argv[])
 	
 	//Check that an outputFile was given
 	// and that there are more arguments to take as inputs.
-	// The buffer has been defines.
+	// The buffer has been defined.
 	// And there are some modules to unpack.
-	if (!strcmp(outputFile,"") || optind==argc || buffer==nullptr || modules.empty()) {
+	if (!strcmp(outputFile,"") || optind==argc || buffer==nullptr) {
 		return usage(argv[0]);
 	}
 	//Get input file arguments.
@@ -174,6 +175,7 @@ int main (int argc, char *argv[])
 
 	//Add modules to buffer
 	printf("Loaded modules: ");
+	if (modules.empty()) printf("none");
 	for (auto it = modules.begin(); it != modules.end(); ++it) {
 		if (it != modules.begin()) printf(", ");
 		printf("%s", (*it)->IsA()->GetName());
@@ -248,6 +250,7 @@ int main (int argc, char *argv[])
 					fprintf(stderr,"WARNING: Buffer read before run started! Check input file order.\n");
 				}
 				buffer->ReadRunBegin();
+				printf("%*c\r",100,' ');
 				printf("Run %llu - %s\n",buffer->GetRunNumber(),buffer->GetRunTitle().c_str());
 				//TObjString *runTitle = new TObjString (buffer->GetRunTitle().c_str());
 				//evtTree->GetUserInfo()->Add(runTitle);
@@ -257,6 +260,10 @@ int main (int argc, char *argv[])
 				//delete runTitle;
 
 				runStarted = true;
+			}
+			else if (buffer->IsRunEnd())  {
+				buffer->ReadRunEnd();
+				runEnded = true;
 			}
 			/*else if (buffer->GetBufferType() == buffer->BUFFER_TYPE_RUNEND) {
 				buffer->ReadRunEnd();
@@ -270,7 +277,7 @@ int main (int argc, char *argv[])
 			}*/
 			else {
 				fflush(stdout);
-				fprintf(stderr,"WARNING: Unknown buffer type!");
+				fprintf(stderr,"WARNING: Buffer %d has unknown buffer type!",buffer->GetBufferNumber());
 				buffer->PrintBufferHeader();
 			}	
 		}

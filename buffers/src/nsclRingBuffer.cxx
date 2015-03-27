@@ -438,3 +438,7 @@ bool nsclRingBuffer::IsRunBegin() {
 	if (fBufferType == BUFFER_TYPE_RUNBEGIN) return true;
 	return false;
 }
+bool nsclRingBuffer::IsRunEnd() {
+	if (fBufferType == BUFFER_TYPE_RUNEND) return true;
+	return false;
+}
