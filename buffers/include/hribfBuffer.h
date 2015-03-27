@@ -70,4 +70,8 @@ class hribfBuffer : public mainBuffer {
 		void PrintBufferHeader();
 };
 
+#undef WORD_SIZE
+#undef BUFFER_HEADER_SIZE
+#undef BUFFER_SIZE
+
 #endif
