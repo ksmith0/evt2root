@@ -199,7 +199,7 @@ int main (int argc, char *argv[])
 	std::map< std::string, unsigned int > moduleCount;
 	for (auto it = modules.begin(); it != modules.end(); ++it) {
 		std::string moduleName = (*it)->IsA()->GetName();
-		std::string branchName = moduleName + std::to_string(moduleCount[moduleName]);
+		std::string branchName = moduleName + std::to_string((long long unsigned int) moduleCount[moduleName]);
 		evtTree->Branch(branchName.c_str(),moduleName.c_str(),*it);
 		moduleCount[moduleName]++;
 	}
