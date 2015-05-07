@@ -47,7 +47,7 @@ if(${USE_EXPEVENT})
 	set(EXTRA_LIBS ExpEvent_Static)
 endif()
 
-set (EXTRA_LIBS ${EXTRA_LIBS} Modules Buffers Utilities)
+set (EXTRA_LIBS ${EXTRA_LIBS} ModulesStatic Buffers Utilities)
 include_directories(include)
 add_subdirectory (src)
 
