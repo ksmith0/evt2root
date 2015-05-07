@@ -1,7 +1,7 @@
 #ifndef NSCLRINGBUFFER_H
 #define NSCLRINGBUFFER_H
 
-#include "mainBuffer.h"
+#include "listDataBuffer.h"
 
 ///Size of smallest word in bytes.
 #define WORD_SIZE 4 
@@ -11,7 +11,7 @@
 #define BUFFER_SIZE 0
 
 ///Class to handle main buffer in NSCL evt files.
-class nsclRingBuffer : public mainBuffer
+class nsclRingBuffer : public listDataBuffer
 {
 	private:
 		///The buffer's version.
