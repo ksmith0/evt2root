@@ -442,3 +442,9 @@ int mainBuffer::ReadNextBuffer() {
 	return fFile.gcount();
 }
 
+std::string mainBuffer::GetLine() {
+	std::string line;
+	std::getline(fFile,line);
+	return line;
+}
+

@@ -127,6 +127,9 @@ class mainBuffer
 		virtual void PrintBufferHeader()=0;
 		///Reads the next buffer.
 		virtual int ReadNextBuffer();
+		///Get a line from the file.
+		std::string GetLine();
+
 		///Return the number of good words in the current buffer.
 		ULong64_t GetNumOfWords() {return fNumWords;};
 		///Return the number of good bytes in the current buffer.
