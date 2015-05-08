@@ -1,4 +1,4 @@
-set(evt2root_SOURCES evt2root.cxx)
+set(evt2root_SOURCES evt2root.cxx RootStorageManager.cxx)
 set(evtDump_SOURCES evtDump.cxx)
 
 add_executable (evt2root ${evt2root_SOURCES})

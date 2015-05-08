@@ -37,6 +37,7 @@ add_subdirectory(utilities)
 
 include_directories(modules/include)
 include_directories(buffers/include)
+include_directories(include)
 add_subdirectory(buffers)
 
 add_subdirectory (modules)
@@ -48,6 +49,5 @@ if(${USE_EXPEVENT})
 endif()
 
 set (EXTRA_LIBS ${EXTRA_LIBS} ModulesStatic Buffers Utilities)
-include_directories(include)
 add_subdirectory (src)
 

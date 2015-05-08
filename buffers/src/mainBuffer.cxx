@@ -1,10 +1,12 @@
 #include "mainBuffer.h"
+#include "RootStorageManager.h"
 
 mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigned int wordSize) :
 	fFileSize(0),
 	fWordSize(wordSize),
 	fBufferBeginPos(0),
-	fBufferNumber(0)
+	fBufferNumber(0),
+	fStorageManager(nullptr)
 {
 	this->Clear();
 	SetBufferSize(bufferSize * wordSize);
@@ -448,3 +450,9 @@ std::string mainBuffer::GetLine() {
 	return line;
 }
 
+/**
+ * \param[in] manager Pointer to a RootStorageManager.
+ */
+void mainBuffer::SetStorageManager(RootStorageManager *manager) {
+	fStorageManager = manager;
+}

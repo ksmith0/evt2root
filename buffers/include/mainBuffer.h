@@ -10,6 +10,7 @@
 
 //We must forward declare baseModule.
 class baseModule;
+class RootStorageManager;
 
 ///Class to handle main buffer in MAIN evt files.
 class mainBuffer
@@ -34,6 +35,9 @@ class mainBuffer
 		///Number of good bytes in buffer
 		ULong64_t fNumBytes;
 		
+		///Pointer to the storage manager where data will be stored.
+		RootStorageManager *fStorageManager;
+
 	protected:
 		///File name of evt file.
 		const char *fFileName;
@@ -119,6 +123,9 @@ class mainBuffer
 		///Close evt file.
 		void CloseFile();
 
+		///Set the pointer to the storage manager.
+		void SetStorageManager(RootStorageManager* manager);
+		
 		///Clear the current values for the buffer.
 		virtual void Clear();
 		///Copy data into the current buffer.

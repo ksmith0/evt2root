@@ -183,6 +183,9 @@ int main (int argc, char *argv[])
 	}
 	printf(".\n");
 
+	RootStorageManager storageManager(outputFile);
+	buffer->SetStorageManager(&storageManager);
+
 	TFile *file = new TFile(outputFile,"RECREATE");
 	TTree *evtTree = new TTree("evtTree","Events");
 	TTree *scalerTree = new TTree("scalerTree","Scalers");
