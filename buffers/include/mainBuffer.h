@@ -8,9 +8,10 @@
 
 #include <Rtypes.h> //Basic ROOT types
 
+#include "RootStorageManager.h"
+
 //We must forward declare baseModule.
 class baseModule;
-class RootStorageManager;
 
 ///Class to handle main buffer in MAIN evt files.
 class mainBuffer
@@ -109,6 +110,9 @@ class mainBuffer
 		///Check if word length was registered as middle endian.
 		bool IsMiddleEndian(unsigned int wordSize) 
 			{return fMiddleEndian[wordSize];};
+
+		///Return a pointer to the RootStorageManager.
+		RootStorageManager* GetStorageManager();
 
 	public:
 		///Default constructor

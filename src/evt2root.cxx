@@ -20,6 +20,8 @@
 #include "TParameter.h"
 //#include "TObjString.h"
 
+#include "RootStorageManager.h"
+
 
 int usage(const char *progName="") {
 	fprintf(stderr,"Usage: %s [-b] -c configFile -o output.root input1.evt [input2.evt...]\n",progName);

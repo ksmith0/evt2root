@@ -1,5 +1,4 @@
 #include "mainBuffer.h"
-#include "RootStorageManager.h"
 
 mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigned int wordSize) :
 	fFileSize(0),
@@ -455,4 +454,8 @@ std::string mainBuffer::GetLine() {
  */
 void mainBuffer::SetStorageManager(RootStorageManager *manager) {
 	fStorageManager = manager;
+}
+
+RootStorageManager* mainBuffer::GetStorageManager() {
+	return fStorageManager;
 }

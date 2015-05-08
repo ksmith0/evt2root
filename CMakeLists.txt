@@ -35,9 +35,11 @@ link_directories(${ROOT_LIBRARY_DIR})
 include_directories(utilities/include)
 add_subdirectory(utilities)
 
+include_directories(storage/include)
+add_subdirectory(storage/src)
+
 include_directories(modules/include)
 include_directories(buffers/include)
-include_directories(include)
 add_subdirectory(buffers)
 
 add_subdirectory (modules)
@@ -48,6 +50,7 @@ if(${USE_EXPEVENT})
 	set(EXTRA_LIBS ExpEvent_Static)
 endif()
 
-set (EXTRA_LIBS ${EXTRA_LIBS} ModulesStatic Buffers Utilities)
+set (EXTRA_LIBS ${EXTRA_LIBS} Storage ModulesStatic Buffers Utilities)
+include_directories(include)
 add_subdirectory (src)
 
