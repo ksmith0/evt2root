@@ -13,7 +13,7 @@ RootStorageManager::RootStorageManager(const char* filename) :
  */
 bool RootStorageManager::Open(const char* fileName) {
 	if (fFile) Close();
-	fFile = new TFile(fileName,"CREATE");	
+	fFile = new TFile(fileName,"RECREATE");	
 	return fFile->IsOpen();
 }
 
@@ -57,8 +57,15 @@ TTree* RootStorageManager::GetTree(const char *treeName) {
 	return loc->second;
 }
 
+/**Creates a branch from a class built with a ROOT dictionary.
+ * 
+ * \param[in] treeName Name of the tree in which to add the branch.
+ * \param[in] branchName Name given to the new branch.
+ * \param[in] className Name of the class type.
+ * \param[in] address Address to the branch data.
+ */
 bool RootStorageManager::CreateBranch(const char* treeName, 
-	const char* branchName, void *address, const char* className) {
+	const char* branchName, const char* className, void *address) {
 	TTree *tree = GetTree(treeName);
 	if (!tree) {
 		fflush(stdout);
@@ -71,6 +78,28 @@ bool RootStorageManager::CreateBranch(const char* treeName,
 
 	return true;
 }
+/**Create a branch from known ROOT types, i.e. float, int, etc.
+ *
+ * \param[in] treeName Name of the tree in which to add the branch.
+ * \param[in] branchName Name given to the new branch.
+ * \param[in] address Address to the branch data.
+ * \param[in] leafList Description of the leaves in the branch.
+ */
+bool RootStorageManager::CreateBranch(const char* treeName, 
+	const char* branchName, void *address, const char* leafList) {
+	TTree *tree = GetTree(treeName);
+	if (!tree) {
+		fflush(stdout);
+		fprintf(stderr,"ERROR: Cannot create column! Missing n-tuple '%s'!\n",treeName);
+		return false;
+	}
+		
+	//tree->Bronch(name,className,address);
+	tree->Branch(branchName,address,leafList);
+
+	return true;
+}
+
 
 void RootStorageManager::Fill(const char* treeName) {
 	TTree *tree = GetTree(treeName);

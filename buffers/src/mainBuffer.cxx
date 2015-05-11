@@ -454,6 +454,7 @@ std::string mainBuffer::GetLine() {
  */
 void mainBuffer::SetStorageManager(RootStorageManager *manager) {
 	fStorageManager = manager;
+	InitializeStorageManager();
 }
 
 RootStorageManager* mainBuffer::GetStorageManager() {

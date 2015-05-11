@@ -30,28 +30,18 @@ class RootStorageManager {
 		bool CreateTree(const char* treeName);
 		///Create a column in the n-tuple with the specified name.
 		bool CreateBranch(const char* treeName, const char* branchName, 
-			void* address, const char* className);
+			void* address, const char* leafList);
+		///Create a column in the n-tuple with the specified name.
+		bool CreateBranch(const char* treeName, const char* branchName, 
+			const char *className, void* address);
 		///Set the address of the object in the specified column.
 		void SetBranchAddress(const char* treeName, const char* branchName, 
 			void* address) {};
 		///Fill a row with values.
 		void Fill(const char* treeName);
 
-	///Template to create a column in the n-tuple with the specified name.
-	template <class type> bool CreateBranch(const char* treeName,
-		const char* branchName, type address) {
-		TTree *tree = GetTree(treeName);
-		if (!tree) {
-			fflush(stdout);
-			fprintf(stderr,"ERROR: Cannot create column! Missing n-tuple '%s'!\n",treeName);
-			return false;
-		}
-		
-		tree->Branch(branchName,address);
-
-		return true;
-	}
-
 };
+
+
 
 #endif

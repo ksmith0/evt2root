@@ -38,6 +38,8 @@ class mainBuffer
 		
 		///Pointer to the storage manager where data will be stored.
 		RootStorageManager *fStorageManager;
+		///Abstract declaration of Storage Manager initialization.
+		virtual void InitializeStorageManager() {};
 
 	protected:
 		///File name of evt file.
