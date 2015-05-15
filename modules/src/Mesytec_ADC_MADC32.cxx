@@ -3,6 +3,15 @@
 
 ClassImp(Mesytec_ADC_MADC32);
 
+Mesytec_ADC_MADC32::Mesytec_ADC_MADC32() {
+}
+void Mesytec_ADC_MADC32::Clear() {
+	for (int i=0;i<32;i++) {
+		fValues[i] = 0;
+		fOverflow[i] = false;
+	}
+}
+
 /**The buffer is read out and data is stored in the eventData structure.
  *
  * \param[in] buffer The buffer to be read.
@@ -13,6 +22,8 @@ ClassImp(Mesytec_ADC_MADC32);
  */
 void Mesytec_ADC_MADC32::ReadEvent(mainBuffer *buffer, bool verbose)
 {
+	Clear();
+	
 	//Get Header Long Word
 	int datum = buffer->GetLongWord();
 	//Get Header type
@@ -44,11 +55,17 @@ void Mesytec_ADC_MADC32::ReadEvent(mainBuffer *buffer, bool verbose)
 				//Get Overflow
 				bool overflow = (datum & OVERFLOW_MASK) >> OVERFLOW_SHIFT;
 				//Get ADC value
-				int value = (datum & datum_mask) >> DATUM_SHIFT;
+				UShort_t value = (datum & datum_mask) >> DATUM_SHIFT;
 				if (verbose) {
 					printf("\t0x%08X type: %d ch: %2d value: %4d overflow:%d\n",datum,type,channel,value,overflow);
 				}
 				//Write DATA
+				if (channel >= 0 && channel < 32) {
+					fValues[channel] = value;
+					fOverflow[channel] = overflow;
+				}
+				else
+					fprintf(stderr,"ERROR: Invalid Mesytec MADC32 channel: %d!",channel);
 			}
 		}
 		//Get Trailer Long Word
