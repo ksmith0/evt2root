@@ -57,27 +57,6 @@ TTree* RootStorageManager::GetTree(const char *treeName) {
 	return loc->second;
 }
 
-/**Creates a branch from a class built with a ROOT dictionary.
- * 
- * \param[in] treeName Name of the tree in which to add the branch.
- * \param[in] branchName Name given to the new branch.
- * \param[in] className Name of the class type.
- * \param[in] address Address to the branch data.
- */
-bool RootStorageManager::CreateBranch(const char* treeName, 
-	const char* branchName, const char* className, void *address) {
-	TTree *tree = GetTree(treeName);
-	if (!tree) {
-		fflush(stdout);
-		fprintf(stderr,"ERROR: Cannot create column! Missing n-tuple '%s'!\n",treeName);
-		return false;
-	}
-		
-	//tree->Bronch(name,className,address);
-	tree->Branch(branchName,className,address);
-
-	return true;
-}
 /**Create a branch from known ROOT types, i.e. float, int, etc.
  *
  * \param[in] treeName Name of the tree in which to add the branch.
@@ -94,7 +73,6 @@ bool RootStorageManager::CreateBranch(const char* treeName,
 		return false;
 	}
 		
-	//tree->Bronch(name,className,address);
 	tree->Branch(branchName,address,leafList);
 
 	return true;
