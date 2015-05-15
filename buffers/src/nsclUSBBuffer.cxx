@@ -152,6 +152,8 @@ int nsclUSBBuffer::ReadEvent(bool verbose) {
 
 	}
 
+	FillStorage();
+
 	//Fastforward over extra words
 	int remainingWords = eventStartPos + eventLength - GetBufferPosition();
 	if (remainingWords > 0) {

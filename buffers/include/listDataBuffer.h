@@ -5,6 +5,9 @@
 
 class listDataBuffer : public mainBuffer {
 	private:
+		void InitializeStorageManager();
+	protected:
+		void FillStorage();
 
 	public:
 		listDataBuffer(int bufferSize, int headerSize, int wordSize);

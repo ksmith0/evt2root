@@ -185,29 +185,8 @@ int main (int argc, char *argv[])
 	}
 	printf(".\n");
 
-	RootStorageManager storageManager(outputFile);
-	buffer->SetStorageManager(&storageManager);
-
-	TFile *file = new TFile(outputFile,"RECREATE");
-	TTree *evtTree = new TTree("evtTree","Events");
-	TTree *scalerTree = new TTree("scalerTree","Scalers");
-
-#ifdef USE_EXPEVENT
-	eventScaler *scaler = new eventScaler();
-	eventData *data = new eventData();
-
-	scalerTree->Branch("scaler","eventScaler",&scaler);
-	evtTree->Branch("event","eventData",&data);
-#endif
-
-	//Add branch for each module
-	std::map< std::string, unsigned int > moduleCount;
-	for (auto it = modules.begin(); it != modules.end(); ++it) {
-		std::string moduleName = (*it)->IsA()->GetName();
-		std::string branchName = moduleName + std::to_string((long long unsigned int) moduleCount[moduleName]);
-		evtTree->Branch(branchName.c_str(),moduleName.c_str(),*it);
-		moduleCount[moduleName]++;
-	}
+	RootStorageManager *storageManager = new RootStorageManager(outputFile);
+	buffer->SetStorageManager(storageManager);
 
 	bool runEnded = false;
 	bool runStarted = false;
@@ -229,78 +208,28 @@ int main (int argc, char *argv[])
 					fflush(stdout);
 				}
 			}
+			//Do buffer specific tasks
+			buffer->UnpackBuffer();
+			//Handle data events.
 			if (buffer->IsDataType()) {
+				//Loop over all events in a buffer.
 				while (buffer->GetEventsRemaining()) {
 					if (!buffer->ReadEvent()) break;
-
-#ifdef USE_EXPEVENT
-					data->Reset();
-					data->SetValues(buffer->GetModules());
-#endif
-
-					evtTree->Fill();
 				}
 			}
-			else if (buffer->IsScalerType()) {
-				buffer->ReadScalers();
-				scalerTree->Fill();
-			}
-			else if (buffer->IsRunBegin()) {
-				//Some files have the start buffer written multiple times
-				//We keep the last one
-				if (runStarted) {
-					fprintf(stderr,"WARNING: Multiple run begin buffers, keeping the last one.\n");
-				}
-				if (!runStarted && buffer->GetBufferNumber()>0) {
-					fprintf(stderr,"WARNING: Buffer read before run started! Check input file order.\n");
-				}
-				buffer->ReadRunBegin();
-				printf("%*c\r",100,' ');
-				printf("Run %llu - %s\n",buffer->GetRunNumber(),buffer->GetRunTitle().c_str());
-				//TObjString *runTitle = new TObjString (buffer->GetRunTitle().c_str());
-				//evtTree->GetUserInfo()->Add(runTitle);
-				evtTree->SetTitle(buffer->GetRunTitle().c_str());
-				TParameter<int>("run",buffer->GetRunNumber()).Write();
-				TParameter<time_t>("runStartTime",buffer->GetRunStartTime()).Write();
-				//delete runTitle;
-
-				runStarted = true;
-			}
-			else if (buffer->IsRunEnd())  {
-				buffer->ReadRunEnd();
-				runEnded = true;
-			}
-			/*else if (buffer->GetBufferType() == buffer->BUFFER_TYPE_RUNEND) {
-				buffer->ReadRunEnd();
-				TParameter<time_t>("runEndTime",buffer->GetRunEndTime()).Write();
-				TParameter<int>("runTimeElapsed",buffer->GetElapsedRunTime()).Write();
-				printf("Run Ended. Elapsed run time: %u s\n",buffer->GetElapsedRunTime());
-				if (fileNum+1 < inputFiles.size()) {
-					fprintf(stderr,"WARNING: Run ended before last file was scanned! Check input file order.\n");
-				}
-				runEnded = true;
-			}*/
-			else {
-				fflush(stdout);
-				fprintf(stderr,"WARNING: Buffer %d has unknown buffer type!",buffer->GetBufferNumber());
-				buffer->PrintBufferHeader();
-			}	
 		}
 		printf("Read %d buffers. %5.2f%% of file read.\n",buffer->GetBufferNumber(),buffer->GetFilePositionPercentage());
 		buffer->CloseFile();
 	}
 	delete buffer;
 
-	//Provide some error messages if the run start or end are not found.
-	if (!runStarted) fprintf(stderr,"ERROR: Run start never found!\n");
-	if (!runEnded) fprintf(stderr,"ERROR: Run end never found!\n");
-
 	//Inform the user that we are writing the file.
 	printf("Finishing up...");fflush(stdout);
 	//Write the file
-	file->Write(0,TObject::kWriteDelete);
-	file->Close();
+	storageManager->Close();
 	printf("Done\n");
+	
+//	delete storageManager;
 
 	return 0;
 }

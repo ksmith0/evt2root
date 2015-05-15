@@ -3,7 +3,7 @@
 
 nsclClassicBuffer::nsclClassicBuffer(int bufferSize, int bufferHeaderSize,
 	int wordSize) :
-	listDataBuffer(bufferHeaderSize,bufferSize,wordSize)
+	listDataBuffer(bufferSize,bufferHeaderSize,wordSize)
 {
 	//Four byte words have the low and high bits swapped.
 	SetMiddleEndian(4);
@@ -221,6 +221,8 @@ int nsclClassicBuffer::ReadEvent(bool verbose) {
 		}
 
 	}
+
+	FillStorage();
 
 	//Fastforward over extra words
 	int remainingWords = eventStartPos + eventLength - GetBufferPosition();

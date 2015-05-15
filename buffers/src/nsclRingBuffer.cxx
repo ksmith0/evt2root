@@ -3,7 +3,7 @@
 
 nsclRingBuffer::nsclRingBuffer(int bufferSize, int headerSize, 
 	int wordSize) :
-	listDataBuffer(headerSize,bufferSize,wordSize),
+	listDataBuffer(bufferSize,headerSize,wordSize),
 	fVersion(0)
 {
 	//Ring buffer event buffers only contain 1 event.
@@ -12,7 +12,7 @@ nsclRingBuffer::nsclRingBuffer(int bufferSize, int headerSize,
 
 nsclRingBuffer::nsclRingBuffer(const char *filename,int bufferSize, 
 	int headerSize, int wordSize) :
-	listDataBuffer(headerSize,bufferSize,wordSize),
+	listDataBuffer(bufferSize,headerSize,wordSize),
 	fVersion(0)
 {
 	OpenFile(filename);
@@ -346,6 +346,8 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 		}
 
 	}
+
+	FillStorage();
 
 	//Fastforward over extra words
 	int remainingBytes = eventStartPos + eventLength - GetBufferPositionBytes();

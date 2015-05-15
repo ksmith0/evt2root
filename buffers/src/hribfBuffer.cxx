@@ -4,7 +4,7 @@
 #include <sstream> 
 
 hribfBuffer::hribfBuffer(int bufferSize,int headerSize, int wordSize) :
-		listDataBuffer(headerSize,bufferSize,wordSize)
+		listDataBuffer(bufferSize,headerSize,wordSize)
 {
 }
 hribfBuffer::hribfBuffer(const char *filename, int bufferSize, 
@@ -34,6 +34,8 @@ int hribfBuffer::ReadEvent(bool verbose) {
 		fModules[module]->ReadEvent(this,verbose);
 
 	}
+
+	FillStorage();
 
 	//Increment the number of Events read.
 	fEventNumber++;
