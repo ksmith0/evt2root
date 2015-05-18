@@ -3,15 +3,15 @@
 
 #include "mainBuffer.h"
 
-class listDataBuffer : public mainBuffer {
+class moduleBuffer : public mainBuffer {
 	private:
 		void InitializeStorageManager();
 	protected:
 		void FillStorage();
 
 	public:
-		listDataBuffer(int bufferSize, int headerSize, int wordSize);
-		virtual ~listDataBuffer();
+		moduleBuffer(int bufferSize, int headerSize, int wordSize);
+		virtual ~moduleBuffer();
 		
 };
 

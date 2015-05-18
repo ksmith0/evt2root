@@ -3,14 +3,14 @@
 
 nsclClassicBuffer::nsclClassicBuffer(int bufferSize, int bufferHeaderSize,
 	int wordSize) :
-	listDataBuffer(bufferSize,bufferHeaderSize,wordSize)
+	moduleBuffer(bufferSize,bufferHeaderSize,wordSize)
 {
 	//Four byte words have the low and high bits swapped.
 	SetMiddleEndian(4);
 }
 nsclClassicBuffer::nsclClassicBuffer(const char *filename,int bufferSize, 
 	int bufferHeaderSize, int wordSize) :
-	listDataBuffer(bufferHeaderSize,bufferSize,wordSize)
+	moduleBuffer(bufferSize,bufferHeaderSize,wordSize)
 {
 	OpenFile(filename);
 	//Four byte words have the low and high bits swapped.

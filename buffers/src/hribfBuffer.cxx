@@ -4,12 +4,12 @@
 #include <sstream> 
 
 hribfBuffer::hribfBuffer(int bufferSize,int headerSize, int wordSize) :
-		listDataBuffer(bufferSize,headerSize,wordSize)
+		moduleBuffer(bufferSize,headerSize,wordSize)
 {
 }
 hribfBuffer::hribfBuffer(const char *filename, int bufferSize, 
 	int headerSize, int wordSize) :
-		listDataBuffer(headerSize,bufferSize,wordSize)
+		moduleBuffer(headerSize,bufferSize,wordSize)
 {
 	OpenFile(filename);
 }

@@ -1,7 +1,7 @@
 #ifndef HRIBFBUFFER_H
 #define HRIBFBUFFER_H
 
-#include "listDataBuffer.h"
+#include "moduleBuffer.h"
 #include <string>
 
 ///Size of smallest word in bytes.
@@ -11,7 +11,7 @@
 ///There is no fixed buffer size in the "ring" buffer.
 #define BUFFER_SIZE 8194
 
-class hribfBuffer : public listDataBuffer {
+class hribfBuffer : public moduleBuffer {
 	private:	
 		///Format of the buffer.
 		std::string fFormat;

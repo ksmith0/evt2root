@@ -1,18 +1,18 @@
-#include "listDataBuffer.h"
+#include "moduleBuffer.h"
 #include "baseModule.h"
 
-listDataBuffer::listDataBuffer(int bufferSize, int bufferHeaderSize,
+moduleBuffer::moduleBuffer(int bufferSize, int bufferHeaderSize,
 	int wordSize) :
 	mainBuffer(bufferHeaderSize,bufferSize,wordSize)
 {
 
 }
 
-listDataBuffer::~listDataBuffer() {
+moduleBuffer::~moduleBuffer() {
 
 }
 
-void listDataBuffer::InitializeStorageManager() {
+void moduleBuffer::InitializeStorageManager() {
 	RootStorageManager *manager = GetStorageManager();
 	if (!manager) return;
 	manager->CreateTree("data");
@@ -30,7 +30,7 @@ void listDataBuffer::InitializeStorageManager() {
 	}
 }
 
-void listDataBuffer::FillStorage() {
+void moduleBuffer::FillStorage() {
 	RootStorageManager *manager = GetStorageManager();
 	if (!manager) return;
 	

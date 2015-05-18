@@ -1,7 +1,7 @@
 #ifndef NSCLCLASSICBUFFER_H 
 #define NSCLCLASSICBUFFER_H
 
-#include "listDataBuffer.h"
+#include "moduleBuffer.h"
 
 ///Size of smallest word in bytes
 #define WORD_SIZE 2 
@@ -10,7 +10,7 @@
 ///Size of the buffer in words.
 #define BUFFER_SIZE 4096
 
-class nsclClassicBuffer : public listDataBuffer {
+class nsclClassicBuffer : public moduleBuffer {
 	protected:
 		///The number of LAM registers.
 		UShort_t fNumOfLAMRegisters;

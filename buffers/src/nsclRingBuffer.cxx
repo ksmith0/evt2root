@@ -3,7 +3,7 @@
 
 nsclRingBuffer::nsclRingBuffer(int bufferSize, int headerSize, 
 	int wordSize) :
-	listDataBuffer(bufferSize,headerSize,wordSize),
+	moduleBuffer(bufferSize,headerSize,wordSize),
 	fVersion(0)
 {
 	//Ring buffer event buffers only contain 1 event.
@@ -12,7 +12,7 @@ nsclRingBuffer::nsclRingBuffer(int bufferSize, int headerSize,
 
 nsclRingBuffer::nsclRingBuffer(const char *filename,int bufferSize, 
 	int headerSize, int wordSize) :
-	listDataBuffer(bufferSize,headerSize,wordSize),
+	moduleBuffer(bufferSize,headerSize,wordSize),
 	fVersion(0)
 {
 	OpenFile(filename);
