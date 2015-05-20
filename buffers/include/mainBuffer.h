@@ -91,6 +91,7 @@ class mainBuffer
 
 		///Get the run title
 		std::string ReadString(unsigned int maxWords, bool verbose=false);
+		std::string ReadStringBytes(unsigned int maxBytes, bool verbose=false);
 
 		///Return the length of the current event in words.
 		virtual UInt_t GetEventLength();

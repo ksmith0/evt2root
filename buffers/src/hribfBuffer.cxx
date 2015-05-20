@@ -196,96 +196,51 @@ void hribfBuffer::ReadRunBegin(bool verbose)
  * \param[in] verbose Verbosity flag.
  */
 void hribfBuffer::ReadScalers(bool verbose) {
-	//The number of words includes the header.
-	std::string scalerString = ReadString(GetNumOfWords()-GetHeaderSize(),verbose);
-	
-	//Build a vector of each entry in the scaler string.
-	//Entries are separated by a double space, "  ".
-	std::vector<std::string> scalerEntries;
-	size_t start = 0, stop = 0;
-	while ((stop = scalerString.find("  ",start)) != std::string::npos) {
-		stop = scalerString.find_first_not_of(" ",stop);
-		if (stop == std::string::npos) break;
-		scalerEntries.push_back(scalerString.substr(start, stop-start-2));
-		start = stop;
-	}
-	scalerEntries.push_back(scalerString.substr(start));
+	int maxLength = 24;
+	if (verbose) printf("\n");
 
+	std::string leader = ReadStringBytes(13,verbose);
+	if (verbose) printf("\t%-*s| Leader\n\n",maxLength,leader.c_str());
+	
 	//Build a timestamp from the date and time entries.
+	std::string date = ReadStringBytes(22,verbose);
 	struct tm tm;
-	strptime((scalerEntries[1]+scalerEntries[2]).c_str(), "%d-%b-%y %H:%M:%S", &tm);
+	strptime(date.c_str(), "%d-%b-%y  %H:%M:%S", &tm);
 	time_t t = mktime(&tm);
+	if (verbose) printf("\t%-*s| Date: %s\n",maxLength,date.c_str(),ctime(&t));
 
 	//Get time elapsed since last scaler dump.
-	UInt_t timeElapsed = std::stoi(scalerEntries[3].substr(scalerEntries[3].find("=")+1));
+	std::string duration = ReadStringBytes(11,verbose);
+	UInt_t timeElapsed = std::stoi(duration.substr(duration.find("=")+1));
+	if (verbose) printf("\t%-*s| Time Elapsed: %u s\n\n",maxLength,duration.c_str(),timeElapsed);
 
 	//Get the incremental flag
+	std::string clearCode = ReadStringBytes(11,verbose);
 	bool incremental = false;
-	if (scalerEntries[4].find_first_of("yY") != std::string::npos) 
+	if (clearCode.find_first_of("yY") != std::string::npos) 
 		incremental = true;
+	if (verbose) printf("\t%-*s| Incremental: %u\n\n",maxLength,clearCode.c_str(),incremental);
+
+	ReadStringBytes(23,verbose);
 
 	//Loop over the scalers and get the name and values.
 	std::vector< std::pair< UInt_t, Float_t > > scalerValues;
 	std::vector< std::string > scalerNames;
-	for (unsigned int i=5;i<scalerEntries.size();i+=3) {
-		scalerNames.push_back(scalerEntries[i].substr(0,scalerEntries[i].find_last_not_of(" ")+1));
+	std::string scalerName;
+	while((scalerName = ReadStringBytes(15,verbose)) != "") {
+		scalerNames.push_back(scalerName.substr(0,scalerName.find_first_of(" ")));
 
-		std::pair< UInt_t, Float_t > scalerValue(0,0);
-		if (i+2 < scalerEntries.size())
-			scalerValue = std::make_pair(std::stoi(scalerEntries[i+1]),std::stof(scalerEntries[i+2]));
-		else if (i+1 < scalerEntries.size()) 
-			scalerValue = std::make_pair(std::stoi(scalerEntries[i+1]),0);
-		scalerValues.push_back(scalerValue);
+		std::string scalerVal1 = ReadStringBytes(9,verbose);
+		std::string scalerVal2 = ReadStringBytes(12,verbose);
+		scalerValues.push_back(std::make_pair(std::stoi(scalerVal1),std::stof(scalerVal2)));
 
-	}
+		ReadStringBytes(4,verbose);
 
-	if (verbose) {
-		//Determine the maximum length to make output look nice
-		int maxLength = (scalerEntries[1]+scalerEntries[2]).length();
-		int maxScalerNameLength = 0;
-		for (size_t i=5;i<scalerEntries.size();i+=3) {
-			std::string scalerEntry;
-			for (unsigned int j=0;j<3 && i+j < scalerEntries.size();j++) 
-				scalerEntry.append(scalerEntries.at(i+j));
-			size_t stringLen = scalerEntry.length();
-			if (stringLen > maxLength) maxLength = stringLen;
-
-			//Get padding size for scaler names
-			unsigned int scalerCount = (i-5)/3;
-			if (scalerCount < scalerNames.size()) {
-				size_t nameLength = scalerNames.at(scalerCount).length();
-				if (nameLength > maxScalerNameLength) 
-					maxScalerNameLength = nameLength;
-			}
-		}
-
-		printf("\n");
-		printf("\t%-*s| Leader\n",maxLength,scalerEntries[0].c_str());
-		printf("\t%-*s| Date: %s",maxLength,(scalerEntries[1]+scalerEntries[2]).c_str(),ctime(&t));
-		printf("\t%-*s| Time Elapsed: %u s\n",maxLength,scalerEntries[3].c_str(),timeElapsed);
-		printf("\t%-*s| Incremental: %u\n",maxLength,scalerEntries[4].c_str(),incremental);
-		
-		//Print out the scalers
-		for (unsigned int i=5;i<scalerEntries.size();i+=3) {
-			//Printf the scaler entry string
-			std::string scalerEntry;
-			for (unsigned int j=0;j<3 && i+j < scalerEntries.size();j++) 
-				scalerEntry.append(scalerEntries.at(i+j));
-			printf("\t%-*s| Scaler ",maxLength,scalerEntry.c_str());
-			
-			//Print the converted values
-			unsigned int scalerCount = (i-5)/3;
-			int padding = maxScalerNameLength + 1; //Pad scaler names
-			if (scalerCount < scalerNames.size()) {
-				printf("'%s'",scalerNames.at(scalerCount).c_str());
-				padding -= scalerNames.at(scalerCount).length();
-			}
-			printf("%*c",padding,' ');
-			if (scalerCount < scalerValues.size()) 
-				printf("%6d %-.3e",scalerValues.at(scalerCount).first,scalerValues.at(scalerCount).second);
-			printf("\n");
+		if (verbose) {
+			printf("\tScaler '%s' %d %.3e\n\n",scalerNames.back().c_str(),scalerValues.back().first,scalerValues.back().second);
 		}
 	}
+
 }
 
 

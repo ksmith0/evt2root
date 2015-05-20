@@ -324,9 +324,16 @@ std::string mainBuffer::ConvertToString(ULong64_t datum) {
 }
 
 
-std::string mainBuffer::ReadString(unsigned int maxWords, bool verbose) 
+std::string mainBuffer::ReadString(unsigned int maxWords, bool verbose) {
+	return ReadStringBytes(maxWords * GetWordSize(), verbose);
+}
+
+std::string mainBuffer::ReadStringBytes(unsigned int maxBytes, bool verbose) 
 {
-	std::string title;
+	unsigned int maxWords = maxBytes / fWordSize;
+	unsigned short remainingBytes = maxBytes % fWordSize;
+	bool readExtraBytes = false;
+	std::string title = "";
 	int readWords = 0;
 	int printedWords = 0;
 	//Number of spaces since last good word.
@@ -352,10 +359,17 @@ std::string mainBuffer::ReadString(unsigned int maxWords, bool verbose)
 	}
 
 	//Loop over words until string is completed.
-	for (int i=0;i<maxWords && !stringComplete;i++) {
+	for (int i=0;i<=maxWords && !stringComplete;i++) {
 		//Get the next word for conversion.
-		UInt_t datum = GetWord();
-		readWords++;
+		UInt_t datum;
+		if (i==maxWords) {
+			datum = GetWord(remainingBytes);
+			readExtraBytes = true;
+		}
+		else {
+			datum = GetWord();
+			readWords++;
+		}
 
 		//If the word is null then the string must be complete.
 		if (datum == 0) {
@@ -368,24 +382,36 @@ std::string mainBuffer::ReadString(unsigned int maxWords, bool verbose)
 
 		//If this word is just spaces we count it and continue.
 		// We will append the spaces later if we find any useful text.
-		if (part == wordOfSpaces) {
-			spaceCount++;
+		if (part.find_first_not_of(" ") == std::string::npos) {
+			spaceCount += part.length();
 			continue;
 		}
 
 		if (verbose) {
 			//Print any spaces and corresponding hex words that may have
 			// been skipped.
-			for (int numSpaces=0; numSpaces<spaceCount;numSpaces++) {
+			for (int numSpaces=0; numSpaces<=spaceCount/4;numSpaces++) {
+				int size = 2 * GetWordSize() + 2;
+				if (numSpaces == spaceCount) size = 2*(spaceCount%4)+2;
+				if (size <= 2) continue;
+
+				if ((printedWords) % wordsPerLine == 0) {
+					if (printedWords != 0) printf("\n\t");
+					else printf("\t");
+				}
 				printedWords++;
-				if ((printedWords-1) % wordsPerLine == 0) printf("\n\t");
-				printf("%#0*llX ",2*GetWordSize()+2,wordOfSpacesHex);
-				printf("%s ",wordOfSpaces.data());
+				printf("%#0*llX ",size,wordOfSpacesHex);
+				printf("%s ",wordOfSpaces.substr(0,(size-2)/2).data());
+			}
+			if ((printedWords) % wordsPerLine == 0) {
+				if (printedWords != 0) printf("\n\t");
+				else printf("\t");
 			}
 			printedWords++;
-			if ((printedWords-1) % wordsPerLine == 0) printf("\n\t");
 			//Print the current word and its converted string.
-			printf("%#0*X ",2*GetWordSize()+2,datum);
+			int size = 2*GetWordSize()+2;
+			if (i==maxWords) size = 2*remainingBytes+2;
+			printf("%#0*X ",size,datum);
 			printf("%s ",part.data());
 		}
 
@@ -408,7 +434,8 @@ std::string mainBuffer::ReadString(unsigned int maxWords, bool verbose)
 
 	//Seek over the remaining words.
 	Seek(maxWords-readWords);
-	if (verbose) printf("\n");
+	if (!readExtraBytes) SeekBytes(remainingBytes);
+	if (verbose && printedWords) printf("\n");
 
 	return title;
 
