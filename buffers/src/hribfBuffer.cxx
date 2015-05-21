@@ -227,7 +227,7 @@ void hribfBuffer::ReadScalers(bool verbose) {
 	std::vector< std::pair< UInt_t, Float_t > > scalerValues;
 	std::vector< std::string > scalerNames;
 	std::string scalerName;
-	while((scalerName = ReadStringBytes(15,verbose)) != "") {
+	while((scalerName = ReadStringBytes(15,verbose)).find_first_not_of(" ") != std::string::npos) {
 		scalerNames.push_back(scalerName.substr(0,scalerName.find_first_of(" ")));
 
 		std::string scalerVal1 = ReadStringBytes(9,verbose);
