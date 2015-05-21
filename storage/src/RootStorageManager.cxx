@@ -46,6 +46,38 @@ bool RootStorageManager::CreateTree(const char* treeName) {
 	return true;
 }
 
+TH1D* RootStorageManager::CreateHistogram(const char* histName, const char* histTitle, int numBins, int xMin, int xMax) {
+	if (!fFile) {
+		fflush(stdout);
+		fprintf(stderr,"WARNING: No ROOT output file is open!\n");
+	}
+	
+	TH1D *hist = new TH1D(histName, histTitle, numBins, xMin, xMax);
+	fHists[histName] = hist;
+	return hist;
+}
+
+void RootStorageManager::FillHistogram(const char* histName, double value) {
+	TH1D *hist = GetHist(histName);
+	if (!hist) {
+		fflush(stdout);
+		fprintf(stderr,"ERROR: Histogram '%s' not defined!\n",histName);
+		return;
+	}
+
+	hist->Fill(value);
+}
+void RootStorageManager::SetBinContent(const char* histName, int bin, double value) {
+	TH1D *hist = GetHist(histName);
+	if (!hist) {
+		fflush(stdout);
+		fprintf(stderr,"ERROR: Histogram '%s' not defined!\n",histName);
+		return;
+	}
+
+	hist->SetBinContent(bin,value);
+}
+
 /**Returns a nullptr if the corresponding tree is not found.
  *
  * \param[in] treeName Name of tree.
@@ -56,6 +88,21 @@ TTree* RootStorageManager::GetTree(const char *treeName) {
 	if (loc == fTrees.end()) return nullptr;
 	return loc->second;
 }
+/**Returns a nullptr if the corresponding tree is not found.
+ *
+ * \param[in] treeName Name of tree.
+ * \return Pointer to corresponding tree.
+ */
+TH1D* RootStorageManager::GetHist(const char *histName) {
+	std::map<std::string, TH1D* >::iterator loc = fHists.find(histName);
+	if (loc == fHists.end()) return nullptr;
+	return loc->second;
+}
+
+
+
+
+
 
 /**Create a branch from known ROOT types, i.e. float, int, etc.
  *

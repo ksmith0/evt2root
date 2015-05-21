@@ -5,13 +5,18 @@
 
 #include "TFile.h"
 #include "TTree.h"
+#include "TH1D.h"
+#include "TParameter.h"
 
 class RootStorageManager {
 	private:
 		TFile *fFile;
 		std::map< std::string, TTree* > fTrees;
+		std::map< std::string, TH1D* > fHists;
 		///Find the tree corresponding to the provided name.
 		TTree* GetTree(const char* treeName);
+		///Find the hist corresponding to the provided name.
+		TH1D* GetHist(const char* histName);
 
 	public:
 		///Default constructor.
@@ -38,8 +43,20 @@ class RootStorageManager {
 			void* address) {};
 		///Fill a row with values.
 		void Fill(const char* treeName);
+		///Add a parameter to the file.
+		template <typename T> void AddParameter(const char* parName, T value);
+		TH1D* CreateHistogram(const char* histName, const char* histTitle, int numBins, int xMin, int xMax);
+		void FillHistogram(const char *histName, double value);
+		void SetBinContent(const char *histName, int bin, double value);
 
 };
+
+template<typename T> void RootStorageManager::AddParameter(const char* parName, T value) {
+	if (fFile) 
+		TParameter<T>(parName,value).Write();
+	else 
+		fprintf(stderr,"ERROR: No file open for writing parameter %s!\n",parName);
+}
 
 /**Creates a branch from a class built with a ROOT dictionary.
  * 

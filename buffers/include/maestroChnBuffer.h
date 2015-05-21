@@ -21,7 +21,7 @@ class maestroChnBuffer : public mainBuffer {
 		UShort_t fStartingChannel;
 		Short_t fNumberOfChannels;
 		///Pointer to output histogram.
-		TH1F *fHist;
+		TH1D *fHist;
 		///Counter of current histogram channel
 		UInt_t fCurrentChannel;
 

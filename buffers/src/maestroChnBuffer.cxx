@@ -1,7 +1,4 @@
 #include "maestroChnBuffer.h"
-#include "TDirectory.h"
-#include "TH1F.h"
-#include "TParameter.h"
 #include "TString.h"
 
 maestroChnBuffer::maestroChnBuffer(int headerSize, int bufferSize, int wordSize) : 
@@ -104,8 +101,8 @@ void maestroChnBuffer::ReadRunBegin(bool verbose)
 	UInt_t liveTime = GetWord(4);
 
 	if (verbose) {
-		printf("\t%#010X Real Time: %.2fs\n",realTime,(float)realTime/50);
-		printf("\t%#010X Live Time: %.2fs\n",liveTime,(float)liveTime/50);
+		printf("\t%#010X Real Time: %d ticks %.2f s\n",realTime,realTime,(float)realTime/50);
+		printf("\t%#010X Live Time: %d ticks %.2f s\n",liveTime,liveTime,(float)liveTime/50);
 	}
 
 	if (verbose) printf("\tStorage Date String:");
@@ -128,25 +125,28 @@ void maestroChnBuffer::ReadRunBegin(bool verbose)
 		printf("\t%#06hX Number of Channels: %hd\n",fNumberOfChannels,fNumberOfChannels);
 	}
 
-	if (gDirectory->IsWritable()) {
-		TParameter<time_t>("runStartTime",t).Write();
-		TParameter<Float_t>("liveTime",liveTime/50).Write();
-		TParameter<Float_t>("realTime",realTime/50).Write();
+	RootStorageManager *manager = GetStorageManager();
+	if (manager) {
+		manager->AddParameter("runStartTime",t);
+		manager->AddParameter("liveTime",(float)liveTime/50);
+		manager->AddParameter<Int_t>("liveTimeClkTick",liveTime);
+		manager->AddParameter("realTime",(float)realTime/50);
+		manager->AddParameter<Int_t>("realTimeClkTick",realTime);
+		fHist = manager->CreateHistogram("hMCARaw",";Channel;Counts / Channel", fNumberOfChannels,fStartingChannel,fStartingChannel + fNumberOfChannels);
+		fCurrentChannel = 1;
 	}
 }
 
 int maestroChnBuffer::ReadEvent(bool verbose) {
-	if (!fHist) {
-		fHist = new TH1F("hMCARaw",";Channel;Counts / Channel",fNumberOfChannels,fStartingChannel,fStartingChannel+fNumberOfChannels);
-		fCurrentChannel = 1;
-	}
 
 	for (int word=0;word<8;word++) {
 		int value = GetWord(4);
 		if (verbose) {
 			printf("\tCh: %4d, Val: %d\n",fCurrentChannel, value);
 		}
-		fHist->SetBinContent(fCurrentChannel++,value);
+		if (fHist) {
+			fHist->SetBinContent(fCurrentChannel++,value);
+		}
 	}
 	fEventNumber++;
 	return 0;
@@ -202,9 +202,8 @@ void maestroChnBuffer::ReadRunEnd(bool verbose) {
 
 	//If the histogram was created and the current directory is writable
 	//	then write out the histogram.
-	if (fHist && gDirectory->IsWritable()) {
+	if (fHist) {
 		fHist->SetTitle(Form("%s - %s",detDesc.c_str(),sampleDesc.c_str()));
-		fHist->Write();
 	}
 
 }
