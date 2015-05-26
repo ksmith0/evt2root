@@ -10,7 +10,6 @@ maestroChnBuffer::maestroChnBuffer(int headerSize, int bufferSize, int wordSize)
 }
 
 maestroChnBuffer::~maestroChnBuffer() {
-	delete fHist;
 }
 
 int maestroChnBuffer::ReadNextBuffer() {
