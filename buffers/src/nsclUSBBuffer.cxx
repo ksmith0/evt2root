@@ -126,7 +126,6 @@ int nsclUSBBuffer::ReadEvent(bool verbose) {
 	else Seek(1);
 
 	//Loop over each module
-	int headerSize = 2;
 	for(unsigned int module=0;module<fModules.size();module++) {
 		//Read out the current module
 		// We need to check if we are at boundary word.

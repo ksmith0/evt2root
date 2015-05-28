@@ -3,9 +3,9 @@
 
 maestroChnBuffer::maestroChnBuffer(int headerSize, int bufferSize, int wordSize) : 
 	mainBuffer(headerSize,bufferSize,wordSize),
-	fHist(NULL),
-	fCurrentChannel(0),
-	fNumberOfChannels(0)
+	fNumberOfChannels(0),
+	fHist(nullptr),
+	fCurrentChannel(0)
 {
 }
 
@@ -212,10 +212,10 @@ bool maestroChnBuffer::IsRunBegin() {
 	return false;
 }
 bool maestroChnBuffer::IsDataType() {
-	if (GetBufferNumber() > 1 && GetBufferNumber() <= fNumberOfChannels / 8 + 1) return true;
+	if (GetBufferNumber() > 1 && GetBufferNumber() <= fNumberOfChannels / 8U + 1) return true;
 	return false;
 }
 bool maestroChnBuffer::IsRunEnd() {
-	if (GetBufferNumber() > fNumberOfChannels / 8 + 1) return true;
+	if (GetBufferNumber() > fNumberOfChannels / 8U + 1) return true;
 	return false;
 }

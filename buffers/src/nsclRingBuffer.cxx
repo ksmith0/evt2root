@@ -187,7 +187,6 @@ UInt_t nsclRingBuffer::ReadVersion(bool verbose) {
  * \return Event length in words.
  */
 UInt_t nsclRingBuffer::GetEventLength() {
-	UInt_t datum = GetCurrentWord();
 	UInt_t eventLength = GetCurrentWord() / (GetWordSize()/2);
 
 	return ValidatedEventLength(eventLength);
@@ -232,13 +231,13 @@ void nsclRingBuffer::PrintBufferHeader()
 
 void nsclRingBuffer::ReadRunBegin(bool verbose) 
 {
-	UInt_t timeOffset, runNum;
+	UInt_t timeOffset, runNum = -1;
 	ReadRunBeginEnd(runNum,timeOffset,fRunStartTime,fRunTitle,verbose);
 	fRunNum = runNum;
 }
 void nsclRingBuffer::ReadRunEnd(bool verbose) 
 {
-	UInt_t runNum;
+	UInt_t runNum = -1;
 	ReadRunBeginEnd(runNum,fElapsedRunTime,fRunEndTime,fRunTitle,verbose);
 	fRunNum = runNum;
 }
@@ -333,7 +332,6 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 	eventLength *= GetWordSize();
 
 	//Loop over each module
-	int headerSize = 2;
 	for(unsigned int module=0;module<fModules.size();module++) {
 
 		//Read out the current module

@@ -1,7 +1,7 @@
 #include "hribfModule.h"
 #include "mainBuffer.h"
 
-ClassImp(hribfModule);
+ClassImp(hribfModule)
 
 /**Each event consist of a series of 4 byte word containing the channel number of value.
  * The channel number is contained in the lowest order byte and the value is 
@@ -17,7 +17,7 @@ void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 		UInt_t datum = buffer->GetWord();
 
 		//break if we find the trailer word.
-		if (datum == -1) {
+		if (datum == (UInt_t) -1) {
 			if (verbose) printf("\t%#06X Trailer\n",datum);
 			break;
 		}

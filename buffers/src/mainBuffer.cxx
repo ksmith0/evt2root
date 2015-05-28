@@ -2,10 +2,10 @@
 
 mainBuffer::mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigned int wordSize) :
 	fFileSize(0),
+	fStorageManager(nullptr),
 	fWordSize(wordSize),
 	fBufferBeginPos(0),
-	fBufferNumber(0),
-	fStorageManager(nullptr)
+	fBufferNumber(0)
 {
 	this->Clear();
 	SetBufferSize(bufferSize * wordSize);
@@ -91,8 +91,8 @@ void mainBuffer::DumpEvent() {
 	if (eventLength == 0) return;
 	
 	unsigned short wordSize = GetWordSize();
-	for (int i=0;i<eventLength;i++) { 
-		if (i % (20/wordSize) == 0) printf("\n %4d",i);
+	for (ULong64_t i=0;i<eventLength;i++) { 
+		if (i % (20/wordSize) == 0) printf("\n %4llu",i);
 		printf(" %#0*llX",2*wordSize+2,GetWord());
 	}
 	printf("\n");
@@ -116,8 +116,8 @@ void mainBuffer::DumpScalers() {
 
 	unsigned int eventLength = GetNumOfWords() - GetHeaderSize();
 	printf("\nScaler Dump Length: %d",eventLength);
-	for (int i=0;i<eventLength;i++) { 
-		if (i % (20/GetWordSize()) == 0) printf("\n %4d",i);
+	for (unsigned int i=0;i<eventLength;i++) { 
+		if (i % (20/GetWordSize()) == 0) printf("\n %4u",i);
 		printf(" %#0*llX",2*GetWordSize()+2,GetWord());
 	}
 	printf("\n");
@@ -202,7 +202,7 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 
 	ULong64_t retVal = 0;
 
-	for (int i=0;i<numOfBytes;i++) 
+	for (unsigned int i=0;i<numOfBytes;i++) 
 		retVal += (ULong64_t) (fBuffer.at(fCurrentByte++) & 0xFF) << 8*i;
 
 	return retVal & mask;	
@@ -267,8 +267,8 @@ void mainBuffer::DumpHeader()
 	unsigned int pos = GetBufferPositionBytes();
 	SeekBytes(-pos);
 	printf("\nBuffer Header:");
-	for (int i=0;i<GetHeaderSize();i++) {
-		if (i % (20/GetWordSize()) == 0) printf("\n %4d",i);
+	for (unsigned int i=0;i<GetHeaderSize();i++) {
+		if (i % (20/GetWordSize()) == 0) printf("\n %4u",i);
 		UInt_t datum = GetWord();
 		printf(" %#0*X",2*fWordSize+2,datum);
 	}
@@ -280,7 +280,7 @@ void mainBuffer::DumpBuffer()
 	unsigned int pos = GetBufferPositionBytes();
 	SeekBytes(-pos);
 	printf("\nBuffer Length %llu:", GetNumOfWords());
-	for (int i=0;i<GetNumOfWords();i++) {
+	for (unsigned int i=0;i<GetNumOfWords();i++) {
 		if (i % (20/GetWordSize()) == 0) printf("\n %4d",i);
 		UInt_t datum = GetWord();
 		printf(" %#0*X",2*fWordSize+2,datum);
@@ -297,7 +297,7 @@ void mainBuffer::DumpRunBuffer()
 
 	unsigned int eventLength = GetNumOfWords() - GetHeaderSize();
 	printf("\nRun Buffer Dump Length: %u",eventLength);
-	for (int i=0;i<eventLength;i++) { 
+	for (unsigned int i=0;i<eventLength;i++) { 
 		if (i % (20/GetWordSize()) == 0) printf("\n %4d",i);
 		printf(" %#0*llX",2*GetWordSize()+2,GetWord());
 	}
@@ -311,7 +311,7 @@ std::string mainBuffer::ConvertToString(ULong64_t datum) {
 	std::string title;
 
 	//Loop over the number of characters stored in a word
-	for (int charCount=0;charCount<sizeof(datum);charCount++) {
+	for (size_t charCount=0;charCount<sizeof(datum);charCount++) {
 		//Keep storing characters until string ends
 		ULong64_t bitShift = 8 * charCount;
 		char letter = (datum >> bitShift) & 0xFF;
@@ -331,17 +331,7 @@ std::string mainBuffer::ReadString(unsigned int maxWords, bool verbose) {
 std::string mainBuffer::ReadStringBytes(unsigned int maxBytes, bool verbose) 
 {
 	std::string title = "";
-	int readBytes = 0;
-	//Number of spaces since last good word.
-	int spaceCount = 0;
-
-	//Number of words to print per line.
-	int wordsPerLine;
-	if (verbose) {
-		//Try to print a nice number of entries per line
-		int verboseWordLength = 3 * GetWordSize() + 4;
-		wordsPerLine = 75 / verboseWordLength;
-	}
+	unsigned int readBytes = 0;
 
 	//Loop over words until string is completed.
 	for (readBytes=0;readBytes < maxBytes; readBytes++) {
@@ -372,9 +362,14 @@ std::string mainBuffer::ReadStringBytes(unsigned int maxBytes, bool verbose)
 	}
 
 	if (verbose) {
+		//Try to print a nice number of entries per line
+		int verboseWordLength = 3 * GetWordSize() + 4;
+		//Number of words to print per line.
+		int wordsPerLine = 75 / verboseWordLength;
+
 		UShort_t byteOffset = ((fCurrentByte - readBytes) % fWordSize);
 		//Loop over every byte in the output
-		for (int i=0;i<title.length(); i+= fWordSize) {
+		for (size_t i=0;i<title.length(); i+= fWordSize) {
 			Short_t wordSize = fWordSize;
 			if (i == 0) {
 				printf("\t");
@@ -384,7 +379,7 @@ std::string mainBuffer::ReadStringBytes(unsigned int maxBytes, bool verbose)
 			else if (((i + byteOffset)/fWordSize) % wordsPerLine == 0) printf("\n\t");
 			std::string part = title.substr(i,wordSize);
 			UInt_t value = 0;
-			for (int j=0;j<part.length();j++) 
+			for (size_t j=0;j<part.length();j++) 
 				value += part.data()[j] << 8*j << 8*(fWordSize - wordSize);
 			printf("%#0*X %*s ",2*fWordSize+2,value,fWordSize,part.c_str());
 

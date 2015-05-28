@@ -27,7 +27,6 @@ int hribfBuffer::ReadEvent(bool verbose) {
 	}
 
 	//Loop over each module
-	int headerSize = 2;
 	for(unsigned int module=0;module<fModules.size();module++) {
 
 		//Read out the current module

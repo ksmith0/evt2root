@@ -3,11 +3,11 @@
 
 ConfigFile::ConfigFile() {
 
-};
+}
 
 ConfigFile::~ConfigFile() {
 
-};
+}
 
 /**Options are expected in the format: key, white space, value, new line.
  *  Comments are permitted as whole lines or at the end of a line starting
@@ -65,7 +65,7 @@ bool ConfigFile::ReadFile(const char* filename) {
 	fileStream.close();
 
 	return true;
-};
+}
 
 /**Returns a value matching the key and count provided. If the option
  * requested does not exist an empty string is returned. The count is 

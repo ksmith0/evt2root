@@ -26,18 +26,12 @@ int usage(const char *progName="") {
 
 int main (int argc, char *argv[])
 {
-	bool useHribfBuffer = false;
-	bool useNsclClassicBuffer = false;
-	bool useNsclUSBBuffer = false;
-	bool useNsclRingBuffer = true;
-	const char* configFilename = "";
-
 	std::vector< const char* > inputFiles;
 	std::vector< baseModule* > modules;
 	mainBuffer* buffer = nullptr;
 	ConfigFile *conf = nullptr;
 
-	int skipBuffers = 0; //Number of buffers to skip
+	unsigned int skipBuffers = 0; //Number of buffers to skip
 	bool dumpRawBuffer = false;
 	bool unpackPhysicsData = true;
 	std::vector<int> bufferType;
@@ -93,7 +87,7 @@ int main (int argc, char *argv[])
 						return 1;
 					}
 
-					for (int i=0;i<conf->GetNumEntries("module");++i) {
+					for (size_t i=0;i<conf->GetNumEntries("module");++i) {
 						baseModule *modulePtr = GetModulePointer(conf->GetOption("module",i));
 						if (modulePtr == nullptr) {
 							fflush(stdout);

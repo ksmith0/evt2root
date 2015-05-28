@@ -23,7 +23,16 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-add_definitions(-std=c++0x)
+#Use C++11
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+#Use nice color output
+if (CMAKE_COMPILER_IS_GNUCXX)
+	if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.9")
+		#Make compiler messages nice with colored tags.
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=auto")
+	endif()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic")
+endif()
 
 option(USE_EXPEVENT "Use custom sorting library" OFF)
 

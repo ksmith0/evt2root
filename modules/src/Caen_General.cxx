@@ -1,7 +1,7 @@
 #include "Caen_General.h"
 #include "mainBuffer.h"
 
-ClassImp(Caen_General);
+ClassImp(Caen_General)
 
 void Caen_General::Clear() {
 	fValues.clear();
@@ -34,10 +34,10 @@ void Caen_General::ReadEvent(mainBuffer *buffer, bool verbose)
 				bool underflow= (datum & DATAL_UNBIT) != 0;
 				bool valid    = (datum& DATAL_VBIT)  != 0; //Only defined for V775
 
-				if (fValues.size() <= channel) fValues.resize(channel+1);
-				if (fOverflow.size() <= channel) fOverflow.resize(channel+1);
-				if (fUnderflow.size() <= channel) fUnderflow.resize(channel+1);
-				if (fValid.size() <= channel) fValid.resize(channel+1);
+				if ((int) fValues.size() <= channel) fValues.resize(channel+1);
+				if ((int) fOverflow.size() <= channel) fOverflow.resize(channel+1);
+				if ((int) fUnderflow.size() <= channel) fUnderflow.resize(channel+1);
+				if ((int) fValid.size() <= channel) fValid.resize(channel+1);
 				fValues[channel] = value;
 				fOverflow[channel] = overflow;
 				fUnderflow[channel] = underflow;

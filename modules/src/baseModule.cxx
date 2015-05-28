@@ -1,6 +1,6 @@
 #include "baseModule.h"
 
-ClassImp(baseModule);
+ClassImp(baseModule)
 
 baseModule::baseModule() {
 

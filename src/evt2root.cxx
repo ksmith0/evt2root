@@ -92,7 +92,7 @@ int main (int argc, char *argv[])
 						return 1;
 					}
 
-					for (int i=0;i<conf->GetNumEntries("module");++i) {
+					for (size_t i=0;i<conf->GetNumEntries("module");++i) {
 						baseModule *modulePtr = GetModulePointer(conf->GetOption("module",i));
 						if (modulePtr == nullptr) {
 							fflush(stdout);
@@ -189,7 +189,6 @@ int main (int argc, char *argv[])
 	buffer->SetStorageManager(storageManager);
 
 	bool runEnded = false;
-	bool runStarted = false;
 	//Loop over files until we used all files or the run ended.
 	for (unsigned int fileNum=0;fileNum<inputFiles.size() && !runEnded;fileNum++) {
 		if (fileNum > 0) printf("\n");

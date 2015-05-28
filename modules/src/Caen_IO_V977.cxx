@@ -1,7 +1,7 @@
 #include "Caen_IO_V977.h"
 #include "mainBuffer.h"
 
-ClassImp(Caen_IO_V977);
+ClassImp(Caen_IO_V977)
 
 void Caen_IO_V977::ReadEvent(mainBuffer *buffer, bool verbose)
 {

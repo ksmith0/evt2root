@@ -1,7 +1,7 @@
 #include "Mesytec_ADC_MADC32.h"
 #include "mainBuffer.h"
 
-ClassImp(Mesytec_ADC_MADC32);
+ClassImp(Mesytec_ADC_MADC32)
 
 Mesytec_ADC_MADC32::Mesytec_ADC_MADC32() {
 }

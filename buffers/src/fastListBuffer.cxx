@@ -64,7 +64,7 @@ int fastListBuffer::ReadNextBuffer()
 		//Now we determine how many ADCs were triggered
 		for (int adc = 0; adc < numActiveADCs; adc++) {
 			char adcTriggered = (datum >> adc) & 0x1;
-			if (((datum >> adc) & 0x1) == 1) 
+			if (adcTriggered == 1) 
 				triggeredADCs.push_back(adc);
 		}
 
@@ -142,22 +142,34 @@ int fastListBuffer::ReadEvent(bool verbose) {
 
 	if (verbose) {
 		printf ("\nData Event %llu:\n",fEventNumber);
+		Seek(-1);
+
+		//Print the first word with the triggered ADC bits.
+		printf ("\t%#010llX Triggered ADCs: ",GetWord());
+		for (auto it = triggeredADCs.begin(); it != triggeredADCs.end(); ++it) {
+			if (it != triggeredADCs.begin()) printf(", ");
+			printf("%d",*it);
+		}
+		printf("\n");
 	}
 	
-	UInt_t datum;
-	for (int trigger = 0; trigger < triggeredADCs.size(); trigger++) {
+	for (size_t trigger = 0; trigger < triggeredADCs.size(); trigger += 2) {
 		UShort_t adc = triggeredADCs.at(trigger);
-		if (trigger % 2 == 0) {
-			datum = GetWord();
-			if (verbose) printf("\t%#010X",datum);
-			adcValues[adc] = (datum >> 16) & 0xFFFF;
-		}
-		else {
-			adcValues[adc] = datum & 0xFFFF;
-			if (verbose) printf("\t%*c",10,' ');
+		UInt_t datum = GetWord();
+		adcValues[adc] = (datum >> 16) & 0xFFFF;
+		if (verbose) {
+			printf("\t%#010X",datum);
+			printf(" ADC %d value: %u\n",adc,adcValues[adc]);
 		}
 
-		if (verbose) printf(" ADC %d value: %u\n",adc,adcValues[adc]);
+		if (trigger+1 < triggeredADCs.size()) {
+			adc = triggeredADCs.at(trigger + 1);
+			adcValues[adc] = datum & 0xFFFF;
+			if (verbose) {
+				printf("\t%*c",10,' ');
+				printf(" ADC %d value: %u\n",adc,adcValues[adc]);
+			}
+		}
 	}
 
 	if (GetStorageManager()) GetStorageManager()->Fill("data");
@@ -194,7 +206,7 @@ void fastListBuffer::ReadRunBegin(bool verbose) {
 		line = GetLine();
 		line.erase(line.find_last_not_of(" \r\n")+1);
 
-		int pos;
+		size_t pos;
 
 		//Check if we have an equals sign
 		// This indicates that we have a key value line.
