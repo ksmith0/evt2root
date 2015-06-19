@@ -3,7 +3,8 @@
 fastListBuffer::fastListBuffer(int bufferSize, int bufferHeaderSize, int wordSize) :
 	mainBuffer(bufferHeaderSize, bufferSize, wordSize),
 	headerRead(false),
-	numActiveADCs(0)
+	numActiveADCs(0),
+	timestamp(0)
 {
 
 }
@@ -17,6 +18,8 @@ void fastListBuffer::InitializeStorageManager() {
 	if (GetStorageManager()) {
 		GetStorageManager()->CreateTree("data");
 		GetStorageManager()->CreateBranch("data","adc",adcValues.data(),"adc[16]/s");
+		GetStorageManager()->CreateBranch("data","timestamp",&timestamp,"timestamp/l");
+		GetStorageManager()->CreateBranch("data","time",&time,"time/l");
 	}
 }
 
@@ -62,12 +65,8 @@ int fastListBuffer::ReadNextBuffer()
 		fBufferType = DATA;	
 
 		//Now we determine how many ADCs were triggered
-		for (int adc = 0; adc < numActiveADCs; adc++) {
-			char adcTriggered = (datum >> adc) & 0x1;
-			if (adcTriggered == 1) 
-				triggeredADCs.push_back(adc);
-		}
-
+		ReadTriggeredADCs(datum);
+	
 		//Abort if the number of triggered ADCs is less than 1
 		if (triggeredADCs.size() < 1) {
 			fprintf(stderr,"ERROR: ADC Data event with no triggered ADCs! %#10X\n",datum);
@@ -106,11 +105,27 @@ int fastListBuffer::ReadNextBuffer()
 	}
 	else if ((datum >> 16 & 0x4000) != 0) {
 		fBufferType = TIME;	
+		ReadTriggeredADCs(datum);
+
 		return 1;
 	}
 
 	return 1;
 
+}
+
+
+/**Each ADC sets the bit corresponding the ADC number if it was triggered during a data event or alive
+ * during a time stamp event. A vector of triggered ADCs is stored as fastListBuffer::triggeredADCs.
+ *
+ * \param[in] datum The data word containg the ADC flags.
+ */
+void fastListBuffer::ReadTriggeredADCs(UInt_t datum) {
+	for (int adc = 0; adc < numActiveADCs; adc++) {
+		char adcTriggered = (datum >> adc) & 0x1;
+		if (adcTriggered == 1) 
+			triggeredADCs.push_back(adc);
+	}
 }
 
 void fastListBuffer::UnpackBuffer(bool verbose) {
@@ -119,7 +134,7 @@ void fastListBuffer::UnpackBuffer(bool verbose) {
 			ReadEvent(verbose);
 			break;
 		case TIME:
-			if (verbose) printf("\tTIME STAMP\n");
+			ReadTimeStamp(verbose);
 			break;
 		case RUN_BEGIN:
 			ReadRunBegin(verbose);
@@ -131,6 +146,34 @@ void fastListBuffer::UnpackBuffer(bool verbose) {
 			printf("ERROR: Unknown buffer type!\n");
 	}
 }
+
+
+/**The time stamp indicates another tick in the 1 ms clock. These ticks may be downscaled based on the 
+ * value in timerreduce.
+ *
+ * \param[in] verbose Verbosity flag.
+ */
+void fastListBuffer::ReadTimeStamp(bool verbose) {
+	//Iterate timestamp by one.
+	timestamp++;	
+	time += timeDownScale;
+
+	if (verbose) {
+		printf ("\nTime Stamp %llu:\n", timestamp);
+		printf("\tTime: %llu ms\n",time);
+
+		Seek(-1);
+		//Print the first word with the triggered ADC bits.
+		printf ("\t%#010llX Alive ADCs: ",GetWord());
+		for (auto it = triggeredADCs.begin(); it != triggeredADCs.end(); ++it) {
+			if (it != triggeredADCs.begin()) printf(", ");
+			printf("%d",*it);
+		}
+		printf("\n");
+
+	}
+}
+
 
 int fastListBuffer::ReadEvent(bool verbose) {
 	unsigned int eventStartPos = GetBufferPosition();
@@ -223,6 +266,8 @@ void fastListBuffer::ReadRunBegin(bool verbose) {
 	
 			//We found an active ADC
 			if (key == "active" && std::stoi(value) > 0) numActiveADCs++;
+			//WEe found the downscaling for the timestamps
+			else if (key == "timerreduce") timeDownScale = std::stoi(value);
 		}
 		//We found the header for an ADC block
 		else if ((pos = line.find("[ADC")) != std::string::npos) {

@@ -17,13 +17,26 @@ class fastListBuffer : public mainBuffer {
 		bool headerRead;
 		///A count of the number of active ADCs during acquistion.
 		unsigned short numActiveADCs;
+		///The downscaling in the timestamps.
+		UShort_t timeDownScale;
 		///A vector of which ADCs were triggered during an event.
 		std::vector<unsigned short> triggeredADCs;
 		///An array of ADC values from an event.
 		std::array<UShort_t,16> adcValues;
+		///The number of time stamps.
+		ULong64_t timestamp;
+		///The time value in milliseconds.
+		ULong64_t time;
+
 
 		///Read out the ASCII header.
 		unsigned int ReadHeader(bool verbose);
+
+		///Reads the flags indicating which ADCs fired.
+		void ReadTriggeredADCs(UInt_t datum);
+
+		///Read the time stamp event.
+		void ReadTimeStamp(bool verbose=false);
 
 	public:
 		///Constructor
