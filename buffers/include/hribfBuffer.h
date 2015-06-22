@@ -19,6 +19,9 @@ class hribfBuffer : public moduleBuffer {
 		///Return the length of the current event in words.
 		virtual UInt_t GetEventLength();
 
+		///Reads "PAC" Buffer
+		void ReadPAC(bool verbose = false);
+
 	public:
 		enum BufferType {
 			///Physics data type.

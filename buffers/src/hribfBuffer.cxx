@@ -88,7 +88,9 @@ void hribfBuffer::UnpackBuffer(bool verbose) {
 			ReadDead(verbose);
 			break;
 		case BUFFER_TYPE_EOF: 
+			break;
 		case BUFFER_TYPE_PAC:
+			ReadPAC(verbose);
 			break;
 		default: 
 			fflush(stdout);
@@ -97,6 +99,13 @@ void hribfBuffer::UnpackBuffer(bool verbose) {
 
 	}
 }
+void hribfBuffer::ReadPAC(bool verbose) {
+	std::string PACStr = ReadString(GetNumOfWords() - GetHeaderSize(),verbose);
+
+	if (verbose) printf("\t%s\n",PACStr.c_str());
+}
+
+
 /**DEAD buffer contains ASCII string of dead time information.
  *
  * \param[in] verbose Verbosity flag.
