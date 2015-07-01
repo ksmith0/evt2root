@@ -13,6 +13,10 @@ hribfBuffer::hribfBuffer(const char *filename, int bufferSize,
 {
 	OpenFile(filename);
 }
+/**
+ * \param[in] verbose Verbosity flag.
+ * \return The number of words left in the buffer.
+ */
 int hribfBuffer::ReadEvent(bool verbose) {
 
 	unsigned int eventStartPos = GetBufferPosition();
@@ -66,15 +70,19 @@ int hribfBuffer::ReadNextBuffer()
 
 	return GetNumOfWords();
 }
-/**Unpacks the current buffer based on the type. Data buffers are ignored 
- * and left to the user to unpack for now.
+/**Unpacks the current buffer based on the type. This needs to be called multiple 
+ * time to completely unpack a physics event buffer.
  *
  * \param[in] verbose Verbosity flag.
+ * \return True if the buffer has more content to unpack.
  */
 void hribfBuffer::UnpackBuffer(bool verbose) {
 	switch(fBufferType) {
 		case BUFFER_TYPE_DATA:
-			return;
+			while (GetEventsRemaining())
+				//We read an event and there are no more words left.
+				if (!ReadEvent(verbose)) break;
+			break;
 		case BUFFER_TYPE_SCALERS: 
 			ReadScalers(verbose);
 			break;
@@ -95,8 +103,6 @@ void hribfBuffer::UnpackBuffer(bool verbose) {
 		default: 
 			fflush(stdout);
 			fprintf(stderr,"WARNING: Unknown buffer type: %#010X '%s'.\n",(UInt_t)fBufferType,ConvertToString(fBufferType).c_str());
-			return;
-
 	}
 }
 void hribfBuffer::ReadPAC(bool verbose) {

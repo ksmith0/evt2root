@@ -68,7 +68,10 @@ void nsclClassicBuffer::UnpackBuffer(bool verbose)
 {
 	switch(fBufferType) {
 		case BUFFER_TYPE_DATA:
-			return;
+			while (GetEventsRemaining())
+				//We read an event and there are no more words left.
+				if (!ReadEvent(verbose)) break;
+			break;
 		case BUFFER_TYPE_SCALERS: 
 			ReadScalers(verbose);
 			break;
@@ -79,11 +82,9 @@ void nsclClassicBuffer::UnpackBuffer(bool verbose)
 			ReadRunEnd(verbose);
 			break;
 
-	
 		default:
 			fflush(stdout);
 			fprintf(stderr,"WARNING: Unknown buffer type: %llu.\n",fBufferType);
-			return;
 	}
 }
 

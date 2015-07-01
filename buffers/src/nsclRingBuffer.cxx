@@ -138,6 +138,10 @@ void nsclRingBuffer::ReadBodyHeader() {
 void nsclRingBuffer::UnpackBuffer(bool verbose) {
 	switch(fBufferType) {
 		case BUFFER_TYPE_DATA:
+			while (GetEventsRemaining())
+				//We read an event and there are no more words left.
+				if (!ReadEvent(verbose)) break;
+			break;
 		case BUFFER_TYPE_DATA_COUNT: 
 			return;
 		case BUFFER_TYPE_SCALERS: 
@@ -154,11 +158,10 @@ void nsclRingBuffer::UnpackBuffer(bool verbose) {
 		case BUFFER_TYPE_FORMAT: 
 			ReadVersion(verbose);
 			break;
+
 		default: 
 			fflush(stdout);
 			fprintf(stderr,"WARNING: Unknown buffer type: %llu.\n",fBufferType);
-			return;
-
 	}
 }
 

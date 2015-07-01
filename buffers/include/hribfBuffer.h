@@ -57,7 +57,7 @@ class hribfBuffer : public moduleBuffer {
 		///Read the next buffer.
 		int ReadNextBuffer();
 		///Unpack the buffer.
-		void UnpackBuffer(bool verbose = false);
+		virtual void UnpackBuffer(bool verbose = false);
 		///Read the run start buffer.
 		void ReadRunBegin(bool verbose=false);
 		///Read the run end buffer.

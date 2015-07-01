@@ -128,6 +128,9 @@ void fastListBuffer::ReadTriggeredADCs(UInt_t datum) {
 	}
 }
 
+/**
+ *	\param[in] verbose Verbosity flag.
+ */
 void fastListBuffer::UnpackBuffer(bool verbose) {
 	switch (fBufferType) {
 		case DATA:

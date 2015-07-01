@@ -248,14 +248,9 @@ nextBuffer: while (buffer->ReadNextBuffer() > 0)
 		//Dump the entire buffer if user specified.
 		if (dumpRawBuffer) buffer->DumpBuffer();
 
+		//If this is a physics data buffer and we are not unpacking them we skip it.
+		if (!unpackPhysicsData && buffer->IsDataType()) continue;
 		//Do buffer specific tasks
 		buffer->UnpackBuffer(true);
-		//Handle data events.
-		if (unpackPhysicsData && buffer->IsDataType()) {
-			//Loop over all events in a buffer.
-			while (buffer->GetEventsRemaining()) {
-				if (!buffer->ReadEvent(true)) break;
-			}
-		}
 	}
 }

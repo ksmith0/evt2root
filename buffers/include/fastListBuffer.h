@@ -74,7 +74,7 @@ class fastListBuffer : public mainBuffer {
 		///Indicate if the current buffer is a run end buffer.
 		virtual bool IsRunEnd() {return false;}
 
-		///Unpack the current buffer
+		///Unpack the current buffer.
 		virtual void UnpackBuffer(bool verbose = false);
 		///Reads current event and stores data.
 		virtual int ReadEvent(bool verbose = false);

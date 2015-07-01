@@ -209,13 +209,6 @@ int main (int argc, char *argv[])
 			}
 			//Do buffer specific tasks
 			buffer->UnpackBuffer();
-			//Handle data events.
-			if (buffer->IsDataType()) {
-				//Loop over all events in a buffer.
-				while (buffer->GetEventsRemaining()) {
-					if (!buffer->ReadEvent()) break;
-				}
-			}
 		}
 		printf("Read %d buffers. %5.2f%% of file read.\n",buffer->GetBufferNumber(),buffer->GetFilePositionPercentage());
 		buffer->CloseFile();

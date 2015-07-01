@@ -243,6 +243,9 @@ class mainBuffer
 		virtual bool IsRunEnd() = 0;
 
 		///Unpack the current buffer
+		/**Returns true while there is more content in the buffer to be unpacked.
+ 		 * \param[in] verbose Verbosity flag.
+ 		 */
 		virtual void UnpackBuffer(bool verbose = false) = 0;
 		///Reads current event and stores data.
 		virtual int ReadEvent(bool verbose = false) = 0;
