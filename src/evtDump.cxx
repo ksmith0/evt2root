@@ -214,7 +214,7 @@ int main (int argc, char *argv[])
 		}
 		printf(".\n");
 	}
-	else {
+	else if (dynamic_cast<moduleBuffer*>(buffer)) {
 		fflush(stdout);
 		fprintf(stderr,"WARNING: No modules specified data events will not be unpacked!\n");
 		unpackPhysicsData = false;
