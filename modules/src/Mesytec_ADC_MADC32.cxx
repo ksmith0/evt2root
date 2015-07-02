@@ -22,15 +22,13 @@ void Mesytec_ADC_MADC32::Clear() {
  *
  * \param[in] buffer The buffer to be read.
  * \param[in] verbose Verbosity flag.
- *
- * \bug Assumes nsclBuffer::GetLongWord() returns a four byte word.
  */
 void Mesytec_ADC_MADC32::ReadEvent(mainBuffer *buffer, bool verbose)
 {
 	Clear();
 	
 	//Get Header Long Word
-	int datum = buffer->GetLongWord();
+	int datum = buffer->GetWord(4);
 	//Get Header type
 	int type = (datum & SIG_MASK) >> SIG_SHIFT;
 	//Get Module ID (slot)
@@ -51,7 +49,7 @@ void Mesytec_ADC_MADC32::ReadEvent(mainBuffer *buffer, bool verbose)
 		//Loop Over Recorded Channels
 		for (int i=0; i<count-1;i++){
 			//Get Data Long Word
-			datum = buffer->GetLongWord();
+			datum = buffer->GetWord(4);
 			//Get Data Type
 			type = (datum & SIG_MASK) >> SIG_SHIFT;					
 			//If type data (b00 = 0)
@@ -75,7 +73,7 @@ void Mesytec_ADC_MADC32::ReadEvent(mainBuffer *buffer, bool verbose)
 			}
 		}
 		//Get Trailer Long Word
-		datum = buffer->GetLongWord();
+		datum = buffer->GetWord(4);
 		type = (datum & SIG_MASK) >> SIG_SHIFT;
 		//Get Trigger/Time Stamp
 		triggerCount = (datum & TRIG_CNT_MASK) >> TRIG_CNT_SHIFT;
