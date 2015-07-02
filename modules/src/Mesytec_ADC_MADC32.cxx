@@ -3,9 +3,13 @@
 
 ClassImp(Mesytec_ADC_MADC32)
 
+/**
+ */
 Mesytec_ADC_MADC32::Mesytec_ADC_MADC32() {
 	Clear();
 }
+/**
+ */
 void Mesytec_ADC_MADC32::Clear() {
 	for (int i=0;i<32;i++) {
 		adcValue[i] = 0;
@@ -14,10 +18,9 @@ void Mesytec_ADC_MADC32::Clear() {
 	}
 }
 
-/**The buffer is read out and data is stored in the eventData structure.
+/**The buffer is read out fromt he specified buffer.
  *
  * \param[in] buffer The buffer to be read.
- * \param[in] data Pointer to data structure.
  * \param[in] verbose Verbosity flag.
  *
  * \bug Assumes nsclBuffer::GetLongWord() returns a four byte word.

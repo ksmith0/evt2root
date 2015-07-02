@@ -1,14 +1,12 @@
 #include "hribfModule.h"
 #include "mainBuffer.h"
 
-ClassImp(hribfModule)
-
 /**Each event consist of a series of 4 byte word containing the channel number of value.
  * The channel number is contained in the lowest order byte and the value is 
  * stored in the highest order two bytes.
  *
  * \param[in] buffer The buffer to extract the event from.
- * \param[in] Verbosity flag.
+ * \param[in] verbose Verbosity flag.
  */
 void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 	Clear();
@@ -33,7 +31,16 @@ void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 	}
 }
 
-UShort_t hribfModule::GetValue(UShort_t ch) {
+/**If the requested channel is outside the vector the default value of zero is returned.
+ *
+ * \param[in] ch The channel from which to get the value.
+ * \return The value of the specified channel.
+ */
+UShort_t hribfModule::GetValue(const UShort_t ch) {
 	if (values.size() > ch) return values.at(ch);
+	else fprintf(stderr,"ERROR: No known channel!\n");
 	return 0;
 }
+
+ClassImp(hribfModule)
+

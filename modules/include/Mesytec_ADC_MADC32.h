@@ -18,9 +18,9 @@ class Mesytec_ADC_MADC32 : public baseModule {
 	private:
 		///Mask and shifts
 		enum bitMasks {
-			/// Word Signiture Mask
+			/// Word Signature Mask
 			SIG_MASK = 0xC0000000,
-			/// Word Signiture Shift
+			/// Word Signature Shift
 			SIG_SHIFT = 30,
 
 			/// Module ID Mask
@@ -60,28 +60,35 @@ class Mesytec_ADC_MADC32 : public baseModule {
 			/// Trigger/Time Stamp Shift
 			TRIG_CNT_SHIFT = 0
 		};
-		///Signiture Types
+		///Signature Types
 		enum class BufferType {
-			///Header Signiture
+			///Header Signature
 			MESY_HEADER = 1,
-			///Data Signiture
+			///Data Signature
 			MESY_DATA = 0,
-			///Trailer Signiture
+			///Trailer Signature
 			MESY_TRAILER = 3
 		};
+		///The ADC values.
 		UShort_t adcValue[32];
+		///The overflow bits.
 		Bool_t overflow[32];
+		///The number of triggers received.
 		UInt_t triggerCount;
+		///An integer value referring to the ADC resolution.
 		UShort_t resolution;
 
 	public:
+		///Default constructor.
 		Mesytec_ADC_MADC32();
 		///Readout the module.
 		void ReadEvent(mainBuffer *buffer, bool verbose=false); 
 		///Clear the module values.
 		void Clear();
 
+	/// \cond This is just for ROOT and doesn't need to be documented
 	ClassDef(Mesytec_ADC_MADC32,1);
+	/// \endcond
 };
 
 
