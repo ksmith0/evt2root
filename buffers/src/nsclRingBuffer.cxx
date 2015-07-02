@@ -402,7 +402,7 @@ void nsclRingBuffer::ReadScalers(bool verbose)
 	//Time stamp when scalers were read.
 	time_t timeStamp = GetWord();
 	
-	UInt_t intervalDivisor, isIncremental;
+	UInt_t intervalDivisor = -1, isIncremental = -1;
 	if (fVersion >= 11) intervalDivisor = GetWord();
 	scalerCount = GetWord();
 	if (fVersion >= 11) isIncremental = GetWord();
