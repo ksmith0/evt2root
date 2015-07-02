@@ -106,6 +106,7 @@ time_t nsclUSBBuffer::GetRunTime(bool verbose)
  *
  */
 int nsclUSBBuffer::ReadEvent(bool verbose) {
+	ClearModules();
 
 	unsigned int eventStartPos = GetBufferPosition();
 	if (eventStartPos >= GetNumOfWords()) {

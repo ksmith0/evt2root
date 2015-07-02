@@ -13,7 +13,8 @@ class baseModule : public TObject
 	public:
 		baseModule();
 		virtual ~baseModule();
-		virtual void ReadEvent(mainBuffer *buffer, bool verbose=false) {}
+		virtual void ReadEvent(mainBuffer *buffer, bool verbose=false) = 0;
+		virtual void Clear() = 0;
 
 	ClassDef(baseModule,1);
 };

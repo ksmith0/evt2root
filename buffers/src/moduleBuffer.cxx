@@ -36,4 +36,9 @@ void moduleBuffer::FillStorage() {
 	
 	manager->Fill("data");
 }
+void moduleBuffer::ClearModules() {
+	for (auto itr = fModules.begin(); itr != fModules.end(); ++itr)
+		(*itr)->Clear();
+
+}
 

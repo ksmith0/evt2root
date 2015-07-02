@@ -316,6 +316,8 @@ void nsclRingBuffer::ReadRunBeginEnd(UInt_t &runNum, UInt_t &elapsedTime, time_t
  *
  */
 int nsclRingBuffer::ReadEvent(bool verbose) {
+	ClearModules();
+
 	unsigned int eventStartPos = GetBufferPositionBytes();
 	if (eventStartPos >= GetNumOfBytes()) {
 		fflush(stdout);

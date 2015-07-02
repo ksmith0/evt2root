@@ -8,6 +8,7 @@ class moduleBuffer : public mainBuffer {
 		void InitializeStorageManager();
 	protected:
 		void FillStorage();
+		void ClearModules();
 
 	public:
 		moduleBuffer(int bufferSize, int headerSize, int wordSize);

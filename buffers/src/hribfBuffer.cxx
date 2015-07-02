@@ -18,6 +18,7 @@ hribfBuffer::hribfBuffer(const char *filename, int bufferSize,
  * \return The number of words left in the buffer.
  */
 int hribfBuffer::ReadEvent(bool verbose) {
+	ClearModules();
 
 	unsigned int eventStartPos = GetBufferPosition();
 	if (eventStartPos >= GetNumOfWords()) {

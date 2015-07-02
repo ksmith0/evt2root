@@ -183,6 +183,7 @@ time_t nsclClassicBuffer::GetRunTime(bool verbose)
  *
  */
 int nsclClassicBuffer::ReadEvent(bool verbose) {
+	ClearModules();
 
 	unsigned int eventStartPos = GetBufferPosition();
 	if (eventStartPos >= GetNumOfWords()) {
