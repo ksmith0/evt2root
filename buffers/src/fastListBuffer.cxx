@@ -72,6 +72,11 @@ int fastListBuffer::ReadNextBuffer()
 			fprintf(stderr,"ERROR: ADC Data event with no triggered ADCs! %#10X\n",datum);
 			return 0;
 		}
+		//The 31st bit indicates a dummy word was inserted for an odd number of triggered ADCs. 
+		if (((datum >> 31) && 0xF) == 0 && triggeredADCs.size() % 2 == 1) {
+			fprintf(stderr,"ERROR: Odd number of ADCs triggered and no dummy word indicated.");
+			return 0;
+		}	
 
 		//Prepare the buffer for the current event.
 		//Each triggered ADC writes two bytes.
@@ -198,37 +203,23 @@ int fastListBuffer::ReadEvent(bool verbose) {
 		}
 		printf("\n");
 	}
-	
-	for (size_t trigger = 0; trigger < triggeredADCs.size(); trigger += 2) {
-		UShort_t adc = triggeredADCs.at(trigger);
-		UInt_t datum = GetWord();
-		adcValues[adc] = (datum >> 16) & 0xFFFF;
-		if (verbose) {
-			printf("\t%#010X",datum);
-			printf(" ADC %d value: %u\n",adc,adcValues[adc]);
-		}
 
-		if (trigger+1 < triggeredADCs.size()) {
-			adc = triggeredADCs.at(trigger + 1);
-			adcValues[adc] = datum & 0xFFFF;
-			if (verbose) {
-				printf("\t%*c",10,' ');
-				printf(" ADC %d value: %u\n",adc,adcValues[adc]);
-			}
+	//If there is an odd number of ADCs we seek over the dummy 16 bits.
+	if (triggeredADCs.size() % 2 == 1) {
+		if (verbose) printf("\t%#06X Dummy Word\n",(UShort_t)GetWord(2));
+		else SeekBytes(2);
+	}
+
+	for (auto itr = triggeredADCs.begin(); itr != triggeredADCs.end(); ++itr) {
+		UShort_t adc = *itr;
+		adcValues[adc] = GetWord(2);
+		if (verbose) {
+			printf("\t%#06X",adcValues[adc]);
+			printf(" ADC %d value: %u\n",adc,adcValues[adc]);
 		}
 	}
 
 	if (GetStorageManager()) GetStorageManager()->Fill("data");
-/*
-	//Loop over each module
-	int headerSize = 2;
-	for(unsigned int module=0;module<fModules.size();module++) {
-
-		//Read out the current module
-		fModules[module]->ReadEvent(this,verbose);
-
-	}
-*/
 
 	fEventNumber++;
 
