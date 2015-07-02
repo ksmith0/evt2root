@@ -16,6 +16,7 @@ class nsclRingBuffer : public moduleBuffer
 	private:
 		///The buffer's version.
 		UInt_t fVersion;
+		///Container for information stored in header of format buffer.
 		struct bodyHeader {
 			///The size of the body header in bytes. 
 			UInt_t fLength;
