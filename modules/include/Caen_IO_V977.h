@@ -12,10 +12,12 @@
  */
 class Caen_IO_V977 : public baseModule {
 	private:
+		UInt_t pattern;
 
 	public:
-		Caen_IO_V977() {}
+		Caen_IO_V977() {Clear();}
 		void ReadEvent(mainBuffer *buffer, bool verbose=false);
+		void Clear() {pattern = 0;};
 
 	ClassDef(Caen_IO_V977,1);
 };
