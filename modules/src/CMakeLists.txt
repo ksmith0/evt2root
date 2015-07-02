@@ -1,3 +1,5 @@
+#The modules must be Position Independent Code
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 root_generate_dictionary(ModuleDictionary baseModule.h Caen_General.h Caen_IO_V977.h Mesytec_ADC_MADC32.h XIA_Pixie16.h hribfModule.h LINKDEF ModulesLinkDef.h)
 
@@ -7,7 +9,11 @@ endif()
 
 set(MODULE_SOURCES baseModule.cxx Caen_General.cxx Caen_IO_V977.cxx Mesytec_ADC_MADC32.cxx XIA_Pixie16.cxx hribfModule.cxx ModuleDictionary.cxx)
 
-add_library(ModulesStatic STATIC ${MODULE_SOURCES})
-add_library(Modules SHARED ${MODULE_SOURCES})
+#We build an obect dictionary so that the sources are not built twice for the shared and static libraries.
+add_library(ModulesObjects OBJECT ${MODULE_SOURCES})
+
+#Build the static and shared libraries.
+add_library(ModulesStatic STATIC $<TARGET_OBJECTS:ModulesObjects>)
+add_library(Modules SHARED $<TARGET_OBJECTS:ModulesObjects>)
 install(TARGETS Modules DESTINATION ${CMAKE_INSTALL_PREFIX})
 

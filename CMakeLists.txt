@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required (VERSION 2.8.8 FATAL_ERROR)
 project (evt2root)
 
 #if user does not specify prefix we assign it to the exec directory
