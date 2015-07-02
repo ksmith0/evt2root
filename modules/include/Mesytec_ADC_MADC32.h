@@ -69,8 +69,10 @@ class Mesytec_ADC_MADC32 : public baseModule {
 			///Trailer Signiture
 			MESY_TRAILER = 3
 		};
-		UShort_t fValues[32];
-		Bool_t fOverflow[32];
+		UShort_t adcValue[32];
+		Bool_t overflow[32];
+		UInt_t triggerCount;
+		UShort_t resolution;
 
 	public:
 		Mesytec_ADC_MADC32();
