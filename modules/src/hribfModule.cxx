@@ -28,12 +28,12 @@ void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 			printf("\t%#010X Channel: %d Value: %d\n",datum,channel,value);
 		}
 
-		if (fValues.size() <= channel) fValues.resize(channel+1);
-		fValues[channel]=value;
+		if (values.size() <= channel) values.resize(channel+1);
+		values[channel]=value;
 	}
 }
 
 UShort_t hribfModule::GetValue(UShort_t ch) {
-	if (fValues.size() > ch) return fValues.at(ch);
+	if (values.size() > ch) return values.at(ch);
 	return 0;
 }
