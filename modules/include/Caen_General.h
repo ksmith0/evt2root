@@ -47,11 +47,20 @@ class Caen_General : public baseModule {
 			INVALID = 6
 		};
 
+		///The module's geographical address.
+		int geoAddress;
+		///The crate number containing the module.
+		int crate;
+		///The number of channels read out.
+		int moduleMultiplicity;
 		///Vector containing module values, maps are not supported for drawing by ROOT.
-		std::vector<UInt_t> fValues;
-		std::vector<Bool_t> fOverflow;
-		std::vector<Bool_t> fUnderflow;
-		std::vector<Bool_t> fValid;
+		std::vector<UInt_t> values;
+		///The overflow bits corresponding to each channel.
+		std::vector<Bool_t> overflowBits;
+		///The underflow bits corresponding to each channel.
+		std::vector<Bool_t> underflowBits;
+		///The valid bits corresponding to each channel.
+		std::vector<Bool_t> validBits;
 
 	public:
 		Caen_General() {}
