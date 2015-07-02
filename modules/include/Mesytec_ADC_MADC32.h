@@ -17,7 +17,7 @@
 class Mesytec_ADC_MADC32 : public baseModule {
 	private:
 		///Mask and shifts
-		enum masks {
+		enum bitMasks {
 			/// Word Signiture Mask
 			SIG_MASK = 0xC0000000,
 			/// Word Signiture Shift
@@ -61,7 +61,7 @@ class Mesytec_ADC_MADC32 : public baseModule {
 			TRIG_CNT_SHIFT = 0
 		};
 		///Signiture Types
-		enum types {
+		enum class BufferType {
 			///Header Signiture
 			MESY_HEADER = 1,
 			///Data Signiture
@@ -75,7 +75,7 @@ class Mesytec_ADC_MADC32 : public baseModule {
 	public:
 		Mesytec_ADC_MADC32();
 		///Readout the module.
-		void ReadEvent(mainBuffer *buffer, bool verbose=false);
+		void ReadEvent(mainBuffer *buffer, bool verbose=false); 
 		///Clear the module values.
 		void Clear();
 

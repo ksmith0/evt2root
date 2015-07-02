@@ -38,7 +38,7 @@ void Mesytec_ADC_MADC32::ReadEvent(mainBuffer *buffer, bool verbose)
 	else if (resolution == 1 || resolution == 2) datum_mask = DATUM_MASK_4K; 
 	else if (resolution == 3 || resolution == 4) datum_mask = DATUM_MASK_8K; 
 	if (verbose) printf ("\t0x%08X type: %d slot: %2d resolution: %d",datum,type,slot,resolution);		
-	if (type == MESY_HEADER) {				
+	if ((BufferType) type == BufferType::MESY_HEADER) {				
 		//Get Channel Count
 		int count = (datum & CH_CNT_MASK) >> CH_CNT_SHIFT;
 		if (verbose) printf(" count: %d\n",count);
@@ -49,7 +49,7 @@ void Mesytec_ADC_MADC32::ReadEvent(mainBuffer *buffer, bool verbose)
 			//Get Data Type
 			type = (datum & SIG_MASK) >> SIG_SHIFT;					
 			//If type data (b00 = 0)
-			if (type == MESY_DATA){
+			if ((BufferType) type == BufferType::MESY_DATA){
 				//Get Channel Number
 				int channel = (datum & CH_NUM_MASK) >> CH_NUM_SHIFT;						
 				//Get Overflow
