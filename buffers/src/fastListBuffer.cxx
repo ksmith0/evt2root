@@ -18,6 +18,7 @@ void fastListBuffer::InitializeStorageManager() {
 	if (GetStorageManager()) {
 		GetStorageManager()->CreateTree("data");
 		GetStorageManager()->CreateBranch("data","adc",adcValues.data(),"adc[16]/s");
+		GetStorageManager()->CreateBranch("data","mult",&multiplicity,"mult/s");
 		GetStorageManager()->CreateBranch("data","timestamp",&timestamp,"timestamp/l");
 		GetStorageManager()->CreateBranch("data","time",&time,"time/l");
 	}
@@ -191,6 +192,8 @@ int fastListBuffer::ReadEvent(bool verbose) {
 		return -1;
 	}
 
+	multiplicity = triggeredADCs.size();
+
 	if (verbose) {
 		printf ("\nData Event %llu:\n",fEventNumber);
 		Seek(-1);
@@ -282,4 +285,5 @@ void fastListBuffer::Clear() {
 	mainBuffer::Clear();
 	triggeredADCs.clear();
 	adcValues.fill(0);
+	multiplicity = 0;
 }

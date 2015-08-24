@@ -23,6 +23,8 @@ class fastListBuffer : public mainBuffer {
 		std::vector<unsigned short> triggeredADCs;
 		///An array of ADC values from an event.
 		std::array<UShort_t,16> adcValues;
+		///The number of ADCs triggered in an event.
+		UShort_t multiplicity;
 		///The number of time stamps.
 		ULong64_t timestamp;
 		///The time value in milliseconds.
