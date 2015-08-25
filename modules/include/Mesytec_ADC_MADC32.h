@@ -61,7 +61,7 @@ class Mesytec_ADC_MADC32 : public baseModule {
 			TRIG_CNT_SHIFT = 0
 		};
 		///Signature Types
-		enum class BufferType {
+		enum BufferType {
 			///Header Signature
 			MESY_HEADER = 1,
 			///Data Signature
