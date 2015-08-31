@@ -184,6 +184,8 @@ class mainBuffer
 		unsigned int GetWritePosition() {return fWritePosition;}
 		///Return the number of events remaining in the current buffer.
 		unsigned int GetEventsRemaining() {return fNumOfEvents - fEventNumber;};
+		///Return the current event number.
+		unsigned int GetEventNumber() {return fEventNumber;}
 		///Return the vector of modules.
 		std::vector<baseModule*> GetModules() {return fModules;};
 		///Return a pointer to the specified module.
