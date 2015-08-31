@@ -12,6 +12,10 @@ class hribfModule : public baseModule {
 	private:
 		///Vector storing the values for each channel.
 		std::vector <UShort_t> values;
+		///The number of times a parameter was set in a given event.
+		std::vector <UInt_t> paramMults;
+		///The multiplicity of the number of channels fired in an event.
+		unsigned int mult;
 	public:
 		///Default constructor.
 		hribfModule() {};
@@ -19,7 +23,7 @@ class hribfModule : public baseModule {
 		///Read an event from the buffer.		
 		void ReadEvent(mainBuffer *buffer, bool verbose=false);
 		///Clear the stored values.
-		void Clear() {values.clear();};
+		void Clear();
 		///Get value for specified channel.
 		UShort_t GetValue(const UShort_t ch); 
 	
