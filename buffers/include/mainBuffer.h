@@ -103,8 +103,10 @@ class mainBuffer
 		///Set the header size in bytes.
 		void SetHeaderSize(ULong64_t headerSizeBytes);
 
-		///Deque tracking all the modules used in the data file.
+		///Vector tracking all the modules used in the data file.
 		std::vector< baseModule* > fModules;
+		///Vector tracking all the builder source IDs for each modules.
+		std::vector< int > moduleSourceIDs_;
 
 		///Switch whether word of size index is middle endian.
 		std::vector<bool> fMiddleEndian;
@@ -262,7 +264,10 @@ class mainBuffer
 		std::string ConvertToString(ULong64_t word);
 
 		///Add a module to be read during event unpacking.
-		void AddModule(baseModule* module) {fModules.push_back(module);};
+		void AddModule(baseModule* module, int sourceID = 0) {
+			fModules.push_back(module);
+			moduleSourceIDs_.push_back(sourceID);
+		};
 };
 
 #endif

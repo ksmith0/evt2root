@@ -154,7 +154,14 @@ UInt_t mainBuffer::ValidatedEventLength(UInt_t eventLength) {
 
 ULong64_t mainBuffer::GetWord()
 {
-	return GetWord(fWordSize);
+	unsigned int numBytes = fWordSize; //Number of bytes to request.
+	unsigned int bytesRemaining = GetNumOfBytes() - GetBufferPositionBytes(); //Bytes left in buffer.
+	//Only request the number of remaining bytes.
+	if (fWordSize > bytesRemaining) {
+		numBytes = bytesRemaining;
+	}
+
+	return GetWord(numBytes);
 }
 ULong64_t mainBuffer::GetWord(unsigned int numOfBytes) {
 	return GetWord(numOfBytes,IsMiddleEndian(numOfBytes));
@@ -175,24 +182,30 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 	//Create a mask so we return values only as large as requested
 	ULong64_t mask = 0xFFFFFFFFFFFFFFFF >> 8*(8-numOfBytes);
 
+	//We do not have a container large enought to store it.
 	if (numOfBytes > 8) {
 		fflush(stdout);
 		fprintf(stderr, "ERROR: Cannot retireve words larger than 8 bytes!\n");
 		return 0xFFFFFFFFFFFFFFFF;
 	}
+
+	//The user tries to read more bytes than are available.
 	if (GetBufferPositionBytes() >= fNumBytes) {
 		fflush(stdout);
 		fprintf(stderr,"\nERROR: No bytes left in buffer %llu (%u/%llu)!\n",fBufferNumber,GetBufferPositionBytes(),fNumBytes);
 		return mask;
 	}
 
+	//Determine how many bytes are left in the buffer.
 	unsigned int bytesRemaining = GetNumOfBytes() - GetBufferPositionBytes();
+	//Requested more bytes than the buffer has, we set the request to what is left.
 	if (numOfBytes > bytesRemaining) {
 		fflush(stdout);
-		fprintf(stderr,"WARNING: Requested more bytes (%d) than those remaining(%d)! Returning remaing bytes.\n",numOfBytes,bytesRemaining);
+		fprintf(stderr,"WARNING: Requested more bytes (%d) than those remaining (%d)! Returning remaing bytes.\n",numOfBytes,bytesRemaining);
 		numOfBytes = bytesRemaining;
 	}
 
+	//If the word is middle endian we need to reverse the order.
 	if (middleEndian && numOfBytes % 2 == 0) {
 		UInt_t wordSize = numOfBytes / 2;
 		ULong64_t word1 = GetWord(wordSize);
@@ -209,8 +222,14 @@ ULong64_t mainBuffer::GetWord(unsigned int numOfBytes, bool middleEndian) {
 }
 ULong64_t mainBuffer::GetCurrentWord()
 {
-	UInt_t retVal = GetWord();
-	Seek(-1);
+	unsigned int byteOffset = GetBufferPositionBytes() % fWordSize; //The offset in bytes due to a fractional word read.
+	//Seek backward over the offset to get the actual "word" as the user expects.
+	SeekBytes(-byteOffset);
+	//Get the word to return
+	ULong64_t retVal = GetWord();
+	//Seek back over the word read and the offset.
+	SeekBytes(-fWordSize + byteOffset);
+
 	return retVal;
 }
 ULong64_t mainBuffer::GetCurrentLongWord()
