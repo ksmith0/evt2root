@@ -13,6 +13,7 @@ int usage(const char *progName="") {
 	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_BUFFER_FORMATS);
 	fprintf(stderr,"\t-m moduleType\t Indicate the module to be unpacked. Possible options include:\n");
 	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_MODULES);
+	fprintf(stderr,"\t-b sourceID\t Indicate the builder source ID for the previously listed module.\n\t\t(Only used for the nscl ring buffer)\n");
 	fprintf(stderr,"\n");
 	fprintf(stderr,"\t-r\t Indicates raw buffer should be dumped.\n");
 	fprintf(stderr,"\t-u\t Indicates physics data unpacking is ignored.\n");
@@ -28,6 +29,7 @@ int main (int argc, char *argv[])
 {
 	std::vector< const char* > inputFiles;
 	std::vector< baseModule* > modules;
+	std::vector< int > moduleSourceIDs;
 	mainBuffer* buffer = nullptr;
 	ConfigFile *conf = nullptr;
 
@@ -41,7 +43,7 @@ int main (int argc, char *argv[])
 	if (argc == 1) {return usage(argv[0]);}
 	//Loop over options
 	int c;
-	while ((c = getopt(argc,argv,":c:f:m:rut:i:s:h")) != -1) {
+	while ((c = getopt(argc,argv,":c:f:m:b:rut:i:s:h")) != -1) {
 		switch (c) {
 			//config file
 			case 'c': {
@@ -147,6 +149,16 @@ int main (int argc, char *argv[])
 					modules.push_back(modulePtr);
 					break;
 				}
+			//builder source
+			case 'b':
+				{
+					if (modules.size() <= moduleSourceIDs.size()) {
+						fprintf(stderr,"ERROR: Builder source ID specified prior to module declaration!\n");
+						return 1;
+					}
+					moduleSourceIDs.push_back(atoi(optarg));
+					break;
+				}
 			//raw buffers
 			case 'r':
 				dumpRawBuffer = true;
@@ -207,10 +219,19 @@ int main (int argc, char *argv[])
 	//Add modules to buffer
 	if (!modules.empty()) {
 		printf("Loaded modules: ");
-		for (auto it = modules.begin(); it != modules.end(); ++it) {
+		//for (auto it = modules.begin(); it != modules.end(); ++it) {
+		for (size_t i=0;i<modules.size();i++) {
+			auto it = modules.begin() + i;
 			if (it != modules.begin()) printf(", ");
 			printf("%s", (*it)->IsA()->GetName());
-			buffer->AddModule(*it);
+
+			int sourceID = 0;
+			if (moduleSourceIDs.size() > i) {
+				sourceID = moduleSourceIDs[i];
+				printf(" (%d)",sourceID);
+			}
+
+			buffer->AddModule(*it, sourceID);
 		}
 		printf(".\n");
 	}
@@ -221,36 +242,41 @@ int main (int argc, char *argv[])
 	}
 	
 	//Loop over each buffer. Number of words read is returned.
-nextBuffer: while (buffer->ReadNextBuffer() > 0)
+	while (buffer->ReadNextBuffer() > 0)
 	{
+		//We need to unpack data even if the user doesn't want to see it.
+		// We set verbose false if the user wants it skipped.
+		bool verbose = true;
 		//Skip the first n buffers specified.
-		if (buffer->GetBufferNumber() < skipBuffers) goto nextBuffer;
+		if (buffer->GetBufferNumber() < skipBuffers) verbose = false;
 
 		//Skip any specified ignore buffers.
-		for (unsigned int i=0;i<ignoreBufferType.size();i++) 
-			if (buffer->GetBufferType() == ignoreBufferType[i]) goto nextBuffer;
+		for (unsigned int i=0;i<ignoreBufferType.size() && verbose;i++) 
+			if (buffer->GetBufferType() == ignoreBufferType[i]) verbose = false;
 
 		//If not user specified buffer then we continue
 		if (bufferType.size() > 0) {
 			bool goodBuffer = false;
-			for (unsigned int i=0;i<bufferType.size() && !goodBuffer;i++) { 
+			for (unsigned int i=0;i<bufferType.size() && !goodBuffer && verbose;i++) { 
 				if (buffer->GetBufferType() == bufferType[i]) goodBuffer=true;
 			}
-			if (!goodBuffer) goto nextBuffer;
+			if (!goodBuffer) verbose = false;
 		}
 
-		printf("\nBuffer Position: %d Bytes (%.2f%%)",buffer->GetBufferBeginPosition(),buffer->GetFilePositionPercentage());
+		if (verbose) {
+			printf("\nBuffer Position: %d Bytes (%.2f%%)",buffer->GetBufferBeginPosition(),buffer->GetFilePositionPercentage());
 
-		//Print out information about buffer header.
-		buffer->DumpHeader();
-		buffer->PrintBufferHeader();
+			//Print out information about buffer header.
+			buffer->DumpHeader();
+			buffer->PrintBufferHeader();
 
-		//Dump the entire buffer if user specified.
-		if (dumpRawBuffer) buffer->DumpBuffer();
+			//Dump the entire buffer if user specified.
+			if (dumpRawBuffer) buffer->DumpBuffer();
+		}
 
 		//If this is a physics data buffer and we are not unpacking them we skip it.
 		if (!unpackPhysicsData && buffer->IsDataType()) continue;
 		//Do buffer specific tasks
-		buffer->UnpackBuffer(true);
+		buffer->UnpackBuffer(verbose);
 	}
 }
