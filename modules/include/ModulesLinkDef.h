@@ -10,5 +10,6 @@
 #pragma link C++ class Caen_IO_V977+;
 #pragma link C++ class Mesytec_ADC_MADC32+;
 #pragma link C++ class XIA_Pixie16+;
+#pragma link C++ class Xlm_Xxv+;
 #pragma link C++ class hribfModule+;
 #endif
