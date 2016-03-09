@@ -27,6 +27,7 @@ class nsclRingBuffer : public moduleBuffer
 			///The barrier specified in the body header.
 			UInt_t fBarrier;
 		};
+		UShort_t isBuilding_; ///<Indicates the event builder is operating.
 
 		bodyHeader fBodyHeader;
 
@@ -37,6 +38,8 @@ class nsclRingBuffer : public moduleBuffer
 		void ReadBodyHeader();
 		///Read the buffer version
 		UInt_t ReadVersion(bool verbose = false);
+		///Read the glom information.
+		void ReadGlomInfo(bool verbose = false);
 
 		///Read the run begin or end buffer.
 		void ReadRunBeginEnd(UInt_t &runNum, UInt_t &elpasedTime, time_t &timeStamp, std::string &runTitle, bool verbose=false);

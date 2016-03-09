@@ -4,7 +4,8 @@
 nsclRingBuffer::nsclRingBuffer(int bufferSize, int headerSize, 
 	int wordSize) :
 	moduleBuffer(bufferSize,headerSize,wordSize),
-	fVersion(0)
+	fVersion(0),
+	isBuilding_(0)
 {
 	//Ring buffer event buffers only contain 1 event.
 	fNumOfEvents = 1;
@@ -13,7 +14,8 @@ nsclRingBuffer::nsclRingBuffer(int bufferSize, int headerSize,
 nsclRingBuffer::nsclRingBuffer(const char *filename,int bufferSize, 
 	int headerSize, int wordSize) :
 	moduleBuffer(bufferSize,headerSize,wordSize),
-	fVersion(0)
+	fVersion(0),
+	isBuilding_(0)
 {
 	OpenFile(filename);
 
@@ -155,6 +157,9 @@ void nsclRingBuffer::UnpackBuffer(bool verbose) {
 		case BUFFER_TYPE_RUNEND: 
 			ReadRunEnd(verbose);
 			break;
+		case BUFFER_TYPE_EVB_GLOM_INFO:
+			ReadGlomInfo(verbose);
+			break;
 		case BUFFER_TYPE_FORMAT: 
 			ReadVersion(verbose);
 			break;
@@ -162,6 +167,22 @@ void nsclRingBuffer::UnpackBuffer(bool verbose) {
 		default: 
 			fflush(stdout);
 			fprintf(stderr,"WARNING: Unknown buffer type: %llu.\n",fBufferType);
+	}
+}
+
+void nsclRingBuffer::ReadGlomInfo(bool verbose) {
+	if (verbose) printf("CurrWord %#018llX\n",GetCurrentWord());
+	ULong64_t coincidenceTicks = GetWord(4) | (GetWord(4) << 32);
+	if (verbose) printf("CurrWord %#018llX\n",GetCurrentWord());
+	isBuilding_ = GetWord(2);
+	if (verbose) printf("CurrWord %#018llX\n",GetCurrentWord());
+	UShort_t timestampPolicy = GetWord(2);
+	if (verbose) printf("CurrWord %#018llX\n",GetCurrentWord());
+
+	if (verbose) {
+		printf("\n\t%#018llX Coincidence Ticks %llu\n",coincidenceTicks, coincidenceTicks);
+		printf("\t%#010X Is Building\n",isBuilding_);
+		printf("\t%#010X Timestamp Policy\n", timestampPolicy);
 	}
 }
 
@@ -324,49 +345,65 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 		fprintf(stderr,"WARNING: Attempted to read event after reaching end of buffer!\n");
 		return 0;
 	}
-
-	UInt_t eventLength = GetEventLength();
+		
+	UInt_t eventLength = GetWord();
 	if (eventLength == 0) return 1;
 
 	if (verbose) {
 		printf ("\nData Event:\n");
-		printf("\t%#010X Length: %d\n",(UInt_t)GetWord(),eventLength);
-	}
-	else Seek(1);
-
-	eventLength *= GetWordSize();
-
-	//Loop over each module
-	for(unsigned int module=0;module<fModules.size();module++) {
-
-		//Read out the current module
-		fModules[module]->ReadEvent(this,verbose);
-
-		//Check how many words were read.
-		if (GetBufferPositionBytes() - eventStartPos > eventLength) {
-			fflush(stdout);
-			fprintf(stderr,"ERROR: Module read too many words! (Buffer: %d)\n",GetBufferNumber());
-		}
-
+		printf("\t%#010X Length: %d\n",eventLength,eventLength);
 	}
 
-	FillStorage();
-
-	//Fastforward over extra words
-	int remainingBytes = eventStartPos + eventLength - GetBufferPositionBytes();
-	if (remainingBytes > 0) {
+	//We loop over each data source until the event is consumed. 
+	while (GetBufferPositionBytes() - eventStartPos < eventLength) {
+		UInt_t fragmentStartPos = GetBufferPositionBytes();
+		ULong64_t timestamp = GetWord(8);
+		UInt_t sourceID = GetWord(4);
+		UInt_t sourcePayloadSize = GetWord(4);
 		if (verbose) {
-			for (int i=0;i<remainingBytes;i+=GetWordSize()) 
-				if (remainingBytes >= GetWordSize()) 
-					printf("\t%#0*X Extra Word?\n",2*GetWordSize()+2,(UInt_t)GetWord());
-				else {
-					printf("\t%#0*X Extra Bytes?\n",2*remainingBytes+2,(UInt_t)GetWord(remainingBytes));
-				}
+			printf("\t%#018llX Timestamp: %llu\n", timestamp, timestamp);
+			printf("\t%#010X Source ID: %d\n", sourceID, sourceID);
+			printf("\t%#010X Source Payload Size: %d\n", sourcePayloadSize, sourcePayloadSize);
+			printf("\t%#010X Barrier\n", (UInt_t) GetWord());
+			printf("\t%#010X Ring Item Size\n", (UInt_t) GetWord());
+			printf("\t%#010X Ring Item Type\n", (UInt_t) GetWord());
 		}
-		else {
-			SeekBytes(remainingBytes);
+		else{
+			Seek(3); //Junk the barrier, and source ring item header (two words).
+		}
+
+		while (GetBufferPositionBytes() - fragmentStartPos < sourcePayloadSize) {
+			//Loop over each module
+			for(unsigned int module=0;module<fModules.size();module++) {
+
+				//Read out the current module
+				fModules[module]->ReadEvent(this,verbose);
+
+				//Check how many words were read.
+				if (GetBufferPositionBytes() - eventStartPos > eventLength) {
+					fflush(stdout);
+					fprintf(stderr,"ERROR: Module read too many words! (Buffer: %d)\n",GetBufferNumber());
+				}
+
+			}
+			//Fastforward over extra words
+			int remainingBytes = fragmentStartPos + sourcePayloadSize - GetBufferPositionBytes();
+			if (remainingBytes > 0) {
+				if (verbose) {
+					for (int i=0;i<remainingBytes;i+=GetWordSize()) 
+						if (remainingBytes >= GetWordSize()) 
+							printf("\t%#0*X Extra Word?\n",2*GetWordSize()+2,(UInt_t)GetWord());
+						else {
+							printf("\t%#0*X Extra Bytes?\n",2*remainingBytes+2,(UInt_t)GetWord(remainingBytes));
+						}
+				}
+				else {
+					SeekBytes(remainingBytes);
+				}
+			}
 		}
 	}
+	FillStorage();
 
 	fEventNumber++;
 
