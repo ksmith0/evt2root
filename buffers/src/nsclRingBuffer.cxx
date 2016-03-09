@@ -121,7 +121,7 @@ void nsclRingBuffer::ReadBodyHeader() {
 	else {
 		//Increase the header size to include the body header.
 		SetHeaderSize(GetHeaderSizeBytes() + fBodyHeader.fLength);
-		fBodyHeader.fTimeStamp = GetLongWord();
+		fBodyHeader.fTimeStamp = GetWord() | (GetWord() << 32);
 		fBodyHeader.fSourceID = GetWord();
 		fBodyHeader.fBarrier = GetWord();
 
@@ -140,7 +140,7 @@ void nsclRingBuffer::ReadBodyHeader() {
 void nsclRingBuffer::UnpackBuffer(bool verbose) {
 	switch(fBufferType) {
 		case BUFFER_TYPE_DATA:
-			while (GetEventsRemaining())
+//			while (GetEventsRemaining())
 				//We read an event and there are no more words left.
 				if (!ReadEvent(verbose)) break;
 			break;
@@ -340,39 +340,55 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 	ClearModules();
 
 	unsigned int eventStartPos = GetBufferPositionBytes();
+	UInt_t fragmentStartPos = GetBufferPositionBytes();
 	if (eventStartPos >= GetNumOfBytes()) {
 		fflush(stdout);
 		fprintf(stderr,"WARNING: Attempted to read event after reaching end of buffer!\n");
 		return 0;
 	}
-		
-	UInt_t eventLength = GetWord();
-	if (eventLength == 0) return 1;
+
+	UInt_t eventTotLength = GetWord(); //Including all fragments
+	if (eventTotLength == 0) return 1;
 
 	if (verbose) {
 		printf ("\nData Event:\n");
-		printf("\t%#010X Length: %d\n",eventLength,eventLength);
+		printf("\t%#010X Length: %d\n",eventTotLength,eventTotLength);
 	}
 
 	//We loop over each data source until the event is consumed. 
-	while (GetBufferPositionBytes() - eventStartPos < eventLength) {
-		UInt_t fragmentStartPos = GetBufferPositionBytes();
-		ULong64_t timestamp = GetWord(8);
-		UInt_t sourceID = GetWord(4);
-		UInt_t sourcePayloadSize = GetWord(4);
-		if (verbose) {
-			printf("\t%#018llX Timestamp: %llu\n", timestamp, timestamp);
-			printf("\t%#010X Source ID: %d\n", sourceID, sourceID);
-			printf("\t%#010X Source Payload Size: %d\n", sourcePayloadSize, sourcePayloadSize);
-			printf("\t%#010X Barrier\n", (UInt_t) GetWord());
-			printf("\t%#010X Ring Item Size\n", (UInt_t) GetWord());
-			printf("\t%#010X Ring Item Type\n", (UInt_t) GetWord());
+	while (GetBufferPositionBytes() - eventStartPos < eventTotLength) {
+		UInt_t fragmentLength; //Length of a single fragment in bytes.
+		if (isBuilding_) {
+			ULong64_t timestamp = GetWord(4) | (GetWord(4) << 32);
+			UInt_t sourceID = GetWord(4);
+			UInt_t payloadSize = GetWord(4);
+			if (verbose) {
+				printf("Fragment:\n");
+				printf("\t%#018llX Timestamp: %llu\n", timestamp, timestamp);
+				printf("\t%#010X Source ID: %d\n", sourceID, sourceID);
+				printf("\t%#010X Frag. Payload Size: %d\n", payloadSize, payloadSize);
+				printf("\t%#010X Barrier\n", (UInt_t) GetWord());
+				printf("\t%#010X Payload Ring Item Size\n", (UInt_t) GetWord());
+				printf("\t%#010X Payload Ring Item Type\n", (UInt_t) GetWord());
+				printf("\t%#010X Payload Body Header Size\n", (UInt_t) GetWord());
+				printf("\t%#018llX Payload Body Timestamp\n", (ULong64_t) GetWord() | (GetWord() << 32));
+				printf("\t%#010X Payload Body Source ID\n", (UInt_t) GetWord());
+				printf("\t%#010X Payload Body Barrier\n", (UInt_t) GetWord());
+			}
+			else{
+				Seek(8); //Junk the barrier, source ring item header (two words), and fragment body header (five words).
+			}
+			fragmentStartPos = GetBufferPositionBytes();
+			fragmentLength = GetWord(); //Length of a single fragment
 		}
-		else{
-			Seek(3); //Junk the barrier, and source ring item header (two words).
+		else fragmentLength = eventTotLength;
+		UInt_t fragmentLengthBytes = fragmentLength * 2;
+
+		if (verbose) {
+			printf("\t%#010X Fragment Length: %d (%d Bytes)\n",fragmentLength,fragmentLength, fragmentLengthBytes);
 		}
 
-		while (GetBufferPositionBytes() - fragmentStartPos < sourcePayloadSize) {
+		while (GetBufferPositionBytes() - fragmentStartPos < fragmentLengthBytes) {
 			//Loop over each module
 			for(unsigned int module=0;module<fModules.size();module++) {
 
@@ -380,14 +396,14 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 				fModules[module]->ReadEvent(this,verbose);
 
 				//Check how many words were read.
-				if (GetBufferPositionBytes() - eventStartPos > eventLength) {
+				if (GetBufferPositionBytes() - fragmentStartPos > fragmentLengthBytes) {
 					fflush(stdout);
 					fprintf(stderr,"ERROR: Module read too many words! (Buffer: %d)\n",GetBufferNumber());
 				}
 
 			}
 			//Fastforward over extra words
-			int remainingBytes = fragmentStartPos + sourcePayloadSize - GetBufferPositionBytes();
+			int remainingBytes = fragmentStartPos + fragmentLengthBytes - GetBufferPositionBytes();
 			if (remainingBytes > 0) {
 				if (verbose) {
 					for (int i=0;i<remainingBytes;i+=GetWordSize()) 
