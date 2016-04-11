@@ -85,3 +85,7 @@ void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 
 
 }
+
+void XIA_Pixie16::Clear() {
+
+}

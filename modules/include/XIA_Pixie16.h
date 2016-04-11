@@ -40,6 +40,8 @@ class XIA_Pixie16 : public baseModule {
 		XIA_Pixie16() {}
 		///Readout the module.
 		void ReadEvent(mainBuffer *buffer, bool verbose=false);
+		///Clear or reset any event information.
+		void Clear();
 
 	ClassDef(XIA_Pixie16,1);
 };
