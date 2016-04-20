@@ -171,13 +171,9 @@ void nsclRingBuffer::UnpackBuffer(bool verbose) {
 }
 
 void nsclRingBuffer::ReadGlomInfo(bool verbose) {
-	if (verbose) printf("CurrWord %#018llX\n",GetCurrentWord());
 	ULong64_t coincidenceTicks = GetWord(4) | (GetWord(4) << 32);
-	if (verbose) printf("CurrWord %#018llX\n",GetCurrentWord());
 	isBuilding_ = GetWord(2);
-	if (verbose) printf("CurrWord %#018llX\n",GetCurrentWord());
 	UShort_t timestampPolicy = GetWord(2);
-	if (verbose) printf("CurrWord %#018llX\n",GetCurrentWord());
 
 	if (verbose) {
 		printf("\n\t%#018llX Coincidence Ticks %llu\n",coincidenceTicks, coincidenceTicks);
@@ -347,48 +343,62 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 		return 0;
 	}
 
-	UInt_t eventTotLength = GetWord(); //Including all fragments
+	UInt_t eventTotLength = GetWord(4); //From data stream.
+	//UInt_t eventTotLength = (GetBufferSize() - GetHeaderSize()) * GetWordSize(); //Computed including all fragments
 	if (eventTotLength == 0) return 1;
 
 	if (verbose) {
 		printf ("\nData Event:\n");
-		printf("\t%#010X Length: %d\n",eventTotLength,eventTotLength);
+		printf("\t%#010x Length: %d Bytes (%d words)\n",eventTotLength,eventTotLength,eventTotLength/GetWordSize());
 	}
 
 	//We loop over each data source until the event is consumed. 
+	int payloadCount = 0;
 	while (GetBufferPositionBytes() - eventStartPos < eventTotLength) {
-		UInt_t fragmentLength; //Length of a single fragment in bytes.
+		UInt_t fragmentLengthBytes; //Length of a single fragment in bytes.
+		//If the event is built from the evtBuilder we need to read out the header info.
 		if (isBuilding_) {
 			ULong64_t timestamp = GetWord(4) | (GetWord(4) << 32);
 			UInt_t sourceID = GetWord(4);
 			UInt_t payloadSize = GetWord(4);
+			UInt_t barrier = GetWord(4);
+			UInt_t payloadRingItemSize = GetWord(4);
+			UInt_t payloadRingItemType = GetWord(4);
+			UInt_t payloadBodyHeaderSize = GetWord(4);
 			if (verbose) {
-				printf("Fragment:\n");
+				printf("\n\tPayload %d:\n",payloadCount);
 				printf("\t%#018llX Timestamp: %llu\n", timestamp, timestamp);
 				printf("\t%#010X Source ID: %d\n", sourceID, sourceID);
-				printf("\t%#010X Frag. Payload Size: %d\n", payloadSize, payloadSize);
-				printf("\t%#010X Barrier\n", (UInt_t) GetWord());
-				printf("\t%#010X Payload Ring Item Size\n", (UInt_t) GetWord());
-				printf("\t%#010X Payload Ring Item Type\n", (UInt_t) GetWord());
-				printf("\t%#010X Payload Body Header Size\n", (UInt_t) GetWord());
+				printf("\t%#010X Frag. Payload Size: %d Bytes (%d words)\n", payloadSize, payloadSize, payloadSize / GetWordSize());
+				printf("\t%#010X Barrier\n",barrier);
+				printf("\t%#010X Payload Ring Item Size: %d\n", payloadRingItemSize, payloadRingItemSize);
+				printf("\t%#010X Payload Ring Item Type: %d\n", payloadRingItemType, payloadRingItemType);
+				printf("\t%#010X Payload Body Header Size: %d\n", payloadBodyHeaderSize, payloadBodyHeaderSize);
+
 				printf("\t%#018llX Payload Body Timestamp\n", (ULong64_t) GetWord() | (GetWord() << 32));
 				printf("\t%#010X Payload Body Source ID\n", (UInt_t) GetWord());
 				printf("\t%#010X Payload Body Barrier\n", (UInt_t) GetWord());
 			}
 			else{
-				Seek(8); //Junk the barrier, source ring item header (two words), and fragment body header (five words).
+				Seek(4); //Junk the barrier, source ring item header (two words), and fragment body header (five words).
 			}
-			fragmentStartPos = GetBufferPositionBytes();
-			fragmentLength = GetWord(); //Length of a single fragment
+			fragmentStartPos = GetBufferPositionBytes(); //Position in file where fragment starts.
+			fragmentLengthBytes = payloadSize - payloadBodyHeaderSize - 8; //Length of a single fragment. Extra 8 bytes for Ring item header.
 		}
-		else fragmentLength = eventTotLength;
-		UInt_t fragmentLengthBytes = fragmentLength * 2;
+		else fragmentLengthBytes = eventTotLength; //If not building the event must be the size of everything excpet the header.
 
 		if (verbose) {
-			printf("\t%#010X Fragment Length: %d (%d Bytes)\n",fragmentLength,fragmentLength, fragmentLengthBytes);
+			printf("\t%10c Fragment Length: %d Bytes\n",' ', fragmentLengthBytes);
 		}
 
-		while (GetBufferPositionBytes() - fragmentStartPos < fragmentLengthBytes) {
+		while (GetBufferPositionBytes() - fragmentStartPos < fragmentLengthBytes) { //Continue looping until we have consumed the expected number of words.
+			int packetLength = GetWord(); //The length of the packet.
+			int packetTag = GetWord();  //The tag fr the packet.
+			if (verbose) {
+				printf("\t%#010X Packet length: %d\n",packetLength,packetLength);
+				printf("\t%#010X Packet tag: %d\n",packetTag,packetTag);
+			}
+
 			//Loop over each module
 			for(unsigned int module=0;module<fModules.size();module++) {
 
@@ -418,6 +428,7 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 				}
 			}
 		}
+		payloadCount++;
 	}
 	FillStorage();
 
