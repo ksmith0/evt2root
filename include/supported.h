@@ -17,6 +17,8 @@
 #include "Caen_General.h"
 #include "Mesytec_ADC_MADC32.h"
 #include "hribfModule.h"
+#include "XLM_XXV.h"
+#include "XIA_Pixie16.h"
 
 enum class bufferFormat {
 	UNKNOWN, NSCL_CLASSIC, NSCL_USB, NSCL_RING, HRIBF, MAESTRO, FAST
@@ -38,6 +40,8 @@ baseModule *GetModulePointer(std::string moduleName) {
 	else if (moduleName == "Caen_General") return new Caen_General();
 	else if (moduleName == "Caen_IO_V977") return new Caen_IO_V977();
 	else if (moduleName == "Mesytec_ADC_MADC32") return new Mesytec_ADC_MADC32();
+	else if (moduleName == "XLM_XXV") return new Xlm_Xxv();
+	else if (moduleName == "XIA_Pixie16") return new XIA_Pixie16(); 
 	return nullptr;
 }
 #endif
