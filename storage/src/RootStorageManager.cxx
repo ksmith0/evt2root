@@ -8,7 +8,7 @@ RootStorageManager::RootStorageManager(const char* filename) :
 
 /**We open a TFile with the option "CREATE"
  *
- * \param[in] name Filename to open.
+ * \param[in] fileName Filename to open.
  * \return Flag indicating the file is open.
  */
 bool RootStorageManager::Open(const char* fileName) {
@@ -32,7 +32,7 @@ bool RootStorageManager::Close() {
 
 /**Create a new TTree with the name specified.
  * 
- * \param[in] name Name of the TTree.
+ * \param[in] treeName Name of the TTree.
  * \return True.
  */
 bool RootStorageManager::CreateTree(const char* treeName) {
@@ -90,7 +90,7 @@ TTree* RootStorageManager::GetTree(const char *treeName) {
 }
 /**Returns a nullptr if the corresponding tree is not found.
  *
- * \param[in] treeName Name of tree.
+ * \param[in] histName Name of tree.
  * \return Pointer to corresponding tree.
  */
 TH1D* RootStorageManager::GetHist(const char *histName) {

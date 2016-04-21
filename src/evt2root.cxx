@@ -179,8 +179,10 @@ int main (int argc, char *argv[])
 	printf("Loaded modules: ");
 	if (modules.empty()) printf("none");
 	for (auto it = modules.begin(); it != modules.end(); ++it) {
+		//Print the name of the module being added.
 		if (it != modules.begin()) printf(", ");
 		printf("%s", (*it)->IsA()->GetName());
+
 		buffer->AddModule(*it);
 	}
 	printf(".\n");
