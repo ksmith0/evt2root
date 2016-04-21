@@ -35,6 +35,10 @@ class XIA_Pixie16 : public baseModule {
 			UPPER16BIT_MASK     = 0xFFFF0000,  // Upper 16 bits
 			LOWER12BIT_MASK     =      0xFFF   // Lower 12 bits
 		};
+		std::vector< UShort_t > chanID_;
+		std::vector< UShort_t > slotID_;
+		std::vector< UInt_t > energy_;
+		std::vector< ULong_t > timestamp_;
 
 	public:
 		XIA_Pixie16() {}

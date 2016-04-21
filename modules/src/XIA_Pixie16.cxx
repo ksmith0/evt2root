@@ -10,8 +10,8 @@ ClassImp(XIA_Pixie16)
 void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 {
 	UInt_t datum = buffer->GetWord(4);
-	UShort_t chanID = (datum & CHANNELID_MASK) >> CHANNELID_SHIFT;
-	UShort_t slotID = (datum & SLOTID_MASK) >> SLOTID_SHIFT;
+	chanID_.push_back((datum & CHANNELID_MASK) >> CHANNELID_SHIFT);
+	slotID_.push_back((datum & SLOTID_MASK) >> SLOTID_SHIFT);
 	UShort_t crateID = (datum & CRATEID_MASK) >> CRATEID_SHIFT;
 	UShort_t headerLength = (datum & HEADERLENGTH_MASK) >> HEADERLENGTH_SHIFT;
 	UShort_t channelLength = (datum & CHANNELLENGTH_MASK) >> CHANNELLENGTH_SHIFT;
@@ -20,7 +20,7 @@ void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 
 	if (verbose) {
 		printf("\t%#010x ",datum);
-		printf("crate: %02d slot: %02d ch: %02d\n",crateID,slotID,chanID);
+		printf("crate: %02d slot: %02d ch: %02d\n",crateID,slotID_.back(),chanID_.back());
 		printf("\t%*c header length: %2d channel length: %2d\n",10,' ',headerLength,channelLength);
 		printf("\t%*c overflow: %d finish code: %d\n",10,' ',overflowCode,finishCode);
 	}
@@ -33,13 +33,13 @@ void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 	UShort_t timeCFD = (datum & UPPER16BIT_MASK)>>16;
 	if (verbose) printf("\t%#010x CFD frac. time: %u, time stamp high bits\n",datum,timeCFD);
 
-	ULong_t timestamp = timeLow + (timeHigh << 31);
-	if (verbose) printf("\t%*c time stamp: %lu\n",10,' ',timestamp);
+	timestamp_.push_back(((ULong_t) timeHigh << 31) | timeLow);
+	if (verbose) printf("\t%*c time stamp: %lu\n",10,' ',timestamp_.back());
 
 	datum = buffer->GetWord(4);
-	UShort_t energy = datum & LOWER16BIT_MASK; 
+	energy_.push_back(datum & LOWER16BIT_MASK); 
 	UShort_t traceLength = ((datum & UPPER16BIT_MASK) >> 16) / 2;
-	if (verbose) printf("\t%#010x trace length: %d energy %d\n",datum,traceLength,energy);
+	if (verbose) printf("\t%#010x trace length: %d energy %d\n",datum,traceLength,energy_.back());
 
 	//Determine remaining words in header
 	bool readEnergySumsBaseLine = false;
@@ -87,5 +87,8 @@ void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 }
 
 void XIA_Pixie16::Clear() {
-
+	energy_.clear();
+	timestamp_.clear();
+	slotID_.clear();
+	chanID_.clear();
 }
