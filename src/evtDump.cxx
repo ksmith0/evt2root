@@ -149,13 +149,15 @@ int main (int argc, char *argv[])
 					modules.push_back(modulePtr);
 					break;
 				}
-			//builder source
+			//builder source ID
 			case 'b':
 				{
 					if (modules.size() <= moduleSourceIDs.size()) {
 						fprintf(stderr,"ERROR: Builder source ID specified prior to module declaration!\n");
 						return 1;
 					}
+					//Fill missing source IDs with invalid ID.
+					while (modules.size() - 1 > moduleSourceIDs.size()) moduleSourceIDs.push_back(-1);
 					moduleSourceIDs.push_back(atoi(optarg));
 					break;
 				}
@@ -219,7 +221,6 @@ int main (int argc, char *argv[])
 	//Add modules to buffer
 	if (!modules.empty()) {
 		printf("Loaded modules: ");
-		//for (auto it = modules.begin(); it != modules.end(); ++it) {
 		for (size_t i=0;i<modules.size();i++) {
 			auto it = modules.begin() + i;
 			if (it != modules.begin()) printf(", ");
@@ -241,42 +242,54 @@ int main (int argc, char *argv[])
 		unpackPhysicsData = false;
 	}
 	
-	//Loop over each buffer. Number of words read is returned.
-	while (buffer->ReadNextBuffer() > 0)
-	{
-		//We need to unpack data even if the user doesn't want to see it.
-		// We set verbose false if the user wants it skipped.
-		bool verbose = true;
-		//Skip the first n buffers specified.
-		if (buffer->GetBufferNumber() < skipBuffers) verbose = false;
+	//Loop over files until we used all files or the run ended.
+	for (unsigned int fileNum=0;fileNum<inputFiles.size();fileNum++) {
+		if (fileNum > 0) printf("\n");
 
-		//Skip any specified ignore buffers.
-		for (unsigned int i=0;i<ignoreBufferType.size() && verbose;i++) 
-			if (buffer->GetBufferType() == ignoreBufferType[i]) verbose = false;
+		//Open the file for reading.
+		if (!buffer->OpenFile(inputFiles[fileNum])) return 1;
+		printf("Reading file: %s\n",buffer->GetFilename());
 
-		//If not user specified buffer then we continue
-		if (bufferType.size() > 0) {
-			bool goodBuffer = false;
-			for (unsigned int i=0;i<bufferType.size() && !goodBuffer && verbose;i++) { 
-				if (buffer->GetBufferType() == bufferType[i]) goodBuffer=true;
+		//Loop over each buffer. Number of words read is returned.
+		while (buffer->ReadNextBuffer() > 0)
+		{
+			//We need to unpack data even if the user doesn't want to see it.
+			// We set verbose false if the user wants it skipped.
+			bool verbose = true;
+			//Skip the first n buffers specified.
+			if (buffer->GetBufferNumber() < skipBuffers) verbose = false;
+
+			//Skip any specified ignore buffers.
+			for (unsigned int i=0;i<ignoreBufferType.size() && verbose;i++) 
+				if (buffer->GetBufferType() == ignoreBufferType[i]) verbose = false;
+
+			//If not user specified buffer then we continue
+			if (bufferType.size() > 0) {
+				bool goodBuffer = false;
+				for (unsigned int i=0;i<bufferType.size() && !goodBuffer && verbose;i++) { 
+					if (buffer->GetBufferType() == bufferType[i]) goodBuffer=true;
+				}
+				if (!goodBuffer) verbose = false;
 			}
-			if (!goodBuffer) verbose = false;
+
+			if (verbose) {
+				printf("\nBuffer Position: %d Bytes (%.2f%%)",buffer->GetBufferBeginPosition(),buffer->GetFilePositionPercentage());
+
+				//Print out information about buffer header.
+				buffer->DumpHeader();
+				buffer->PrintBufferHeader();
+
+				//Dump the entire buffer if user specified.
+				if (dumpRawBuffer) buffer->DumpBuffer();
+			}
+
+			//If this is a physics data buffer and we are not unpacking them we skip it.
+			if (!unpackPhysicsData && buffer->IsDataType()) continue;
+			//Do buffer specific tasks
+			buffer->UnpackBuffer(verbose);
 		}
+		printf("Read %d buffers. %5.2f%% of file read.\n",buffer->GetBufferNumber(),buffer->GetFilePositionPercentage());
+		buffer->CloseFile();
 
-		if (verbose) {
-			printf("\nBuffer Position: %d Bytes (%.2f%%)",buffer->GetBufferBeginPosition(),buffer->GetFilePositionPercentage());
-
-			//Print out information about buffer header.
-			buffer->DumpHeader();
-			buffer->PrintBufferHeader();
-
-			//Dump the entire buffer if user specified.
-			if (dumpRawBuffer) buffer->DumpBuffer();
-		}
-
-		//If this is a physics data buffer and we are not unpacking them we skip it.
-		if (!unpackPhysicsData && buffer->IsDataType()) continue;
-		//Do buffer specific tasks
-		buffer->UnpackBuffer(verbose);
 	}
 }

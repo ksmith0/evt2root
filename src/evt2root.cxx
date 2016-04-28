@@ -24,14 +24,15 @@
 
 
 int usage(const char *progName="") {
-	fprintf(stderr,"Usage: %s [-b] -c configFile -o output.root input1.evt [input2.evt...]\n",progName);
+	fprintf(stderr,"Usage: %s [-q] -c configFile -o output.root input1.evt [input2.evt...]\n",progName);
 	fprintf(stderr,"\t-c configFile\t Load the configuration file specified.\n");
 	fprintf(stderr,"\t-f bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
 	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_BUFFER_FORMATS);
 	fprintf(stderr,"\t-m moduleType\t Indicate the module to be unpacked. Possible options include:\n");
 	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_MODULES);
+	fprintf(stderr,"\t-b sourceID\t Indicate the builder source ID for the previously listed module.\n\t\t(Only used for the nscl ring buffer)\n");
 	fprintf(stderr,"\n");
-	fprintf(stderr,"\t-b\tSet batch mode. (Progress output is suppressed.)\n");
+	fprintf(stderr,"\t-q\tSet quiet mode. (Progress output is suppressed.)\n");
 	return 1;
 }
 
@@ -39,14 +40,15 @@ int main (int argc, char *argv[])
 {
 	const char* outputFile = "";
 	std::vector< baseModule* > modules;
+	std::vector< int > moduleSourceIDs;
 	mainBuffer* buffer = nullptr;
 	ConfigFile *conf = nullptr;
 	std::vector< const char* > inputFiles;
-	bool batchJob = false;
+	bool quiet = false;
 
 	int c;
 	//Loop over options
-	while ((c = getopt(argc,argv,":o:c:f:m:b")) != -1) {
+	while ((c = getopt(argc,argv,":o:c:f:m:b:q")) != -1) {
 		switch (c) {
 			//config file
 			case 'c': {
@@ -152,8 +154,21 @@ int main (int argc, char *argv[])
 					modules.push_back(modulePtr);
 					break;
 				}
+			//builder source ID
+			case 'b':
+				{
+					if (modules.size() <= moduleSourceIDs.size()) {
+						fprintf(stderr,"ERROR: Builder source ID specified prior to module declaration!\n");
+						return 1;
+					}
+					//Fill missing source IDs with invalid ID.
+					while (modules.size() - 1 > moduleSourceIDs.size()) moduleSourceIDs.push_back(-1);
+					moduleSourceIDs.push_back(atoi(optarg));
+					break;
+				}
+
 			case 'o': outputFile = optarg; break;
-			case 'b': batchJob = true; break;
+			case 'q': quiet = true; break;
 			case '?':
 			default:
 				fprintf(stderr,"ERROR: Unknown option!");
@@ -178,12 +193,20 @@ int main (int argc, char *argv[])
 	//Add modules to buffer
 	printf("Loaded modules: ");
 	if (modules.empty()) printf("none");
-	for (auto it = modules.begin(); it != modules.end(); ++it) {
+	for (size_t i=0;i<modules.size();i++) {
+		auto it = modules.begin() + i;
+
 		//Print the name of the module being added.
 		if (it != modules.begin()) printf(", ");
 		printf("%s", (*it)->IsA()->GetName());
 
-		buffer->AddModule(*it);
+		int sourceID = 0;
+		if (moduleSourceIDs.size() > i) {
+			sourceID = moduleSourceIDs[i];
+			printf(" (%d)",sourceID);
+		}
+
+		buffer->AddModule(*it, sourceID);
 	}
 	printf(".\n");
 
@@ -201,18 +224,18 @@ int main (int argc, char *argv[])
 
 		while (buffer->ReadNextBuffer() > 0)
 		{
-			//If in batch mode the user will not see this.
-			if (!batchJob) {
-				//Print a buffer counter so the user sees that it is working.
-				printf("Buffer: %d File: %5.2f%%\r",buffer->GetBufferNumber(),buffer->GetFilePositionPercentage());
-				if (buffer->GetBufferNumber() % 100 == 0) {
+			//If in quiet mode the user will not see this.
+			if (!quiet) {
+				if (buffer->GetBufferNumber() % 100000 == 0) {
+					//Print a buffer counter so the user sees that it is working.
+					printf("Buffer: %d File: %7.4f%%\r",buffer->GetBufferNumber(),buffer->GetFilePositionPercentage());
 					fflush(stdout);
 				}
 			}
 			//Do buffer specific tasks
 			buffer->UnpackBuffer();
 		}
-		printf("Read %d buffers. %5.2f%% of file read.\n",buffer->GetBufferNumber(),buffer->GetFilePositionPercentage());
+		printf("Read %d buffers. %7.4f%% of file read.\n",buffer->GetBufferNumber(),buffer->GetFilePositionPercentage());
 		buffer->CloseFile();
 	}
 	delete buffer;

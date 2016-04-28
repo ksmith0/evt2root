@@ -354,12 +354,13 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 
 	//We loop over each data source until the event is consumed. 
 	int payloadCount = 0;
+	UInt_t payloadSourceID;
 	while (GetBufferPositionBytes() - eventStartPos < eventTotLength) {
 		UInt_t fragmentLengthBytes; //Length of a single fragment in bytes.
 		//If the event is built from the evtBuilder we need to read out the header info.
 		if (isBuilding_) {
 			ULong64_t timestamp = GetWord(4) | (GetWord(4) << 32);
-			UInt_t sourceID = GetWord(4);
+			payloadSourceID = GetWord(4);
 			UInt_t payloadSize = GetWord(4);
 			UInt_t barrier = GetWord(4);
 			UInt_t payloadRingItemSize = GetWord(4);
@@ -368,7 +369,7 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 			if (verbose) {
 				printf("\n\tPayload %d:\n",payloadCount);
 				printf("\t%#018llX Timestamp: %llu\n", timestamp, timestamp);
-				printf("\t%#010X Source ID: %d\n", sourceID, sourceID);
+				printf("\t%#010X Payload Source ID: %d\n", payloadSourceID, payloadSourceID);
 				printf("\t%#010X Frag. Payload Size: %d Bytes (%d words)\n", payloadSize, payloadSize, payloadSize / GetWordSize());
 				printf("\t%#010X Barrier\n",barrier);
 				printf("\t%#010X Payload Ring Item Size: %d\n", payloadRingItemSize, payloadRingItemSize);
@@ -401,6 +402,8 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 
 			//Loop over each module
 			for(unsigned int module=0;module<fModules.size();module++) {
+				//Skip modules not associated with this source ID.
+				if (moduleSourceIDs_[module] != payloadSourceID) continue;
 
 				//Read out the current module
 				fModules[module]->ReadEvent(this,verbose);
