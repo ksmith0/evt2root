@@ -31,9 +31,9 @@ void XIA_Pixie16::ReadEvent(mainBuffer *buffer, bool verbose)
 	datum = buffer->GetWord(4);
 	UShort_t timeHigh = datum & LOWER16BIT_MASK;
 	UShort_t timeCFD = (datum & UPPER16BIT_MASK)>>16;
-	if (verbose) printf("\t%#010x CFD frac. time: %u, time stamp high bits\n",datum,timeCFD);
+	if (verbose) printf("\t%#010x CFD frac. time: %u, time stamp high bits %#06x\n",datum,timeCFD,timeHigh);
 
-	timestamp_.push_back(((ULong_t) timeHigh << 31) | timeLow);
+	timestamp_.push_back(((ULong_t) timeHigh << 32) | timeLow);
 	if (verbose) printf("\t%*c time stamp: %lu\n",10,' ',timestamp_.back());
 
 	datum = buffer->GetWord(4);
