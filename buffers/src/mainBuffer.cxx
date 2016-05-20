@@ -61,6 +61,7 @@ bool mainBuffer::OpenFile(const char *filename)
 void mainBuffer::CloseFile()
 {
 	fFile.close();
+	fFileSize = 0;
 }
 void mainBuffer::Clear()
 {
@@ -264,6 +265,10 @@ void mainBuffer::SeekBytes(int numOfBytes)
 	else
 		fCurrentByte += numOfBytes;
 }
+void mainBuffer::SeekFile(int numOfBytes) 
+{
+	fFile.seekg(numOfBytes, std::ios_base::cur);
+}
 
 
 unsigned long int mainBuffer::GetFilePosition()
@@ -443,6 +448,14 @@ int mainBuffer::ReadNextBuffer() {
 	return fFile.gcount();
 }
 
+std::string mainBuffer::PeekLine() {
+	unsigned long int filePos = GetFilePosition();	
+	std::string line = GetLine();
+	//We rewind if we are not at the end of the file.
+	// Be sure to cast as these are unsigned.
+	if (!fFile.eof())	SeekFile(-(long int)(GetFilePosition() - filePos));	
+	return line;
+}
 std::string mainBuffer::GetLine() {
 	std::string line;
 	std::getline(fFile,line);

@@ -1,5 +1,5 @@
-#ifndef FASTLISTBUFFER_H
-#define FASTLISTBUFFER_H
+#ifndef FASTBUFFER_H
+#define FASTBUFFER_H
 
 #include "mainBuffer.h"
 #include <array>
@@ -11,10 +11,12 @@
 ///Size of the buffer in words.
 #define BUFFER_SIZE 0
 
-class fastListBuffer : public mainBuffer {
+class fastBuffer : public mainBuffer {
 	private:
 		///Flag indicating if the header was read.
 		bool headerRead;
+		///Flag indicating if the file contains list data.
+		bool listdata_;
 		///A count of the number of active ADCs during acquistion.
 		unsigned short numActiveADCs;
 		///The downscaling in the timestamps.
@@ -30,7 +32,6 @@ class fastListBuffer : public mainBuffer {
 		///The time value in milliseconds.
 		ULong64_t time;
 
-
 		///Read out the ASCII header.
 		unsigned int ReadHeader(bool verbose);
 
@@ -42,9 +43,9 @@ class fastListBuffer : public mainBuffer {
 
 	public:
 		///Constructor
-		fastListBuffer(int bufferSize=BUFFER_SIZE, int bufferHeaderSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
+		fastBuffer(int bufferSize=BUFFER_SIZE, int bufferHeaderSize=BUFFER_HEADER_SIZE, int wordSize=WORD_SIZE);
 		///Destructor
-		virtual ~fastListBuffer();
+		virtual ~fastBuffer();
 
 		enum BufferType
 		{
@@ -54,6 +55,8 @@ class fastListBuffer : public mainBuffer {
 			TIME,
 			///Syncronization mark.
 			SYNC_MARK,
+			///Histogram data.
+			HIST,
 			///The begining of the data file.
 			RUN_BEGIN
 		};
@@ -80,6 +83,8 @@ class fastListBuffer : public mainBuffer {
 		virtual void UnpackBuffer(bool verbose = false);
 		///Reads current event and stores data.
 		virtual int ReadEvent(bool verbose = false);
+		///Reads current histogram and stores data.
+		virtual int ReadHistogram(bool verbose = false);
 		///Reads current scaler event.
 		virtual void ReadScalers(bool verbose = false) {}
 		///Read the run start buffer.

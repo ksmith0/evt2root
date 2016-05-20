@@ -119,6 +119,13 @@ class mainBuffer
 		///Return a pointer to the RootStorageManager.
 		RootStorageManager* GetStorageManager();
 
+		///Skip forward in the buffer by n words.
+		void Seek(int numOfWords);
+		///Skip forward in the buffer by n bytes.
+		void SeekBytes(int numOfBytes);
+		///Seek the file pointer by the specified bytes.
+		void SeekFile(int numOfBytes);
+
 	public:
 		///Default constructor
 		mainBuffer(unsigned int headerSize, unsigned int bufferSize, unsigned int wordSize);
@@ -143,8 +150,10 @@ class mainBuffer
 		virtual void PrintBufferHeader()=0;
 		///Reads the next buffer.
 		virtual int ReadNextBuffer();
-		///Get a line from the file.
+		///Get a line from the file not the buffer.
 		std::string GetLine();
+		///Peak at a line from the file not the buffer.
+		std::string PeekLine();
 
 		///Return the number of good words in the current buffer.
 		ULong64_t GetNumOfWords() {return fNumWords;};
@@ -210,10 +219,6 @@ class mainBuffer
 
 		///Get the size of a standard word.
 		unsigned short int GetWordSize() {return fWordSize;}
-		///Skip forward in the buffer by n words.
-		void Seek(int numOfWords);
-		///Skip forward in the buffer by n bytes.
-		void SeekBytes(int numOfBytes);
 
 		///Dump the current buffer header in hex.
 		void DumpHeader();

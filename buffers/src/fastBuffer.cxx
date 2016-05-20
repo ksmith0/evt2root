@@ -1,20 +1,22 @@
-#include "fastListBuffer.h"
+#include "fastBuffer.h"
+#include <TH1D.h>
 
-fastListBuffer::fastListBuffer(int bufferSize, int bufferHeaderSize, int wordSize) :
+fastBuffer::fastBuffer(int bufferSize, int bufferHeaderSize, int wordSize) :
 	mainBuffer(bufferHeaderSize, bufferSize, wordSize),
 	headerRead(false),
+	listdata_(false),
 	numActiveADCs(0),
 	timestamp(0)
 {
 
 }
 
-fastListBuffer::~fastListBuffer() 
+fastBuffer::~fastBuffer() 
 {
 
 }
 
-void fastListBuffer::InitializeStorageManager() {
+void fastBuffer::InitializeStorageManager() {
 	if (GetStorageManager()) {
 		GetStorageManager()->CreateTree("data");
 		GetStorageManager()->CreateBranch("data","adc",adcValues.data(),"adc[16]/s");
@@ -24,7 +26,7 @@ void fastListBuffer::InitializeStorageManager() {
 	}
 }
 
-int fastListBuffer::ReadNextBuffer() 
+int fastBuffer::ReadNextBuffer() 
 {
 	Clear();
 	if (!fFile.good()) {
@@ -36,6 +38,27 @@ int fastListBuffer::ReadNextBuffer()
 	if (!headerRead) {
 		fBufferType = RUN_BEGIN;
 		return 1;
+	}
+
+	if (!listdata_) {
+		std::string line = PeekLine();
+		if (line.find("[LISTDATA]") != std::string::npos) {
+			//Pull the List data header off the data.
+			line = GetLine();
+			listdata_ = true;
+		}
+		else if (line.find("[DATA") != std::string::npos) {
+			fBufferType = HIST;
+		
+			return 1;
+		}
+		else {
+			if (line.length() > 0) {
+				line.erase(line.find_last_not_of(" \r\n")+1);
+				fprintf(stderr,"ERROR: Unknown header tag: '%s'!\n",line.c_str());
+			}
+			return 0;
+		}
 	}
 
 	//FAST list Buffer does not track buffer number, we iterate it manually.
@@ -50,7 +73,7 @@ int fastListBuffer::ReadNextBuffer()
 	fFile.read(&fBuffer[0], GetWordSize());
 	//Check that we got the correct number of bytes.
 	if (fFile.gcount() != GetWordSize()) {
-		if (fFile.gcount() !=0 )fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetWordSize());
+		if (fFile.gcount() != 0)fprintf(stderr,"ERROR: Read %ld bytes expected %u!\n",fFile.gcount(),GetWordSize());
 		return 0;
 	}
 	//Specify the size of the readable buffer.
@@ -122,11 +145,11 @@ int fastListBuffer::ReadNextBuffer()
 
 
 /**Each ADC sets the bit corresponding the ADC number if it was triggered during a data event or alive
- * during a time stamp event. A vector of triggered ADCs is stored as fastListBuffer::triggeredADCs.
+ * during a time stamp event. A vector of triggered ADCs is stored as fastBuffer::triggeredADCs.
  *
  * \param[in] datum The data word containg the ADC flags.
  */
-void fastListBuffer::ReadTriggeredADCs(UInt_t datum) {
+void fastBuffer::ReadTriggeredADCs(UInt_t datum) {
 	for (int adc = 0; adc < numActiveADCs; adc++) {
 		char adcTriggered = (datum >> adc) & 0x1;
 		if (adcTriggered == 1) 
@@ -137,7 +160,7 @@ void fastListBuffer::ReadTriggeredADCs(UInt_t datum) {
 /**
  *	\param[in] verbose Verbosity flag.
  */
-void fastListBuffer::UnpackBuffer(bool verbose) {
+void fastBuffer::UnpackBuffer(bool verbose) {
 	switch (fBufferType) {
 		case DATA:
 			ReadEvent(verbose);
@@ -151,6 +174,9 @@ void fastListBuffer::UnpackBuffer(bool verbose) {
 		case SYNC_MARK:
 			if (verbose) printf("\tSYNC MARK\n");
 			break;
+		case HIST:
+			ReadHistogram(verbose);
+			break;
 		default:
 			printf("ERROR: Unknown buffer type!\n");
 	}
@@ -162,7 +188,7 @@ void fastListBuffer::UnpackBuffer(bool verbose) {
  *
  * \param[in] verbose Verbosity flag.
  */
-void fastListBuffer::ReadTimeStamp(bool verbose) {
+void fastBuffer::ReadTimeStamp(bool verbose) {
 	//Iterate timestamp by one.
 	timestamp++;	
 	time += timeDownScale;
@@ -179,12 +205,45 @@ void fastListBuffer::ReadTimeStamp(bool verbose) {
 			printf("%d",*it);
 		}
 		printf("\n");
-
 	}
 }
 
 
-int fastListBuffer::ReadEvent(bool verbose) {
+/**Read out the data for the stored histogram. It is assumed that the histogram has 
+ * previously been defined.
+ *
+ * \param[in] verbose Verbosity flag.
+ */
+int fastBuffer::ReadHistogram(bool verbose) {
+	//We expect the line to be in this format "[DATA0,8192 ]"
+	//Where 0 is the ADC number and 8192 is the number of channels.
+	std::string line = GetLine();
+	int commaPos = line.find(",");
+	int adcNum = std::stoi(line.substr(5, commaPos - 5).c_str());
+	int numHistChannels = std::stoi(line.substr(commaPos+1,line.find_first_not_of("1234567890", commaPos+1) - commaPos - 1).c_str());
+
+	if (verbose) printf("\nHISTDATA found for ADC %d, %d channels\n",adcNum,numHistChannels);
+	RootStorageManager *manager = GetStorageManager();
+
+	TH1D* hist;
+	if (manager) {
+		hist = manager->CreateHistogram("hMCARaw",";Channel;Counts / Channel", numHistChannels,0,numHistChannels);
+	}
+
+	for (int ch = 1; ch <= numHistChannels; ch++) {
+		int value = atoi(GetLine().c_str());
+		if (verbose) {
+			printf("\tCh: %4d, Val: %d\n",ch, value);
+		}
+		if (hist) {
+			hist->SetBinContent(ch,value);
+		}
+	}
+	return 1;
+
+}
+
+int fastBuffer::ReadEvent(bool verbose) {
 	unsigned int eventStartPos = GetBufferPosition();
 	if (eventStartPos >= GetNumOfWords()) {
 		fflush(stdout);
@@ -230,19 +289,21 @@ int fastListBuffer::ReadEvent(bool verbose) {
 
 }
 
-bool fastListBuffer::IsDataType() {
+bool fastBuffer::IsDataType() {
 	return (fBufferType == DATA);
 }
-bool fastListBuffer::IsRunBegin() {
+bool fastBuffer::IsRunBegin() {
 	return (fBufferType == RUN_BEGIN);
 }
 
-void fastListBuffer::ReadRunBegin(bool verbose) {
+void fastBuffer::ReadRunBegin(bool verbose) {
 	std::string line;
 
 	if (verbose) printf("\n");
 	int adcNum = -1;
+	unsigned int linePosition;
 	do {
+ 		linePosition = GetFilePosition();	
 		line = GetLine();
 		line.erase(line.find_last_not_of(" \r\n")+1);
 
@@ -256,32 +317,47 @@ void fastListBuffer::ReadRunBegin(bool verbose) {
 			std::string value = line.substr(pos+1);
 
 			if (verbose) {
-				int numSpaces = 20 - key.length() - value.length(); 
+				printf("%4u\t",linePosition);
+				printf("\"%s\"",line.c_str());
+				
+				//Print a nice number of spaces
+				int numSpaces = 27 - key.length() - value.length(); 
 				if (numSpaces < 0 ) numSpaces = 1;
-				printf("\tkey[%s]='%s'%*c",key.c_str(),value.c_str(),numSpaces,' ');
+				printf("%*c",numSpaces,' ');
+
+				printf("key[%s]='%s'\n",key.c_str(),value.c_str());
 			}
 	
 			//We found an active ADC
 			if (key == "active" && std::stoi(value) > 0) numActiveADCs++;
-			//WEe found the downscaling for the timestamps
+			//We found the downscaling for the timestamps
 			else if (key == "timerreduce") timeDownScale = std::stoi(value);
 		}
 		//We found the header for an ADC block
 		else if ((pos = line.find("[ADC")) != std::string::npos) {
 			adcNum = std::stoi(line.substr(pos+4,line.find("]")-pos-4).c_str());
-			if (verbose) printf("\n\tFound ADC %2d%*c",adcNum,16,' ');
+			if (verbose) {
+				printf("\n");
+				printf("%4u\t\"%s\"",linePosition,line.c_str());
+				//Print a nice number of spaces
+				printf("%*c",(adcNum < 10 ? 22 : 21),' ');
+				printf("Found ADC %2d%*c\n",adcNum,16,' ');
+			}
 		}
-		else if (verbose) printf("\t");
+		else if (verbose) {
+			printf("%4u\t\"%s\"\n",linePosition,line.c_str());
+		}
 
-		if (verbose) printf("\"%s\"\n",line.c_str());
 
+	} while(line.find("DATA") == std::string::npos);
 
-	} while(line.find("[LISTDATA]") == std::string::npos);
+	//Rewind to the beginning of the last line read.
+	SeekFile(-(long int)(GetFilePosition() - linePosition));
 
 	headerRead = true;
 }
 
-void fastListBuffer::Clear() {
+void fastBuffer::Clear() {
 	mainBuffer::Clear();
 	triggeredADCs.clear();
 	adcValues.fill(0);
