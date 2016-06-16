@@ -1,3 +1,11 @@
+/**\file Mesytec_ADC_MADC32.h
+ *	Readout for Mesytec MADC-32:
+ * http://www.mesytec.com/datasheets/MADC-32.pdf
+ *
+ * Authors: Tony Battaglia <abattagl@nd.edu>
+ * 			Karl Smith <ksmit218@utk.edu>
+ */
+
 #include "Mesytec_ADC_MADC32.h"
 #include "mainBuffer.h"
 
