@@ -18,8 +18,10 @@ void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 		//break if we find the trailer word.
 		if (datum == (UInt_t) -1) {
 			if (verbose) printf("\t%#06X Trailer\n",datum);
+			//Output some information if there were multiple hits per channel.
 			if (!multParameterChannels.empty()) {
-				fprintf(stderr,"ERROR: Multiple values set for buffer %d, event %d, parameter: (Only last values are stored!)\n",buffer->GetBufferNumber(),buffer->GetEventNumber());
+				fprintf(stderr,"ERROR: Multiple values set for buffer %d, event %d, parameter: (Only first values are stored!)\n",buffer->GetBufferNumber(),buffer->GetEventNumber());
+				//Print the list of channels with multihits.
 				for (auto itr = multParameterChannels.begin(); itr != multParameterChannels.end(); ++itr) {
 					if (itr != multParameterChannels.begin()) fprintf(stderr,", ");
 					fprintf(stderr,"%3d",*itr);
@@ -28,7 +30,7 @@ void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 			}
 			break;
 		}
-		mult++;
+
 		UShort_t channel = datum & 0x7FFF;
 		UShort_t value = datum >> 16;
 
@@ -36,13 +38,19 @@ void hribfModule::ReadEvent(mainBuffer *buffer, bool verbose) {
 			printf("\t%#010X Channel: %d Value: %d\n",datum,channel,value);
 		}
 
-		if (values.size() <= channel) values.resize(channel+1);
-		values[channel]=value;
-
+		//Compute the multiplicty of the current channel.
 		if (paramMults.size() <= channel) paramMults.resize(channel+1);
 		paramMults[channel]++;
-		
-		if (paramMults[channel] == 2) multParameterChannels.push_back(channel);
+
+		//Only write out the value if it is the first one.
+		if (paramMults[channel] == 1) {
+			if (values.size() <= channel) values.resize(channel+1);
+			values[channel]=value;
+			//Compute the multiplicty of the number of channels fired.
+			mult++;
+		}
+		//Push the channel back onto the list of multiple hit channels if mult > 1.
+		else if (paramMults[channel] == 2) multParameterChannels.push_back(channel);
 		
 	}
 }
