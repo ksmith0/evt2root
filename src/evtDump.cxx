@@ -7,7 +7,7 @@
 #include "supported.h"
 
 int usage(const char *progName="") {
-	fprintf(stderr,"Usage: %s [-r] [-u] [-t bufferType] [-i bufferType] [-s numBuffersSkipped] -f bufferFormat -m moduleType [-c configFile] input.evt\n",progName);
+	fprintf(stderr,"Usage: %s [-r] [-u] [-t bufferType] [-i bufferType] [-s numBuffersSkipped] (-c configFile | -f bufferFormat -m moduleType) input.evt\n",progName);
 	fprintf(stderr,"\t-c configFile\t Load the configuration file specified.\n");
 	fprintf(stderr,"\t-f bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
 	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_BUFFER_FORMATS);
