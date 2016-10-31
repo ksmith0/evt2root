@@ -24,7 +24,7 @@
 
 
 int usage(const char *progName="") {
-	fprintf(stderr,"Usage: %s [-q] -c configFile -o output.root input1.evt [input2.evt...]\n",progName);
+	fprintf(stderr,"Usage: %s [-q] (-c configFile | -f format -m moduleType) -o output.root input1.evt [input2.evt...]\n",progName);
 	fprintf(stderr,"\t-c configFile\t Load the configuration file specified.\n");
 	fprintf(stderr,"\t-f bufferFormat\t Indicate the format of the buffer to be read. Possible options include:\n");
 	fprintf(stderr,"\t               \t  %s.\n",SUPPORTED_BUFFER_FORMATS);
