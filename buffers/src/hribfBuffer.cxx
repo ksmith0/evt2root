@@ -239,20 +239,22 @@ void hribfBuffer::ReadScalers(bool verbose) {
 	ReadStringBytes(23,verbose);
 
 	//Loop over the scalers and get the name and values.
-	std::vector< std::pair< UInt_t, Float_t > > scalerValues;
+	std::vector< std::pair< Double_t, Double_t > > scalerValues;
 	std::vector< std::string > scalerNames;
 	std::string scalerName;
-	while((scalerName = ReadStringBytes(15,verbose)).find_first_not_of(" ") != std::string::npos) {
+	while((scalerName = ReadStringBytes(12,verbose)).find_first_not_of(" ") != std::string::npos) {
 		scalerNames.push_back(scalerName.substr(0,scalerName.find_first_of(" ")));
 
-		std::string scalerVal1 = ReadStringBytes(9,verbose);
-		std::string scalerVal2 = ReadStringBytes(12,verbose);
-		scalerValues.push_back(std::make_pair(std::stoi(scalerVal1),std::stof(scalerVal2)));
+		std::string scalerVal1 = ReadStringBytes(24,verbose);
+		scalerVal1 = scalerVal1.replace(scalerVal1.find_first_of("D"),1,"E");
+		std::string scalerVal2 = ReadStringBytes(30,verbose);
+		scalerVal2 = scalerVal2.replace(scalerVal2.find_first_of("D"),1,"E");
+		scalerValues.push_back(std::make_pair(std::stof(scalerVal1),std::stof(scalerVal2)));
 
-		ReadStringBytes(4,verbose);
+		ReadStringBytes(14,verbose);
 
 		if (verbose) {
-			printf("\tScaler '%s' %d %.3e\n\n",scalerNames.back().c_str(),scalerValues.back().first,scalerValues.back().second);
+			printf("\tScaler '%s' %e %e\n\n",scalerNames.back().c_str(),scalerValues.back().first,scalerValues.back().second);
 		}
 	}
 
