@@ -343,18 +343,18 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 		return 0;
 	}
 
-	UInt_t eventTotLength = GetWord(4); //From data stream.
+	UInt_t eventTotLength = GetWord(2); //From data stream.
 	//UInt_t eventTotLength = (GetBufferSize() - GetHeaderSize()) * GetWordSize(); //Computed including all fragments
 	if (eventTotLength == 0) return 1;
 
 	if (verbose) {
 		printf ("\nData Event:\n");
-		printf("\t%#010x Length: %d Bytes (%d words)\n",eventTotLength,eventTotLength,eventTotLength/GetWordSize());
+		printf("\t%#06x Length: %d Bytes (%d words)\n",eventTotLength,eventTotLength,eventTotLength/GetWordSize());
 	}
 
 	//We loop over each data source until the event is consumed. 
 	int payloadCount = 0;
-	UInt_t payloadSourceID;
+	UInt_t payloadSourceID = 0;
 	while (GetBufferPositionBytes() - eventStartPos < eventTotLength) {
 		UInt_t fragmentLengthBytes; //Length of a single fragment in bytes.
 		//If the event is built from the evtBuilder we need to read out the header info.
@@ -386,18 +386,20 @@ int nsclRingBuffer::ReadEvent(bool verbose) {
 			fragmentStartPos = GetBufferPositionBytes(); //Position in file where fragment starts.
 			fragmentLengthBytes = payloadSize - payloadBodyHeaderSize - 8; //Length of a single fragment. Extra 8 bytes for Ring item header.
 		}
-		else fragmentLengthBytes = eventTotLength; //If not building the event must be the size of everything excpet the header.
+		else fragmentLengthBytes = 2 * (eventTotLength - 1); //If not building the event must be the size of everything excpet the header.
 
 		if (verbose) {
 			printf("\t%10c Fragment Length: %d Bytes\n",' ', fragmentLengthBytes);
 		}
 
 		while (GetBufferPositionBytes() - fragmentStartPos < fragmentLengthBytes) { //Continue looping until we have consumed the expected number of words.
-			int packetLength = GetWord(); //The length of the packet.
-			int packetTag = GetWord();  //The tag fr the packet.
-			if (verbose) {
-				printf("\t%#010X Packet length: %d\n",packetLength,packetLength);
-				printf("\t%#010X Packet tag: %d\n",packetTag,packetTag);
+			if (isBuilding_) {
+				int packetLength = GetWord(); //The length of the packet.
+				int packetTag = GetWord();  //The tag fr the packet.
+				if (verbose) {
+					printf("\t%#010X Packet length: %d\n",packetLength,packetLength);
+					printf("\t%#010X Packet tag: %d\n",packetTag,packetTag);
+				}
 			}
 
 			//Loop over each module

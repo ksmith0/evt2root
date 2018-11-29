@@ -63,7 +63,7 @@ void Caen_General::ReadEvent(mainBuffer *buffer, bool verbose)
 		datum_ = buffer->GetWord(4);
 		type_ = (datum_ & ALLH_TYPEMASK) >> ALLH_TYPESHIFT;
 		geo_ = (datum_ & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
-		if (verbose) printf ("\t%#08X type_: %d geo_: %2d\n",datum_,type_,geo_);
+		if (verbose) printf ("\t%#08X type: %d geo: %2d\n",datum_,type_,geo_);
 	}
 	else if (verbose) printf("\n");
 }	
